@@ -10,4 +10,4 @@ window.ADDR_BSC   = "0x82ec9da2a486c0875ce67710ab7b7ad3b0490ce3";
 window.DATEME_ADMIN_EMAIL = "toki11799@gmail.com";
 
 // API base for Node server (use Vercel URL initially, then switch to findateme.com after DNS propagation)
-window.API_BASE = "https://findateme.vercel.app"; // Change to https://findateme.com after 24 hours
+window.API_BASE = "https://findateme.com";
