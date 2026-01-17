@@ -178,12 +178,16 @@
       const modal = document.getElementById("signupWelcomeModal");
       const close = document.getElementById("signupWelcomeClose");
       const ok = document.getElementById("signupWelcomeOk");
-      if (!modal) return;
+      if (!modal) {
+        // Fallback if modal doesn't exist
+        setTimeout(() => { location.href = "home.html"; }, 500);
+        return;
+      }
       const hide = () => {
         modal.classList.remove("show");
         modal.setAttribute("aria-hidden","true");
         modal.setAttribute("hidden","hidden");
-        location.href = "home.html";
+        setTimeout(() => { location.href = "home.html"; }, 100);
       };
       modal.removeAttribute("hidden");
       modal.classList.add("show");
@@ -562,41 +566,22 @@
       }
       setLoading(true);
 
+      const fullName = [firstEl.value, lastEl.value].filter(Boolean).join(" ").trim();
+      const profileDraft = readProfileStore();
+      const age = Number(ageEl.value) || "";
+      const photo = pendingPhoto || profileDraft.photo || "";
+
+      // Sign up with Supabase
       const { data, error } = await sb.auth.signUp({ email, password: pass });
-     const user = data.user;
-
-const { error: insertError } = await sb
-  .from("users")
-  .insert({
-    id: user.id, // ⚠️ MUST match auth.uid()
-    name: fullName,
-    email,
-    username,
-    city: (cityEl.value || "").trim(),
-    country: (countryEl.value || "").trim(),
-    gender: (genderEl.value || "").trim(),
-    age,
-    photo
-  });
-
-if (insertError){
-  setMsg(insertError.message, "err");
-  setLoading(false);
-  return;
-}
       if (error){
         setMsg(error.message, "err");
         setLoading(false);
         return;
       }
 
-      const fullName = [firstEl.value, lastEl.value].filter(Boolean).join(" ").trim();
-      const profileDraft = readProfileStore();
-      const age = Number(ageEl.value) || "";
-      const photo = pendingPhoto || profileDraft.photo || "";
+      const user = data.user;
 
-
-      // ✅ Save profile to MySQL database
+      // Save profile to MySQL database via API
       try {
         await fetch(`${API_BASE}/register_user.php`, {
           method: "POST",
