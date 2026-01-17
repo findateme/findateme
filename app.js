@@ -892,7 +892,9 @@ function applyFilters(){
 
   let arr = state.all.filter(p => {
     const uname = (p.username || "").toLowerCase();
-    const matchQ = !q || uname.includes(q);
+    const name = (p.name || "").toLowerCase();
+    // Search in both username and name
+    const matchQ = !q || uname.includes(q) || name.includes(q);
     const matchAge = p.age >= minAge && p.age <= maxAge;
     const matchOnline = online === "all" ? true : p.online === true;
     return matchQ && matchAge && matchOnline;
