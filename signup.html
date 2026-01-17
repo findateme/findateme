@@ -610,6 +610,7 @@
       localStorage.setItem("dateme_user_welcome_notice", "true");
       localStorage.removeItem("dateme_signup_flow");
       localStorage.setItem("dateme_active_user", email.toLowerCase());
+      localStorage.setItem("dateme_local_session", "true"); // ✅ Mark as authenticated
       const finalDraft = readProfileStore();
       finalDraft.email = email.toLowerCase();
       finalDraft.username = username.toLowerCase();
