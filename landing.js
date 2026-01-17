@@ -3,7 +3,18 @@ const $ = (id) => document.getElementById(id);
 
 function rand(min, max){ return Math.random() * (max-min) + min; }
 
+// Detect if device is mobile to avoid heavy animations
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+         window.innerWidth <= 768;
+}
+
+const IS_MOBILE = isMobileDevice();
+
 function spawnHearts(){
+  // Skip heart animation on mobile for performance
+  if (IS_MOBILE) return;
+  
   const layer = document.querySelector(".loveLayer");
   if (!layer) return;
 

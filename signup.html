@@ -596,6 +596,27 @@ if (insertError){
       const photo = pendingPhoto || profileDraft.photo || "";
 
 
+      // ✅ Save profile to MySQL database
+      try {
+        await fetch(`${API_BASE}/register_user.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: fullName,
+            email,
+            username,
+            city: (cityEl.value || "").trim(),
+            country: (countryEl.value || "").trim(),
+            gender: (genderEl.value || "").trim(),
+            age,
+            photo
+          })
+        });
+      } catch (dbErr) {
+        console.error("MySQL save error:", dbErr);
+        // Continue anyway - Supabase save was successful
+      }
+
       const registry = readUserRegistry();
       upsertRegistryEntry(registry, { email, username, name: fullName });
       saveUserRegistry(registry);

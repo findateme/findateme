@@ -2911,3 +2911,211 @@ body[data-page="signup"] select.authInput optgroup{
   background: var(--bg0);
   color: var(--text);
 }
+
+/* ===== MOBILE PERFORMANCE OPTIMIZATION ===== */
+@media (max-width: 768px) {
+  /* Disable heavy blur effects on mobile */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  .topbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(7,10,18,.75);
+  }
+  
+  .authBack {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0,0,0,.50);
+  }
+  
+  .authCard {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(10,12,22,.95);
+  }
+  
+  .callNotice__backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  .modal__backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  /* Reduce background gradients */
+  body {
+    background: linear-gradient(180deg, var(--bg0), var(--bg1)) !important;
+  }
+  
+  body[data-page="login"],
+  body[data-page="signup"] {
+    background: linear-gradient(160deg, #0a0b14, #140a22) !important;
+  }
+  
+  body[data-page="landing"] {
+    background: linear-gradient(180deg, var(--bg0), var(--bg1)) !important;
+  }
+  
+  body[data-page="inbox"] {
+    background: linear-gradient(180deg, var(--bg0), var(--bg1)) !important;
+  }
+  
+  /* Disable complex animations on mobile */
+  .heart,
+  .landingHeart,
+  .orbit__heart,
+  .pumping-heart::before,
+  .pumping-heart::after {
+    animation: none !important;
+    -webkit-animation: none !important;
+    display: none !important;
+  }
+  
+  .orb {
+    animation: none !important;
+    -webkit-animation: none !important;
+    opacity: 0.3 !important;
+  }
+  
+  body[data-page="landing"]::after {
+    animation: none !important;
+    display: none !important;
+  }
+  
+  /* Reduce shadows */
+  .pcard {
+    box-shadow: 0 8px 24px rgba(0,0,0,.30) !important;
+  }
+  
+  .pill.primary,
+  .nav__link.upgrade,
+  .sideMenu__item.upgrade {
+    box-shadow: none !important;
+  }
+  
+  .authCard {
+    box-shadow: 0 12px 40px rgba(0,0,0,.35) !important;
+  }
+  
+  .modal__panel,
+  .storyModal__panel,
+  .welcomeModal__panel,
+  .aboutModal {
+    box-shadow: 0 10px 30px rgba(0,0,0,.40) !important;
+  }
+  
+  /* Disable filter effects */
+  .pcard img {
+    filter: none !important;
+  }
+  
+  .storyModal__media img {
+    filter: none !important;
+  }
+  
+  .pumping-heart::after {
+    filter: none !important;
+  }
+  
+  /* Reduce text shadows */
+  .logoType {
+    text-shadow: none !important;
+  }
+  
+  /* Simplify the orbit animation container */
+  .orbit {
+    display: none !important;
+  }
+  
+  /* Disable drop shadows on hearts */
+  .orbit__heart {
+    filter: none !important;
+  }
+  
+  .typingLove {
+    filter: none !important;
+  }
+  
+  /* Optimize modal backgrounds */
+  .modal__panel {
+    background: rgba(10,12,22,.95) !important;
+  }
+  
+  .storyModal__panel {
+    background: rgba(10,12,22,.95) !important;
+  }
+  
+  .aboutModal {
+    background: rgba(7,8,18,.95) !important;
+  }
+  
+  /* Reduce animation durations */
+  .searchBtn::after {
+    animation: none !important;
+  }
+  
+  .sideMenu__item.upgrade::after {
+    animation: none !important;
+  }
+  
+  .mutedLink--premium::after {
+    animation: none !important;
+  }
+  
+  /* Disable smooth scroll on mobile */
+  html {
+    scroll-behavior: auto;
+  }
+  
+  /* Will-change optimization */
+  .orbit,
+  .orbit__heart,
+  .pumping-heart {
+    will-change: auto !important;
+  }
+  
+  /* Reduce filter blur effects */
+  body[data-page="landing"]::before {
+    filter: none !important;
+  }
+}
+
+/* Extra optimization for very small phones */
+@media (max-width: 480px) {
+  .sideMenuOrbit {
+    display: none !important;
+  }
+  
+  .aboutOrbit {
+    display: none !important;
+  }
+  
+  .card-shell .orbit {
+    inset: -20px -20px !important;
+    display: none !important;
+  }
+  
+  /* Reduce gradient complexity further */
+  .authCard::before {
+    opacity: 0.3 !important;
+  }
+  
+  .modal__panel::before {
+    display: none !important;
+  }
+  
+  .inboxSidebar {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(7,10,18,.80) !important;
+  }
+  
+  .inboxChat {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

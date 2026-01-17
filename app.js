@@ -2,6 +2,10 @@
 
 const $ = (id) => document.getElementById(id);
 
+// Mobile performance detection
+const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                  window.innerWidth <= 768;
+
 const state = {
   page: 0,
   pageSize: 9,
@@ -354,9 +358,10 @@ async function loadRemoteUsers(){
     if (Array.isArray(data.users)){
       list = data.users;
       saveRemoteCache(list);
+      return list;
     }
   }catch(e){
-    // keep cached list
+    console.error("Error fetching remote users:", e);
   }
   return Array.isArray(list) ? list : [];
 }
@@ -369,9 +374,32 @@ function stripCurrentUser(list){
   );
 }
 
+function restoreDefaultProfiles(){
+  // Initialize localStorage with default profiles
+  localStorage.setItem("dateme_profiles_women", JSON.stringify(WOMEN_LIST));
+  localStorage.setItem("dateme_profiles_men", JSON.stringify(MEN_LIST));
+  state.all = WOMEN_LIST;
+  localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
+}
+
 async function syncRemoteProfiles(gender){
   const users = await loadRemoteUsers();
-  if (!users.length) return;
+  if (!users.length) {
+    // If no remote users, restore from default profiles
+    const cacheKey = gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
+    let cached = [];
+    try {
+      cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+    } catch(e) {
+      cached = [];
+    }
+    // If cache is empty, use defaults
+    if (!cached.length) {
+      restoreDefaultProfiles();
+      setGender(gender);
+    }
+    return;
+  }
   const allProfiles = normalizeRemoteProfiles(users);
   const menList = filterProfilesByGender(allProfiles, "men");
   const womenList = filterProfilesByGender(allProfiles, "women");
@@ -406,7 +434,14 @@ function init(){
   initRandomOnlineStatus();
 
   applyFilters();
+  
+  // ✅ Sync remote profiles immediately
   syncRemoteProfiles(state.gender);
+  
+  // ✅ Refresh profiles every 30 seconds to show new signups
+  setInterval(() => {
+    syncRemoteProfiles(state.gender);
+  }, 30000);
 
   const menToggle = $("menToggle");
   if (menToggle){
@@ -674,7 +709,15 @@ function setGender(gender){
   const cleaned = Array.isArray(cached)
     ? cached.filter(p => String(p.email || "").trim())
     : [];
-  state.all = stripCurrentUser(cleaned);
+  
+  // If cache is empty, use default profiles
+  if (cleaned.length === 0) {
+    const defaultProfiles = gender === "men" ? MEN_LIST : WOMEN_LIST;
+    state.all = stripCurrentUser(defaultProfiles);
+  } else {
+    state.all = stripCurrentUser(cleaned);
+  }
+  
   localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
   const menToggle = $("menToggle");
   if (menToggle) menToggle.textContent = gender === "men" ? "For Women" : "For Men";
