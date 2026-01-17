@@ -328,8 +328,50 @@ app.post("/verify_txid.php", async (req, res) => {
 
 app.use(express.static(path.join(__dirname)));
 
+// Route root
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Route HTML pages
+app.get("/signup.html", (_req, res) => {
+  res.sendFile(path.join(__dirname, "signup.html"));
+});
+
+app.get("/signup", (_req, res) => {
+  res.sendFile(path.join(__dirname, "signup.html"));
+});
+
+app.get("/login.html", (_req, res) => {
+  res.sendFile(path.join(__dirname, "login.html"));
+});
+
+app.get("/login", (_req, res) => {
+  res.sendFile(path.join(__dirname, "login.html"));
+});
+
+app.get("/home.html", (_req, res) => {
+  res.sendFile(path.join(__dirname, "home.html"));
+});
+
+app.get("/home", (_req, res) => {
+  res.sendFile(path.join(__dirname, "home.html"));
+});
+
+app.get("/profile.html", (_req, res) => {
+  res.sendFile(path.join(__dirname, "profile.html"));
+});
+
+app.get("/profile", (_req, res) => {
+  res.sendFile(path.join(__dirname, "profile.html"));
+});
+
+app.get("/inbox.html", (_req, res) => {
+  res.sendFile(path.join(__dirname, "inbox.html"));
+});
+
+app.get("/inbox", (_req, res) => {
+  res.sendFile(path.join(__dirname, "inbox.html"));
 });
 
 app.get("/health", (_req, res) => {
