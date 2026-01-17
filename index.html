@@ -46,6 +46,23 @@
       min-height:100dvh;
     }
     img,video{max-width:100%; height:auto; display:block}
+    
+    /* Hide broken images and show gradient placeholder */
+    img[src*="randomuser.me"],
+    img[src*="profile-3"] {
+      background: linear-gradient(135deg, #ff4fd8, #7c4dff) !important;
+      color: white !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-weight: bold !important;
+    }
+    
+    img[src*="randomuser.me"]::before,
+    img[src*="profile-3"]::before {
+      content: '👤' !important;
+      font-size: 48px !important;
+    }
 
     /* Floating coins/hearts vibe */
     .bg-float{position:fixed; inset:0; pointer-events:none; opacity:.65; filter:saturate(1.1)}
