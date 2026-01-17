@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — People</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body data-page="people">
+   
+<div class="hearts">
+  <span class="heart" style="left:4%;  animation-duration:34s;"></span>
+  <span class="heart" style="left:8%;  animation-duration:38s; animation-delay:6s;"></span>
+  <span class="heart" style="left:12%; animation-duration:41s; animation-delay:12s;"></span>
+
+  <span class="heart" style="left:18%; animation-duration:36s; animation-delay:3s;"></span>
+  <span class="heart" style="left:22%; animation-duration:44s; animation-delay:9s;"></span>
+  <span class="heart" style="left:27%; animation-duration:39s; animation-delay:15s;"></span>
+
+  <span class="heart" style="left:33%; animation-duration:35s; animation-delay:5s;"></span>
+  <span class="heart" style="left:38%; animation-duration:46s; animation-delay:11s;"></span>
+  <span class="heart" style="left:42%; animation-duration:40s; animation-delay:17s;"></span>
+
+  <span class="heart" style="left:48%; animation-duration:34s; animation-delay:8s;"></span>
+  <span class="heart" style="left:54%; animation-duration:45s; animation-delay:14s;"></span>
+  <span class="heart" style="left:58%; animation-duration:37s; animation-delay:20s;"></span>
+
+  <span class="heart" style="left:64%; animation-duration:43s; animation-delay:7s;"></span>
+  <span class="heart" style="left:69%; animation-duration:36s; animation-delay:13s;"></span>
+  <span class="heart" style="left:74%; animation-duration:48s; animation-delay:19s;"></span>
+
+  <span class="heart" style="left:80%; animation-duration:39s; animation-delay:10s;"></span>
+  <span class="heart" style="left:86%; animation-duration:44s; animation-delay:16s;"></span>
+  <span class="heart" style="left:92%; animation-duration:41s; animation-delay:22s;"></span>
+</div>  
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+<a class="logo" href="home.html" aria-label="DateMe Home">
+  
+  <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+    
+    <path
+      d="M60 104
+         C60 104, 18 76, 18 42
+         C18 22, 34 10, 50 10
+         C67 10, 79 23, 84 33
+         C89 23, 101 10, 118 10
+         C134 10, 150 22, 150 42
+         C150 76, 60 104, 60 104 Z"
+      fill="none"
+      stroke="rgba(255,255,255,.92)"
+      stroke-width="8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      transform="translate(-24,0)"
+    />
+    
+    <path
+      d="M60 100
+         C60 100, 24 74, 24 44
+         C24 28, 36 18, 50 18
+         C64 18, 74 27, 80 36
+         C86 27, 96 18, 110 18
+         C124 18, 136 28, 136 44
+         C136 74, 60 100, 60 100 Z"
+      fill="none"
+      stroke="rgba(255,77,109,.95)"
+      stroke-width="4"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      transform="translate(-8,0)"
+      opacity=".95"
+    />
+  </svg>
+
+  
+  <span class="logoType"><b>Date</b>Me</span>
+</a>
+      <nav class="nav" aria-label="Primary"></nav>
+    </div>
+
+      <div class="topbar__right">
+      <div class="topbarSearch">
+        <div class="searchBar searchBar--mini">
+          <input id="q" class="searchInput" type="text" placeholder="Search username..." />
+          <button class="searchBtn searchBtn--premium" id="applyBtn" type="button">Search</button>
+        </div>
+      </div>
+      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Open menu" onclick="document.getElementById('sideMenu').classList.add('show');document.getElementById('sideMenu').setAttribute('aria-hidden','false');">☰</button>
+<a class="avatar" title="Profile" href="profile.html" aria-label="My Profile">
+  <span class="avatar__icon" aria-hidden="true">👤</span>
+  <img class="avatar__img" alt="" loading="lazy" />
+</a>    </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    
+     
+    
+    <section class="content">
+      <div class="stories" id="stories"></div>
+      <input id="storyInput" type="file" accept="image/*" hidden />
+      <div class="emptyState" id="emptyState" style="display:none;">
+        <div class="emptyState__title">No results found</div>
+        <div class="muted">Try another name.</div>
+      </div>
+
+      <div class="contentTop">
+        <div>
+          <h1 class="h1">People</h1>
+          <p class="muted" style="margin-top:6px">Find matches that actually feel real.</p>
+        </div>
+
+        <div class="meta"></div>
+      </div>
+
+      <div class="cardbox" id="adminEntry" style="display:none; margin:0 0 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800;">Admin</div>
+            <div class="muted" style="font-size:13px;">Open admin tools and conversations.</div>
+          </div>
+          <a class="btn" href="admin_home.html">Open Admin</a>
+        </div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="loadWrap">
+        <button class="btn primary" id="loadMoreBtn" type="button">Load more</button>
+        <div class="spinner" id="spinner" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    
+   
+  </main>
+
+  <div class="sideMenu" id="sideMenu" aria-hidden="true">
+    <div class="sideMenu__panel">
+      <button class="sideMenu__close" id="sideMenuClose" type="button" onclick="document.getElementById('sideMenu').classList.remove('show');document.getElementById('sideMenu').setAttribute('aria-hidden','true');">✕</button>
+      <button class="sideMenu__row" id="menToggle" type="button">
+        <span class="sideMenu__icon">♀️♂️</span>
+        <span>Men / Women</span>
+        <span class="sideMenu__chev">›</span>
+      </button>
+      <a class="sideMenu__row" href="profile.html">
+        <span class="sideMenu__icon">👤</span>
+        <span>My Profile</span>
+        <span class="sideMenu__chev">›</span>
+      </a>
+      <a class="sideMenu__row" href="notifications.html">
+        <span class="sideMenu__icon">🔔</span>
+        <span>Notifications</span>
+        <span class="sideMenu__badge" id="notifBadge">0</span>
+        <span class="sideMenu__chev">›</span>
+      </a>
+      <a class="sideMenu__row" href="inbox.html">
+        <span class="sideMenu__icon">💬</span>
+        <span>Inbox</span>
+        <span class="sideMenu__chev">›</span>
+      </a>
+      <a class="sideMenu__row" href="profile.html">
+        <span class="sideMenu__icon">⚙️</span>
+        <span>Settings & privacy</span>
+        <span class="sideMenu__chev">›</span>
+      </a>
+      <button class="sideMenu__row" id="aboutUsBtn" type="button">
+        <span class="sideMenu__icon">💙</span>
+        <span>About Us</span>
+        <span class="sideMenu__chev">›</span>
+      </button>
+      <div class="sideMenu__footer">
+        <button class="sideMenu__item logout" id="logoutBtn" type="button">Logout</button>
+        <a class="sideMenu__item upgrade" href="profile-upgrade.html">Pay $8 to upgrade your profile</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const adminEntry = document.getElementById("adminEntry");
+      if (!adminEntry) return;
+      const adminEmail = String(window.DATEME_ADMIN_EMAIL || "").toLowerCase();
+      let email = "";
+      try{
+        if (window.DateMeAuth && DateMeAuth.getUser){
+          const user = await DateMeAuth.getUser();
+          email = String(user?.email || "").toLowerCase();
+        }
+      }catch(e){}
+      if (!email){
+        try{
+          const profile = JSON.parse(localStorage.getItem("dateme_profile") || "{}");
+          email = String(profile?.email || "").toLowerCase();
+        }catch(e){}
+      }
+      if (adminEmail && email === adminEmail){
+        adminEntry.style.display = "block";
+      }
+    });
+  </script>
+
+  <div class="aboutOverlay" id="aboutOverlay" aria-hidden="true">
+    <div class="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+      <div class="orbit aboutOrbit" aria-hidden="true">
+        <span class="orbit__heart h1">💗</span>
+        <span class="orbit__heart h2">💖</span>
+        <span class="orbit__heart h3">💞</span>
+        <span class="orbit__heart h4">💘</span>
+        <span class="orbit__heart h5">💕</span>
+        <span class="orbit__heart h6">💜</span>
+        <span class="orbit__heart h7">💓</span>
+        <span class="orbit__heart h8">💝</span>
+      </div>
+      <button class="aboutClose" id="aboutClose" type="button" aria-label="Close">✕</button>
+      <h2 id="aboutTitle">💙 About Us – DateMe</h2>
+      <div class="aboutBody">
+        <p>DateMe was founded in 2025 with one simple idea:<br>dating should feel real again.</p>
+        <p>In a world full of swipe fatigue, fake profiles, and endless conversations that go nowhere, we set out to build a platform focused on genuine human connection.</p>
+        <p>DateMe is a modern dating platform designed for people who value authenticity, privacy, and meaningful conversations. We help singles meet others who are serious about building real connections—not just swiping.</p>
+        <p>Trust and safety are at the core of everything we do. That’s why DateMe focuses on:</p>
+        <ul>
+          <li>Real profiles, not bots</li>
+          <li>Strong privacy and safety tools</li>
+          <li>Respectful communication</li>
+          <li>Transparent user-first policies</li>
+        </ul>
+        <p>Built for the modern generation, DateMe supports privacy-focused payments, including crypto, giving members more control over how they engage with the platform.</p>
+        <p>We’re starting in New York City, growing our community carefully and intentionally, with plans to expand across the United States.</p>
+        <p>At DateMe, we’re not here to replace real life—we’re here to help you find someone worth meeting in it.</p>
+        <p>Join DateMe and start something real.</p>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="storyModal" id="storyModal" aria-hidden="true">
+    <div class="storyModal__backdrop" id="storyModalClose"></div>
+    <div class="storyModal__panel" role="dialog" aria-modal="true">
+      <button class="storyModal__x" id="storyModalX" title="Close" type="button">✕</button>
+      <div class="storyModal__body">
+        <div class="storyModal__media" id="storyModalMedia">
+          <img id="storyModalImg" alt="" />
+          <div class="storyModal__lock">
+            <div class="storyModal__lockIcon">🔒</div>
+            <div class="storyModal__lockTitle">Locked Story</div>
+            <div class="storyModal__lockText">Unlock to view full story.</div>
+            <a class="btn primary" href="profile-upgrade.html">Unlock Premium</a>
+          </div>
+        </div>
+        <div class="storyModal__info">
+          <h3 id="storyModalName">Story</h3>
+          <p class="muted">Stories are premium-only. Upgrade to view.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="welcomeModal" id="welcomeModal" aria-hidden="true">
+    <div class="welcomeModal__backdrop" id="welcomeClose"></div>
+    <div class="welcomeModal__panel" role="dialog" aria-modal="true">
+      <div class="welcomeBadge">Welcome ✨</div>
+      <h2 class="welcomeTitle">Welcome, <span id="welcomeName">Friend</span>!</h2>
+      <p class="welcomeLead">Your account is ready.</p>
+      <p id="welcomeMsg" class="muted">Let’s find someone worth meeting.</p>
+      <button class="btn primary" id="welcomeOk" type="button">OK</button>
+    </div>
+  </div>
+
+  <div class="welcomeModal" id="userWelcomeModal" aria-hidden="true">
+    <div class="welcomeModal__backdrop" id="userWelcomeClose"></div>
+    <div class="welcomeModal__panel" role="dialog" aria-modal="true">
+      <div class="welcomeBadge">💖 Welcome, love!</div>
+      <h2 class="welcomeTitle">Thanks for signing up on DateMe</h2>
+      <p class="muted">Your account is secured—continue to explore DateMe.</p>
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
+        <button class="btn primary" id="userWelcomeExplore" type="button">Explore</button>
+        <a class="btn ghost" href="profile-upgrade.html">Upgrade</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="welcomeModal" id="upgradeCongratsModal" aria-hidden="true">
+    <div class="welcomeModal__backdrop" id="upgradeCongratsClose"></div>
+    <div class="welcomeModal__panel" role="dialog" aria-modal="true">
+      <div class="welcomeBadge">🎉 Congratulations</div>
+      <h2 class="welcomeTitle">Premium Activated</h2>
+      <p class="muted">Unlimited messages and full stories are now unlocked.</p>
+      <button class="btn primary" id="upgradeCongratsOk" type="button">Go to Home</button>
+    </div>
+  </div>
+
+  
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal__backdrop" id="modalClose"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true">
+      <button class="modal__x" id="modalX" title="Close" type="button">✕</button>
+
+      <div class="modal__body">
+        <div class="modal__img">
+          <img id="mImg" alt="" />
+          <span class="badge" id="mBadge">ONLINE</span>
+        </div>
+
+        <div class="modal__info">
+          <h2 id="mName">Name</h2>
+          <p class="muted" id="mMeta">—</p>
+
+          <div class="chips" id="mChips"></div>
+
+          <div class="modal__actions">
+            <button class="btn primary" id="chatBtn" type="button">Chat now</button>
+            <button class="btn" id="likeBtn" type="button">♡ Like</button>
+        </div>
+          <div class="note" id="mNote"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div id="chatPanel" class="chatPanel" style="display:none">
+  <div class="chatHead">
+    <div>
+      <b id="chatWith">Chat</b>
+      <div id="chatStatus" class="muted" style="font-size:12px;margin-top:2px"></div>
+    </div>
+    <button id="chatCloseBtn" class="iconbtn" type="button">✕</button>
+  </div>
+
+  <div id="chatBody" class="chatBody"></div>
+
+  <form id="chatForm" class="chatForm">
+    <input id="chatInput" class="chatInput" placeholder="Type a message…" autocomplete="off" />
+    <button class="pill" type="submit">Send</button>
+  </form>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("menuBtn");
+    const menu = document.getElementById("sideMenu");
+    const close = document.getElementById("sideMenuClose");
+    if (btn && menu) {
+      btn.addEventListener("click", () => {
+        menu.classList.add("show");
+        menu.setAttribute("aria-hidden","false");
+      });
+    }
+    if (close && menu) {
+      close.addEventListener("click", () => {
+        menu.classList.remove("show");
+        menu.setAttribute("aria-hidden","true");
+      });
+    }
+  });
+</script>
+</body>
+</html>

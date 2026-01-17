@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Profile</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-page="profile-view">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <a class="logo" href="home.html" aria-label="DateMe Home">
+          <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+            <path
+              d="M60 104
+                 C60 104, 18 76, 18 42
+                 C18 22, 34 10, 50 10
+                 C67 10, 79 23, 84 33
+                 C89 23, 101 10, 118 10
+                 C134 10, 150 22, 150 42
+                 C150 76, 60 104, 60 104 Z"
+              fill="none"
+              stroke="rgba(255,255,255,.92)"
+              stroke-width="8"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              transform="translate(-24,0)"
+            />
+            <path
+              d="M60 100
+                 C60 100, 24 74, 24 44
+                 C24 28, 36 18, 50 18
+                 C64 18, 74 27, 80 36
+                 C86 27, 96 18, 110 18
+                 C124 18, 136 28, 136 44
+                 C136 74, 60 100, 60 100 Z"
+              fill="none"
+              stroke="rgba(255,77,109,.95)"
+              stroke-width="4"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              transform="translate(-8,0)"
+              opacity=".95"
+            />
+          </svg>
+          <span class="logoType"><b>Date</b>Me</span>
+        </a>
+      </div>
+      <div class="topbar__right">
+        <a class="pill ghost" href="home.html">Back</a>
+        <a class="nav__link upgrade" href="profile-upgrade.html">Upgrade</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout" style="grid-template-columns:1fr;">
+    <section class="content" style="max-width:980px; margin:0 auto;">
+      <div class="cardbox profileHero">
+        <div class="profileHero__media">
+          <img id="pvHeroImg" alt="" />
+        </div>
+        <div class="profileHero__info">
+          <h1 id="pvName">Profile</h1>
+          <p class="muted" id="pvMeta">—</p>
+          <p class="muted" id="pvStatus">—</p>
+          <div class="profileStats">
+            <span id="pvLikes" class="muted">0 likes</span>
+          </div>
+          <div class="profileActions">
+            <a class="btn primary" id="pvChatBtn" href="inbox.html">Chat now</a>
+            <button class="btn" id="pvLikeBtn" type="button">♡ Like</button>
+          </div>
+          <div class="chips" id="pvTags"></div>
+        </div>
+      </div>
+
+      <div class="profileGrid">
+        <div class="cardbox">
+          <h3 class="sideTitle">Gallery (Locked)</h3>
+          <div class="profileGallery" id="pvGallery"></div>
+          <div style="height:10px"></div>
+          <a class="btn primary" href="profile-upgrade.html">Upgrade to Unlock</a>
+        </div>
+
+        <div class="cardbox">
+          <h3 class="sideTitle">Contact & Address</h3>
+          <div class="lockedList">
+            <div class="lockedRow"><span>Phone</span><b>Locked</b></div>
+            <div class="lockedRow"><span>Instagram</span><b>Locked</b></div>
+            <div class="lockedRow"><span>Home Address</span><b>Locked</b></div>
+          </div>
+          <div style="height:10px"></div>
+          <a class="btn primary" href="profile-upgrade.html">Upgrade to Unlock</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const gender = params.get("gender") || "women";
+
+    function getProfiles(){
+      try{ return JSON.parse(localStorage.getItem("dateme_profiles") || "[]"); }
+      catch(e){ return []; }
+    }
+
+    const profilesKey = `dateme_profiles_${gender}`;
+    const p = (() => {
+      try{
+        const list = JSON.parse(localStorage.getItem(profilesKey) || "[]");
+        return list.find(x => String(x.id) === String(id)) || null;
+      }catch(e){
+        return getProfiles().find(x => String(x.id) === String(id)) || null;
+      }
+    })();
+    const likeMap = (() => {
+      try{ return JSON.parse(localStorage.getItem("dateme_like_counts") || "{}"); }
+      catch(e){ return {}; }
+    })();
+    const lastSeenMap = (() => {
+      try{ return JSON.parse(localStorage.getItem("dateme_last_seen_map") || "{}"); }
+      catch(e){ return {}; }
+    })();
+
+    function formatLastSeen(ts){
+      if (!ts) return "Last seen a few hours ago";
+      const diffMs = Date.now() - Number(ts);
+      const mins = Math.floor(diffMs / 60000);
+      const hours = Math.floor(mins / 60);
+      if (mins < 60) return `Last seen ${Math.max(1, mins)} min ago`;
+      if (hours < 24) return `Last seen ${hours} hour${hours === 1 ? "" : "s"} ago`;
+      const days = Math.floor(hours / 24);
+      return `Last seen ${days} day${days === 1 ? "" : "s"} ago`;
+    }
+
+    function formatTime(ts){
+      const d = new Date(ts);
+      const hh = d.getHours();
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const ap = hh >= 12 ? "PM" : "AM";
+      const h12 = String(((hh + 11) % 12) + 1);
+      return `${h12}:${mm} ${ap}`;
+    }
+
+    if (p){
+      const hero = document.getElementById("pvHeroImg");
+      if (hero) hero.src = p.img;
+      document.getElementById("pvName").textContent = `${p.name}, ${p.age}`;
+      document.getElementById("pvMeta").textContent = `${p.city}, ${p.country}`;
+      const status = document.getElementById("pvStatus");
+      const lastSeen = lastSeenMap[`${gender}-${p.id}`];
+      if (status){
+        status.textContent = p.online ? "Online now" : `${formatLastSeen(lastSeen)}${lastSeen ? ` • ${formatTime(lastSeen)}` : ""}`;
+      }
+      const likesEl = document.getElementById("pvLikes");
+      if (likesEl){
+        likesEl.textContent = `${likeMap[`${gender}-${p.id}`] || 0} likes`;
+      }
+      const chatBtn = document.getElementById("pvChatBtn");
+      if (chatBtn){
+        chatBtn.href = `inbox.html?gender=${encodeURIComponent(gender)}&id=${encodeURIComponent(p.id)}`;
+      }
+      const tags = document.getElementById("pvTags");
+      if (tags){
+        tags.innerHTML = (p.tags || []).map(t => `<span class="tag">${t}</span>`).join("");
+      }
+      const gallery = document.getElementById("pvGallery");
+      if (gallery){
+        const items = Array.from({length:6}).map(() => `
+          <div class="profileThumb">
+            <img src="${p.img}" alt="" />
+            <div class="lockOverlay small">
+              <div class="lockOverlay__icon">🔒</div>
+            </div>
+          </div>
+        `);
+        gallery.innerHTML = items.join("");
+      }
+    }
+
+    function showLikePop(){
+      let pop = document.querySelector(".likePop");
+      if (!pop){
+        pop = document.createElement("div");
+        pop.className = "likePop";
+        pop.textContent = "Liked 💗";
+        document.body.appendChild(pop);
+      }
+      pop.classList.remove("show");
+      void pop.offsetWidth;
+      pop.classList.add("show");
+      setTimeout(() => pop.classList.remove("show"), 1400);
+    }
+
+    const likeBtn = document.getElementById("pvLikeBtn");
+    if (likeBtn){
+      likeBtn.addEventListener("click", () => {
+        if (!p) return;
+        likeBtn.classList.add("liked");
+        likeMap[`${gender}-${p.id}`] = (likeMap[`${gender}-${p.id}`] || 0) + 1;
+        localStorage.setItem("dateme_like_counts", JSON.stringify(likeMap));
+        const likesEl = document.getElementById("pvLikes");
+        if (likesEl) likesEl.textContent = `${likeMap[`${gender}-${p.id}`]} likes`;
+        showLikePop();
+      });
+    }
+  </script>
+</body>
+</html>

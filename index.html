@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DateMe — Where Serious Meets Sparks</title>
+  <meta name="description" content="DateMe blends serious intent, playful sparks, and premium matchmaking in one elegant experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Pacifico&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0b0f1e;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.16);
+      --text: rgba(255,255,255,.94);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --shadow: 0 22px 90px rgba(0,0,0,.55);
+      --blur: blur(18px);
+      --r: 18px;
+      --r2: 28px;
+      --a: 160ms ease;
+      --pink: #ff4fd8;
+      --gold: #ffd59a;
+      --violet:#7c4dff;
+      --cyan:#4df0ff;
+      --ok:#72ffb8;
+      --bad:#ff6b8b;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.26), transparent 55%),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.22), transparent 55%),
+                  radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.12), transparent 60%),
+                  linear-gradient(180deg, #0a0d1a 0%, #0b0f1e 45%, #0a0d18 100%);
+      overflow-x:hidden;
+      min-height:100svh;
+      min-height:100dvh;
+    }
+    img,video{max-width:100%; height:auto; display:block}
+
+    /* Floating coins/hearts vibe */
+    .bg-float{position:fixed; inset:0; pointer-events:none; opacity:.65; filter:saturate(1.1)}
+    .orb{
+      position:absolute; width:220px; height:220px;
+      background:
+        radial-gradient(closest-side, rgba(255,79,216,.28), transparent 65%),
+        radial-gradient(closest-side, rgba(124,77,255,.24), transparent 70%),
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 55%);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 40px 120px rgba(0,0,0,.5);
+      animation: float 18s ease-in-out infinite;
+      transform-style: preserve-3d;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z' fill='white' transform='translate(-24,0)'/%3E%3C/svg%3E") center/contain no-repeat;
+              mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z' fill='white' transform='translate(-24,0)'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+    .orb::after{
+      content:""; position:absolute; inset:10px;
+      background:
+        radial-gradient(closest-side, rgba(255,255,255,.22), transparent 62%);
+      opacity:.7;
+      filter: blur(1px);
+      -webkit-mask: inherit;
+              mask: inherit;
+    }
+    .orb.one{left:-70px; top:80px; animation-duration: 22s}
+    .orb.two{right:-90px; top:140px; width:260px; height:260px; animation-duration: 26s; animation-delay:-5s}
+    .orb.three{left:25%; bottom:-140px; width:320px; height:320px; animation-duration: 30s; animation-delay:-12s}
+
+    @keyframes float{
+      0%,100%{transform: translate3d(0,0,0) rotate(0deg)}
+      50%{transform: translate3d(0,-22px,0) rotate(8deg)}
+    }
+    .landingHearts{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:1;
+    }
+    .landingHeart{
+      position:absolute;
+      bottom:-20px;
+      width:14px;
+      height:14px;
+      background: rgba(255,79,216,.35);
+      transform: rotate(45deg);
+      filter: drop-shadow(0 0 8px rgba(255,79,216,.35));
+      animation: heartFloat linear infinite;
+      opacity:.55;
+    }
+    .landingHeart::before,
+    .landingHeart::after{
+      content:"";
+      position:absolute;
+      width:14px;
+      height:14px;
+      background: inherit;
+      border-radius:50%;
+    }
+    .landingHeart::before{top:-7px; left:0}
+    .landingHeart::after{left:-7px; top:0}
+    @keyframes heartFloat{
+      0%{transform: translateY(0) rotate(45deg); opacity:.55;}
+      100%{transform: translateY(-120vh) rotate(45deg); opacity:.1;}
+    }
+
+    .wrap{max-width:1180px; margin:0 auto; padding:28px 18px 68px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      position:sticky; top:0; padding:14px 0;
+      backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      background: linear-gradient(to bottom, rgba(7,8,18,.78), rgba(7,8,18,.20));
+      z-index:10;
+    }
+    .logo{
+      font-weight:900;
+      letter-spacing:.2px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:22px;
+      text-decoration:none;
+      color:var(--text);
+    }
+    .logoMark{
+      width:46px;
+      height:46px;
+      display:block;
+      filter: drop-shadow(0 8px 16px rgba(255,79,216,.35));
+    }
+    .logoType{
+      font-weight:900;
+      letter-spacing:.4px;
+      font-size:34px;
+      font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+      color: transparent;
+      background: linear-gradient(135deg, #ffffff 0%, #ffd6e3 25%, #ff4d6d 55%, #ffffff 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      text-shadow: 0 6px 20px rgba(255,79,216,.25);
+    }
+    nav{display:flex; gap:10px; align-items:center}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      padding:10px 12px; border-radius:999px; color:var(--muted);
+      text-decoration:none; transition: transform var(--a), background var(--a), border-color var(--a);
+    }
+    .pill:hover{transform: translateY(-1px); background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18)}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding:12px 14px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--text); text-decoration:none; font-weight:600;
+      transition: transform var(--a), background var(--a), border-color var(--a), box-shadow var(--a);
+      box-shadow: 0 16px 60px rgba(0,0,0,.35);
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22)}
+    .btn.primary{
+      border-color: rgba(255,79,216,.35);
+      background: linear-gradient(135deg, rgba(255,79,216,.28), rgba(124,77,255,.24));
+      box-shadow: 0 18px 70px rgba(255,79,216,.12), 0 18px 70px rgba(124,77,255,.10);
+    }
+
+    .hero{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    @media (max-width: 980px){
+      .hero{grid-template-columns:1fr; }
+      nav .pill{display:none}
+    }
+    @media (max-width: 640px){
+      header{flex-wrap:wrap}
+      .wrap{padding:22px 14px 48px}
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: var(--r2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(520px 260px at 10% 10%, rgba(255,79,216,.16), transparent 60%),
+        radial-gradient(520px 260px at 90% 10%, rgba(124,77,255,.16), transparent 60%);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .card > *{position:relative; z-index:1}
+    .hero-left{padding:26px 22px}
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      font-weight:600; font-size:12px;
+    }
+    .k-dot{width:8px; height:8px; border-radius:999px; background:linear-gradient(135deg, var(--pink), var(--violet))}
+    h1{
+      margin:14px 0 10px;
+      font-size: clamp(28px, 3.7vw, 48px);
+      line-height: 1.05;
+      letter-spacing:-.02em;
+    }
+    .sub{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size: 15px;
+      line-height:1.6;
+      max-width: 62ch;
+    }
+
+    .vibes{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin: 14px 0 16px;
+    }
+    .toggle{
+      cursor:pointer;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      transition: transform var(--a), background var(--a), border-color var(--a);
+      user-select:none;
+      font-weight:600;
+    }
+    .toggle:hover{transform: translateY(-1px); background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.20)}
+    .toggle.active{
+      color: rgba(255,255,255,.92);
+      background: linear-gradient(135deg, rgba(255,79,216,.18), rgba(124,77,255,.16));
+      border-color: rgba(255,79,216,.28);
+    }
+    .badge{
+      font-size:12px; font-weight:700;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.80);
+    }
+    .badge.serious{border-color: rgba(114,255,184,.25); background: rgba(114,255,184,.08)}
+    .badge.flirty{border-color: rgba(255,79,216,.25); background: rgba(255,79,216,.08)}
+    .badge.premium{border-color: rgba(255,213,154,.28); background: rgba(255,213,154,.10); color: rgba(255,243,228,.92)}
+
+    .cta-row{display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px}
+    .promoBanner{
+      margin-top:16px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(260px 120px at 10% 20%, rgba(255,79,216,.25), transparent 60%),
+        radial-gradient(260px 120px at 90% 0%, rgba(124,77,255,.22), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      box-shadow: 0 18px 60px rgba(255,79,216,.18);
+    }
+    .promoBanner__title{
+      font-weight:800;
+      font-size:16px;
+    }
+    .promoBanner__sub{
+      color:var(--muted);
+      font-size:13px;
+    }
+    .promoBanner__badge{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+      font-size:12px;
+      font-weight:700;
+      color:#fff;
+    }
+    .btn.hero-primary{
+      border-color: rgba(255,79,216,.45);
+      background: linear-gradient(135deg, rgba(255,79,216,.55), rgba(124,77,255,.35));
+      box-shadow: 0 18px 70px rgba(255,79,216,.22), 0 18px 70px rgba(124,77,255,.18);
+      position:relative;
+      overflow:hidden;
+    }
+    .btn.hero-primary::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+      transform: rotate(20deg);
+      animation: sheen 3.6s linear infinite;
+    }
+    .btn.hero-primary span{
+      position:relative;
+      z-index:1;
+    }
+    .btn.hero-primary .free-pill{
+      margin-left:8px;
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.18);
+      color:#fff;
+      font-weight:700;
+    }
+    .fine{
+      margin-top:14px;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    /* Right panel: Preview + trust */
+    .hero-right{display:flex; flex-direction:column}
+    .preview{
+      padding:18px;
+      display:flex; flex-direction:column; gap:12px;
+      height:100%;
+    }
+    .stack{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 520px){ .stack{grid-template-columns:1fr} }
+
+    .mini{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--r);
+      padding:14px;
+    }
+    .mini h3{margin:0 0 8px; font-size:14px}
+    .mini p{margin:0; color:var(--muted); font-size:13px; line-height:1.5}
+    .sparkline{
+      height:72px; border-radius: 14px;
+      background:
+        radial-gradient(130px 60px at 18% 55%, rgba(255,79,216,.22), transparent 60%),
+        radial-gradient(110px 70px at 58% 35%, rgba(124,77,255,.22), transparent 60%),
+        radial-gradient(100px 60px at 84% 65%, rgba(77,240,255,.14), transparent 60%),
+        rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      position:relative;
+    }
+    .sparkline:before{
+      content:""; position:absolute; inset:-40%;
+      background: conic-gradient(from 180deg, rgba(255,79,216,.0), rgba(255,79,216,.22), rgba(124,77,255,.22), rgba(77,240,255,.12), rgba(255,79,216,.0));
+      animation: spin 7s linear infinite;
+      opacity:.7;
+      filter: blur(6px);
+    }
+    @keyframes spin{to{transform: rotate(360deg)}}
+
+    .trust{
+      margin-top:10px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .trustline{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.035);
+    }
+    .icon{
+      width:34px; height:34px; border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      display:grid; place-items:center;
+      flex:0 0 auto;
+    }
+    .trustline b{display:block; font-size:13px; margin-bottom:2px}
+    .trustline span{color:var(--muted); font-size:12.5px; line-height:1.5}
+
+    /* Sections */
+    .below{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 980px){ .below{grid-template-columns:1fr} }
+    .feature{
+      padding:16px;
+      border-radius: var(--r2);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      position:relative;
+      overflow:hidden;
+    }
+    .feature:before{
+      content:""; position:absolute; inset:-80%;
+      background: radial-gradient(circle at 20% 20%, rgba(255,79,216,.18), transparent 55%),
+                  radial-gradient(circle at 80% 40%, rgba(124,77,255,.18), transparent 55%),
+                  radial-gradient(circle at 50% 80%, rgba(77,240,255,.10), transparent 60%);
+      opacity:.9;
+      transform: rotate(12deg);
+    }
+    .feature > *{position:relative; z-index:1}
+    .feature h4{margin:0 0 6px; font-size:15px}
+    .feature p{margin:0; color:var(--muted); font-size:13px; line-height:1.55}
+
+    .sectionHead{
+      margin-top:26px;
+    }
+    .sectionHead h2{margin:0; font-size:28px}
+    .sectionHead p{margin:8px 0 0}
+
+    .social{
+      margin-top:16px;
+    }
+    .storyGrid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 980px){ .storyGrid{grid-template-columns:1fr} }
+    .storyCard{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .storyCard img{
+      width:52px; height:52px; border-radius:16px;
+      object-fit:cover; border:1px solid rgba(255,255,255,.16);
+    }
+    .storyCard p{margin:6px 0 0; color:var(--muted); line-height:1.5}
+
+    .gallery{margin-top:18px;}
+    .peopleGrid{
+      display:grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){ .peopleGrid{grid-template-columns: repeat(3, 1fr)} }
+    @media (max-width: 520px){ .peopleGrid{grid-template-columns: repeat(2, 1fr)} }
+    .person{
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+      text-align:center;
+      padding-bottom:10px;
+    }
+    .person img{width:100%; aspect-ratio:1/1; object-fit:cover}
+    .person span{display:block; margin-top:8px; font-weight:700; font-size:12px}
+
+    .ratings{margin-top:18px;}
+    .ratingRow{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){ .ratingRow{grid-template-columns:1fr} }
+    .rateCard{
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .stars{font-size:16px; letter-spacing:2px; color:#ffd59a}
+    .rateCard p{margin:8px 0 8px; color:var(--muted); line-height:1.5}
+    .rateCard span{font-size:12px; color:var(--muted)}
+
+    .ctaWide{
+      margin-top:22px;
+      padding:18px;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.12);
+      background: linear-gradient(135deg, rgba(255,79,216,.12), rgba(124,77,255,.10));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .ctaWide h2{margin:0 0 6px; font-size:24px}
+    .ctaBtns{display:flex; gap:10px; flex-wrap:wrap}
+
+    .terms{margin-top:20px;}
+    .termsBox{
+      margin-top:12px;
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .about{margin-top:20px;}
+    .aboutBox{
+      margin-top:12px;
+      padding:18px;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(520px 260px at 10% 10%, rgba(255,79,216,.16), transparent 60%),
+        radial-gradient(520px 260px at 90% 20%, rgba(124,77,255,.16), transparent 60%),
+        rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      box-shadow: 0 18px 70px rgba(0,0,0,.35);
+    }
+
+    footer{
+      margin-top:22px;
+      color: rgba(255,255,255,.45);
+      font-size:12px;
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top:14px;
+    }
+    .links{display:flex; gap:12px; flex-wrap:wrap}
+    .links a{color: rgba(255,255,255,.55); text-decoration:none}
+    .links a:hover{color: rgba(255,255,255,.85)}
+    .pulse{
+      display:inline-block;
+      width:10px; height:10px; border-radius:999px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      box-shadow: 0 0 0 0 rgba(255,79,216,.45);
+      animation: pulse 1.6s infinite;
+      vertical-align:middle;
+      margin-right:8px;
+    }
+    @keyframes pulse{
+      0%{box-shadow: 0 0 0 0 rgba(255,79,216,.35)}
+      70%{box-shadow: 0 0 0 14px rgba(255,79,216,0)}
+      100%{box-shadow: 0 0 0 0 rgba(255,79,216,0)}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-float" aria-hidden="true">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
+  <div class="landingHearts" aria-hidden="true">
+    <span class="landingHeart" style="left:3%; animation-duration:32s;"></span>
+    <span class="landingHeart" style="left:7%; animation-duration:36s; animation-delay:4s;"></span>
+    <span class="landingHeart" style="left:11%; animation-duration:40s; animation-delay:8s;"></span>
+    <span class="landingHeart" style="left:15%; animation-duration:34s; animation-delay:12s;"></span>
+    <span class="landingHeart" style="left:19%; animation-duration:42s; animation-delay:6s;"></span>
+    <span class="landingHeart" style="left:23%; animation-duration:38s; animation-delay:10s;"></span>
+    <span class="landingHeart" style="left:27%; animation-duration:44s; animation-delay:14s;"></span>
+    <span class="landingHeart" style="left:31%; animation-duration:35s; animation-delay:2s;"></span>
+    <span class="landingHeart" style="left:35%; animation-duration:41s; animation-delay:9s;"></span>
+    <span class="landingHeart" style="left:39%; animation-duration:33s; animation-delay:5s;"></span>
+    <span class="landingHeart" style="left:43%; animation-duration:45s; animation-delay:11s;"></span>
+    <span class="landingHeart" style="left:47%; animation-duration:37s; animation-delay:16s;"></span>
+    <span class="landingHeart" style="left:51%; animation-duration:39s; animation-delay:7s;"></span>
+    <span class="landingHeart" style="left:55%; animation-duration:43s; animation-delay:13s;"></span>
+    <span class="landingHeart" style="left:59%; animation-duration:36s; animation-delay:3s;"></span>
+    <span class="landingHeart" style="left:63%; animation-duration:46s; animation-delay:15s;"></span>
+    <span class="landingHeart" style="left:67%; animation-duration:34s; animation-delay:6s;"></span>
+    <span class="landingHeart" style="left:71%; animation-duration:42s; animation-delay:12s;"></span>
+    <span class="landingHeart" style="left:75%; animation-duration:38s; animation-delay:8s;"></span>
+    <span class="landingHeart" style="left:79%; animation-duration:44s; animation-delay:18s;"></span>
+    <span class="landingHeart" style="left:83%; animation-duration:36s; animation-delay:4s;"></span>
+    <span class="landingHeart" style="left:87%; animation-duration:41s; animation-delay:10s;"></span>
+    <span class="landingHeart" style="left:91%; animation-duration:35s; animation-delay:14s;"></span>
+    <span class="landingHeart" style="left:95%; animation-duration:47s; animation-delay:20s;"></span>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <a class="logo" href="index.html" aria-label="DateMe Home">
+        <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+          <path
+            d="M60 104
+               C60 104, 18 76, 18 42
+               C18 22, 34 10, 50 10
+               C67 10, 79 23, 84 33
+               C89 23, 101 10, 118 10
+               C134 10, 150 22, 150 42
+               C150 76, 60 104, 60 104 Z"
+            fill="none"
+            stroke="rgba(255,255,255,.92)"
+            stroke-width="8"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-24,0)"
+          />
+          <path
+            d="M60 100
+               C60 100, 24 74, 24 44
+               C24 28, 36 18, 50 18
+               C64 18, 74 27, 80 36
+               C86 27, 96 18, 110 18
+               C124 18, 136 28, 136 44
+               C136 74, 60 100, 60 100 Z"
+            fill="none"
+            stroke="rgba(255,77,109,.95)"
+            stroke-width="4"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-8,0)"
+            opacity=".95"
+          />
+        </svg>
+        <span class="logoType"><b>Date</b>Me</span>
+      </a>
+
+      <nav>
+        <a class="pill" href="#how">How it works</a>
+        <a class="btn" href="login.html">Log in</a>
+        <a class="btn primary" href="signup.html">Create Account</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="card hero-left">
+        <div class="kicker"><span class="k-dot"></span> A serious dating app with playful sparks — and premium intent.</div>
+
+        <h1 id="heroTitle">Find someone who matches your heart and your future.</h1>
+        <p class="sub" id="heroSub">
+          DateMe combines <strong>serious intent</strong>, <strong>flirty chemistry</strong>, and a <strong>premium marriage-minded experience</strong>
+          so you don’t waste time on random matches.
+        </p>
+        <div class="muted" style="font-size:13px; margin-top:-6px;">1M+ people already signed up</div>
+
+        <div class="vibes" id="vibes">
+          <div class="toggle active" data-vibe="serious">
+            <span class="badge serious">Serious</span> Trust-first matches
+          </div>
+          <div class="toggle" data-vibe="flirty">
+            <span class="badge flirty">Flirty</span> Sparks & fun
+          </div>
+          <div class="toggle" data-vibe="premium">
+            <span class="badge premium">Premium</span> Marriage-minded
+          </div>
+        </div>
+
+        <div class="cta-row" id="start">
+          <a class="btn hero-primary" href="signup.html"><span>Free Sign Up</span><span class="free-pill">FREE</span></a>
+          <a class="btn" href="login.html">I already have an account</a>
+          <a class="btn" href="profile-upgrade.html">Upgrade Premium</a>
+        </div>
+        <div class="promoBanner">
+          <div>
+            <div class="promoBanner__title">Free Sign Up — Premium vibes, zero cost.</div>
+            <div class="promoBanner__sub">Create your profile in seconds and start matching today.</div>
+          </div>
+          <div class="promoBanner__badge">LIMITED</div>
+        </div>
+
+        <div class="fine">
+          <span class="pulse"></span>
+          <strong>Quality over quantity:</strong> fewer matches, deeper intent, better outcomes.<br>
+          By continuing you agree to respectful behavior & community safety.
+        </div>
+      </div>
+
+      <div class="card hero-right">
+        <div class="preview">
+          <div class="sparkline" aria-hidden="true"></div>
+
+          <div class="stack">
+            <div class="mini">
+              <h3>Serious by default ✅</h3>
+              <p>Intent badges + profile depth means less time-wasting.</p>
+            </div>
+            <div class="mini">
+              <h3>Flirty with boundaries 💗</h3>
+              <p>Playful signals (eye contact, spark, blush) — not cheap spam.</p>
+            </div>
+            <div class="mini">
+              <h3>Premium marriage-minded ✨</h3>
+              <p>Exclusivity mode + verification to keep the vibe high-quality.</p>
+            </div>
+            <div class="mini">
+              <h3>Smart icebreakers 💬</h3>
+              <p>First-message prompts that feel natural and romantic.</p>
+            </div>
+          </div>
+
+          <div class="trust" id="safety">
+            <div class="trustline">
+              <div class="icon">🛡️</div>
+              <div>
+                <b>Safety first</b>
+                <span>Report + block, anti-spam checks, and consent-focused chat.</span>
+              </div>
+            </div>
+            <div class="trustline">
+              <div class="icon">✅</div>
+              <div>
+                <b>Verified vibes</b>
+                <span>Badges for intent, and optional ID/selfie verification (premium).</span>
+              </div>
+            </div>
+            <div class="trustline" id="premium">
+              <div class="icon">💎</div>
+              <div>
+                <b>One Love Mode</b>
+                <span>Premium users can focus on one match at a time for real commitment.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="below" id="how">
+      <div class="feature">
+        <h4>1) Choose your intent</h4>
+        <p>Serious, flirty, or premium marriage-minded — mixed into one experience that stays classy.</p>
+      </div>
+      <div class="feature">
+        <h4>2) Match with meaning</h4>
+        <p>We prioritize values, lifestyle, and future plans — not just photos.</p>
+      </div>
+      <div class="feature">
+        <h4>3) Talk with comfort</h4>
+        <p>Icebreakers, reactions, and boundaries that keep chats respectful and fun.</p>
+      </div>
+    </section>
+
+    <section class="social" id="stories">
+      <div class="sectionHead">
+        <h2>Happy after signup</h2>
+        <p class="muted">People join for serious matches and stay for the quality.</p>
+      </div>
+      <div class="storyGrid">
+        <article class="storyCard">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Elena" />
+          <div>
+            <b>Elena • Lisbon</b>
+            <p>“I signed up, felt safe, and met someone who actually meant what they said.”</p>
+          </div>
+        </article>
+        <article class="storyCard">
+          <img src="https://randomuser.me/api/portraits/women/52.jpg" alt="Rina" />
+          <div>
+            <b>Rina • Tokyo</b>
+            <p>“The profiles are real. Less spam, more genuine conversations.”</p>
+          </div>
+        </article>
+        <article class="storyCard">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sofia" />
+          <div>
+            <b>Sofia • Madrid</b>
+            <p>“Premium felt worth it. I could finally focus on one real match.”</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="gallery">
+      <div class="sectionHead">
+        <h2>People you’ll actually like</h2>
+        <p class="muted">A clean, respectful experience with curated profiles.</p>
+      </div>
+      <div class="peopleGrid">
+        <div class="person"><img src="assets/profile-30.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+        <div class="person"><img src="assets/profile-31.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+        <div class="person"><img src="assets/profile-32.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+        <div class="person"><img src="assets/profile-33.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+        <div class="person"><img src="assets/profile-34.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+        <div class="person"><img src="assets/profile-35.jpg" alt="Profile" loading="lazy"/><span>Profile</span></div>
+      </div>
+    </section>
+
+    <section class="ratings" id="ratings">
+      <div class="sectionHead">
+        <h2>4.9 ★ average rating</h2>
+        <p class="muted">Based on 70,000+ verified reviews.</p>
+      </div>
+      <div class="ratingRow">
+        <div class="rateCard">
+          <div class="stars">★★★★★</div>
+          <p>“Best dating experience I’ve tried. It feels premium and respectful.”</p>
+          <span>— Maya</span>
+        </div>
+        <div class="rateCard">
+          <div class="stars">★★★★★</div>
+          <p>“Great filters, clean UI, and people actually reply.”</p>
+          <span>— Nora</span>
+        </div>
+        <div class="rateCard">
+          <div class="stars">★★★★☆</div>
+          <p>“Good matches and safe chats. Love the vibe.”</p>
+          <span>— Kiara</span>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="ctaWide" id="start">
+      <div>
+        <h2>Ready to find a real match?</h2>
+        <p class="muted">Create your profile, choose your intent, and start meeting people who want the same thing.</p>
+      </div>
+      <div class="ctaBtns">
+        <a class="btn primary" href="signup.html">Create Account</a>
+        <a class="btn" href="login.html">Log in</a>
+      </div>
+    </section>
+
+    <section class="terms" id="terms">
+      <div class="sectionHead">
+        <h2>Terms & Conditions</h2>
+        <p class="muted">Short version — clear and honest.</p>
+      </div>
+      <div class="termsBox">
+        <p>By using DateMe, you agree to treat others respectfully. No harassment, spam, or misleading profiles.</p>
+        <p>Premium features include stories, calls, and contact visibility. Payments are final after activation.</p>
+        <p>We may remove accounts that violate safety rules or community guidelines.</p>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <div class="sectionHead">
+        <h2>About Us</h2>
+        <p class="muted">A serious dating platform built with respect and real intent.</p>
+      </div>
+      <div class="aboutBox">
+        💙 About Us – DateMe
+
+DateMe was founded in 2025 with one simple idea:
+dating should feel real again.
+
+In a world full of swipe fatigue, fake profiles, and endless conversations that go nowhere, we set out to build a platform focused on genuine human connection.
+
+DateMe is a modern dating platform designed for people who value authenticity, privacy, and meaningful conversations. We help singles meet others who are serious about building real connections—not just swiping.
+
+Trust and safety are at the core of everything we do. That’s why DateMe focuses on:
+
+Real profiles, not bots
+
+Strong privacy and safety tools
+
+Respectful communication
+
+Transparent user-first policies
+
+Built for the modern generation, DateMe supports privacy-focused payments, including crypto, giving members more control over how they engage with the platform.
+
+We’re starting in New York City, growing our community carefully and intentionally, with plans to expand across the United States.
+
+At DateMe, we’re not here to replace real life—we’re here to help you find someone worth meeting in it.
+
+Join DateMe and start something real.
+      </div>
+    </section>
+    <section class="privacy" id="privacy">
+      <div class="sectionHead">
+        <h2>privacy Policy</h2>
+        <p class="muted">Your privacy matters.</p>
+      </div>
+      <div class="aboutBox">
+        Privacy Policy – DateMe
+
+Your privacy matters.
+
+DateMe was built with privacy as a core principle. We believe you should be able to connect with others without giving up control over your personal data.
+
+We only collect the information necessary to create your profile and help you match with other users. Your messages, photos, and activity are protected using secure systems and are never sold to third parties.
+
+What we protect:
+	•	Your personal information
+	•	Your chat messages
+	•	Your profile photos
+	•	Your payment data
+
+We do not track you across the internet. We do not show your data to advertisers. You decide what to share and with whom.
+
+DateMe exists to create connections — not to exploit your data.
+</div>
+    </section>
+    <section class="safety" id="safety">
+      <div class="sectionHead">
+        <h2>SAfety & Security</h2>
+        <p class="muted">Your safety is our priority.</p>
+      </div>
+      <div class="aboutBox">
+                        Safety & Security – DateMe
+
+Your safety is our priority.
+
+We use smart monitoring, reporting tools, and manual review systems to keep DateMe a safe place to connect. If someone behaves inappropriately, you can report or block them instantly.
+
+Our safety features include:
+	•	Profile verification tools
+	•	Report & block system
+	•	Message filtering
+	•	Secure encrypted chats
+
+We actively remove fake accounts and suspicious behavior to protect our community.
+
+At DateMe, real connections should never come with risk.
+</div>
+    </section>
+    </section>
+<section class="support" id="support">
+      <div class="sectionHead">
+        <h2>Support</h2>
+        <p class="muted">We are here for you.</p>
+      </div>
+      <div class="aboutBox">Support – DateMe
+
+We are here for you.
+
+Whether you have a question, need help, or want to report an issue, the DateMe support team is always ready to listen.
+
+You can contact us for:
+	•	Account problems
+	•	Payment issues
+	•	Profile verification
+	•	Reporting users
+	•	Technical help
+
+We believe good support builds trust — and trust builds better connections.
+
+You’re never alone on DateMe.</div>
+    </section>
+
+
+
+
+    <footer>
+      <div>© <span id="y"></span> ©️ 2025 DateMe. Founded in 2025.</div>
+      <div class="links">
+    <a href="#" onclick="openPopup('privacy')">Privacy</a>
+    <a href="#" onclick="openPopup('terms')">Terms</a>
+    <a href="#" onclick="openPopup('safety')">Safety</a>
+    <a href="#" onclick="openPopup('support')">Support</a>
+  </div>
+    </footer>
+  </div>
+
+  <script>
+    // Year
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    const copy = {
+      serious: {
+        title: "Find someone who matches your heart and your future.",
+        sub: "Serious intent, real compatibility, and fewer time-wasters. Built for people who want something meaningful — not endless scrolling."
+      },
+      flirty: {
+        title: "Turn chemistry into something real — without the cringe.",
+        sub: "Flirty sparks, playful signals, and classy boundaries. Feel the vibe, talk naturally, and let it grow."
+      },
+      premium: {
+        title: "Premium matchmaking for people who are marriage-minded.",
+        sub: "Elegant experience, optional verification, and One Love Mode — focus on one match at a time for real commitment."
+      }
+    };
+
+    const toggles = [...document.querySelectorAll(".toggle")];
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSub = document.getElementById("heroSub");
+
+    toggles.forEach(t => {
+      t.addEventListener("click", () => {
+        toggles.forEach(x => x.classList.remove("active"));
+        t.classList.add("active");
+        const vibe = t.dataset.vibe;
+        heroTitle.textContent = copy[vibe].title;
+        heroSub.textContent = copy[vibe].sub;
+      });
+    });
+  </script>
+  <div id="popupOverlay" class="popupOverlay">
+  <div class="popupBox">
+    <span class="popupClose" onclick="closePopup()">×</span>
+    <h2 id="popupTitle"></h2>
+    <div id="popupContent"></div>
+  </div>
+</div>
+</body>
+</html>

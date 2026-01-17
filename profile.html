@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DateMe - Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#070812;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.55);
+      --shadow: 0 18px 80px rgba(0,0,0,.55);
+      --blur: blur(18px);
+      --r: 18px;
+      --r2: 26px;
+      --a: 160ms ease;
+      --pink: #ff4fd8;
+      --violet:#7c4dff;
+      --cyan:#4df0ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.25), transparent 55%),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.22), transparent 55%),
+                  radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.12), transparent 60%),
+                  var(--bg);
+      overflow-x:hidden;
+      min-height:100svh;
+      min-height:100dvh;
+    }
+    img,video{max-width:100%; height:auto; display:block}
+    body[data-theme="light"]{
+      --bg:#f7f8ff;
+      --card: rgba(12,16,32,.05);
+      --stroke: rgba(12,16,32,.12);
+      --text:#0c1020;
+      --muted: rgba(12,16,32,.70);
+      --muted2: rgba(12,16,32,.55);
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.14), transparent 55%),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.12), transparent 55%),
+                  radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.08), transparent 60%),
+                  var(--bg);
+    }
+
+    .wrap{max-width:1120px; margin:0 auto; padding:24px 18px 56px}
+    header{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      position:sticky; top:0; z-index:10;
+      padding:12px 0;
+      backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      background: linear-gradient(to bottom, rgba(7,8,18,.72), rgba(7,8,18,.20));
+    }
+    body[data-theme="light"] header{
+      background: linear-gradient(to bottom, rgba(255,255,255,.85), rgba(255,255,255,.55));
+    }
+    .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text)}
+    .logo{
+      font-weight:900;
+      letter-spacing:.2px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:18px;
+    }
+    .logoMark{
+      width:34px;
+      height:34px;
+      display:block;
+    }
+    .logoType{
+      font-weight:900;
+      letter-spacing:.4px;
+      font-size:21px;
+      font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+      color: transparent;
+      background: linear-gradient(135deg, #ffffff 0%, #ffd6e3 30%, #ff4d6d 60%, #ffffff 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      text-shadow: 0 6px 18px rgba(255,79,216,.18);
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding:12px 14px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--text); text-decoration:none; font-weight:600;
+      transition: transform var(--a), background var(--a), border-color var(--a);
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22)}
+    .btn.primary{
+      border-color: rgba(255,79,216,.35);
+      background: linear-gradient(135deg, rgba(255,79,216,.28), rgba(124,77,255,.24));
+    }
+    .btn.logout{
+      border:0;
+      background: linear-gradient(135deg, rgba(255,79,216,.22), rgba(124,77,255,.18));
+      color: #fff;
+      font-weight:800;
+      box-shadow: 0 16px 45px rgba(255,79,216,.22);
+    }
+    .iconbtn{
+      width:40px; height:40px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      cursor:pointer;
+    }
+
+    .grid{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: var(--r2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding:16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .cardHead h1{margin:0 0 6px; font-size:20px}
+    .muted{color:var(--muted)}
+    .small{font-size:12px; color:var(--muted2)}
+
+    .profileForm{padding:16px; display:none; gap:16px}
+    .avatarRow{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+    .avatarBoxWrap{
+      position:relative;
+      width:110px;
+    }
+    .avatarBox{
+      width:110px; height:110px; border-radius:24px;
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.20), transparent 60%),
+        radial-gradient(circle at 65% 65%, rgba(77,240,255,.14), transparent 60%),
+        linear-gradient(135deg, rgba(255,79,216,.30), rgba(124,77,255,.24));
+      display:grid; place-items:center; overflow:hidden; position:relative;
+      box-shadow: 0 18px 55px rgba(255,79,216,.18), inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .avatarBox::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: conic-gradient(from 180deg, rgba(255,79,216,.0), rgba(255,79,216,.22), rgba(124,77,255,.20), rgba(77,240,255,.12), rgba(255,79,216,.0));
+      animation: spin 8s linear infinite;
+      opacity:.75;
+      filter: blur(8px);
+    }
+    .avatarEdit{
+      position:absolute;
+      bottom:-10px;
+      right:6px;
+      width:32px;
+      height:32px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(135deg, rgba(255,79,216,.26), rgba(124,77,255,.20));
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(255,79,216,.18);
+    }
+    .avatarBox img{width:100%; height:100%; object-fit:cover; display:none}
+    .avatarBox.has-img img{display:block}
+    .avatarBox.has-img::after{opacity:.45}
+    .avatarIcon{font-size:20px}
+
+    .fileBtn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      cursor:pointer; font-weight:600;
+    }
+    .ghostBtn{
+      padding:10px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      color:var(--text); cursor:pointer;
+    }
+
+    .fieldGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (max-width: 720px){ .fieldGrid{grid-template-columns:1fr} }
+    @media (max-width: 640px){
+      .wrap{padding:18px 14px 44px}
+      header{flex-wrap:wrap}
+      .cardHead{padding:14px}
+      .profileForm{padding:14px}
+      .profileSummary{padding:14px}
+    }
+
+    .field{display:grid; gap:6px}
+    .field span{font-size:12px; color:var(--muted)}
+    .field input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(7,10,18,.55);
+      color:var(--text);
+      outline:none;
+      transition:.15s ease;
+    }
+    body[data-theme="light"] .field input{
+      background: rgba(255,255,255,.75);
+    }
+    .field input:focus{border-color: rgba(255,79,216,.45); box-shadow: 0 0 0 4px rgba(255,79,216,.10)}
+    .field--full{grid-column: 1 / -1}
+    .phoneRow{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap:10px;
+      align-items:end;
+    }
+    .field select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(7,10,18,.55);
+      color:var(--text);
+      outline:none;
+      transition:.15s ease;
+    }
+    .romanticSelect{
+      background:
+        linear-gradient(135deg, rgba(255,79,216,.18), rgba(124,77,255,.16)),
+        rgba(7,10,18,.55);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .phoneCode{
+      appearance:none;
+      background:
+        linear-gradient(135deg, rgba(255,79,216,.18), rgba(124,77,255,.16)),
+        rgba(7,10,18,.55);
+      border:1px solid rgba(255,255,255,.18);
+      padding-right:34px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.8) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.8) 50%, transparent 50%);
+      background-position:
+        right 14px top 17px,
+        right 8px top 17px;
+      background-size:6px 6px, 6px 6px;
+      background-repeat:no-repeat;
+    }
+    body[data-theme="light"] .field select{
+      background: rgba(255,255,255,.75);
+    }
+    body[data-theme="light"] .phoneCode{
+      background:
+        linear-gradient(135deg, rgba(255,79,216,.12), rgba(124,77,255,.12)),
+        rgba(255,255,255,.75);
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(12,16,32,.7) 50%),
+        linear-gradient(135deg, rgba(12,16,32,.7) 50%, transparent 50%);
+    }
+
+    .formActions{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .status{font-size:12px; color:var(--muted)}
+
+    .profileSummary{padding:16px; display:grid; gap:12px}
+    .summaryTop{display:flex; gap:12px; align-items:center}
+    .summaryAvatar{
+      width:72px; height:72px; border-radius:18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .summaryAvatar img{width:100%; height:100%; object-fit:cover; display:none}
+    .summaryAvatar.has-img img{display:block}
+    .summaryName{font-weight:800; font-size:18px}
+    .summaryList{display:grid; gap:8px}
+    .summaryList div{display:flex; justify-content:space-between; gap:10px}
+    .summaryList span{color:var(--muted); font-size:12px}
+    .summaryList b{font-size:13px; font-weight:600}
+    .editRow{display:flex; gap:10px; flex-wrap:wrap}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <a class="logo" href="home.html" aria-label="DateMe Home">
+        <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+          <path
+            d="M60 104
+               C60 104, 18 76, 18 42
+               C18 22, 34 10, 50 10
+               C67 10, 79 23, 84 33
+               C89 23, 101 10, 118 10
+               C134 10, 150 22, 150 42
+               C150 76, 60 104, 60 104 Z"
+            fill="none"
+            stroke="rgba(255,255,255,.92)"
+            stroke-width="8"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-24,0)"
+          />
+          <path
+            d="M60 100
+               C60 100, 24 74, 24 44
+               C24 28, 36 18, 50 18
+               C64 18, 74 27, 80 36
+               C86 27, 96 18, 110 18
+               C124 18, 136 28, 136 44
+               C136 74, 60 100, 60 100 Z"
+            fill="none"
+            stroke="rgba(255,77,109,.95)"
+            stroke-width="4"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-8,0)"
+            opacity=".95"
+          />
+        </svg>
+        <span class="logoType"><b>Date</b>Me</span>
+      </a>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" href="home.html">Back</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHead">
+          <h1>My profile</h1>
+          <div class="muted">Your details are saved here.</div>
+        </div>
+
+        <div class="profileSummary" id="profileSummary">
+          <div class="summaryTop">
+            <div class="summaryAvatar" id="summaryAvatar">
+              <img id="summaryAvatarImg" alt="" />
+              <span class="avatarIcon">User</span>
+            </div>
+            <div>
+              <div class="summaryName" id="summaryName">Your name</div>
+              <div class="muted" id="summaryEmail">you@example.com</div>
+            </div>
+          </div>
+
+          <div class="summaryList">
+            <div><span>Phone</span><b id="summaryPhone">-</b></div>
+            <div><span>Age</span><b id="summaryAge">-</b></div>
+            <div><span>Address</span><b id="summaryAddress">-</b></div>
+          </div>
+
+          <div class="editRow">
+            <button class="btn primary" id="editProfileBtn" type="button">Edit profile</button>
+          </div>
+        </div>
+
+        <form id="profileForm" class="profileForm">
+          <div class="avatarRow">
+            <div class="avatarBoxWrap">
+              <div class="avatarBox" id="profileAvatarBox">
+                <img id="profileAvatarImg" alt="" />
+                <span class="avatarIcon">User</span>
+              </div>
+              <label class="avatarEdit" title="Change photo">
+                ✎
+                <input id="profilePhoto" type="file" accept="image/*" hidden />
+              </label>
+            </div>
+            <div style="display:grid; gap:8px; align-content:start">
+              <button class="btn primary" type="button" id="savePhotoBtn" style="display:none;">Save Photo</button>
+              <div class="small">JPG or PNG. Square looks best.</div>
+            </div>
+          </div>
+
+          <div class="fieldGrid">
+            <label class="field">
+              <span>Full name</span>
+              <input id="profileName" type="text" placeholder="Your name" />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input id="profileEmail" type="email" placeholder="you@example.com" />
+            </label>
+            <div class="field">
+              <span>Phone number</span>
+              <div class="phoneRow">
+                <select id="profilePhoneCode" class="phoneCode">
+                  <option value="+880">+880 BD</option>
+                  <option value="+91">+91 IN</option>
+                  <option value="+1">+1 US</option>
+                  <option value="+44">+44 UK</option>
+                  <option value="+971">+971 UAE</option>
+                  <option value="+966">+966 KSA</option>
+                  <option value="+65">+65 SG</option>
+                </select>
+                <input id="profilePhone" type="tel" placeholder="Phone number" />
+              </div>
+            </div>
+            <label class="field">
+              <span>Age</span>
+              <input id="profileAge" type="number" min="18" max="99" placeholder="24" />
+            </label>
+            <label class="field field--full">
+              <span>Address line</span>
+              <input id="profileAddress" type="text" placeholder="Street, area" />
+            </label>
+            <label class="field">
+              <span>City</span>
+              <input id="profileCity" type="text" />
+            </label>
+            <label class="field">
+              <span>State</span>
+              <input id="profileState" type="text" />
+            </label>
+            <label class="field">
+              <span>Country</span>
+              <select id="profileCountry" class="romanticSelect">
+                <option value="">Select country</option>
+                <option value="Bangladesh">Bangladesh</option>
+                <option value="India">India</option>
+                <option value="USA">USA</option>
+                <option value="UK">UK</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="UAE">UAE</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Malaysia">Malaysia</option>
+                <option value="Thailand">Thailand</option>
+                <option value="Philippines">Philippines</option>
+                <option value="Japan">Japan</option>
+                <option value="South Korea">South Korea</option>
+                <option value="Turkey">Turkey</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Zip</span>
+              <input id="profileZip" type="text" />
+            </label>
+          </div>
+
+          <div class="formActions">
+            <button class="btn primary" type="submit">Save changes</button>
+            <button class="btn" type="button" id="resetProfile">Reset</button>
+            <span class="status" id="profileStatus"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("profileForm");
+    const statusEl = document.getElementById("profileStatus");
+
+    const fields = {
+      name: document.getElementById("profileName"),
+      email: document.getElementById("profileEmail"),
+      phone: document.getElementById("profilePhone"),
+      phoneCode: document.getElementById("profilePhoneCode"),
+      age: document.getElementById("profileAge"),
+      address: document.getElementById("profileAddress"),
+      city: document.getElementById("profileCity"),
+      state: document.getElementById("profileState"),
+      country: document.getElementById("profileCountry"),
+      zip: document.getElementById("profileZip")
+    };
+
+    const avatarBox = document.getElementById("profileAvatarBox");
+    const avatarImg = document.getElementById("profileAvatarImg");
+    const savePhotoBtn = document.getElementById("savePhotoBtn");
+    const previewAvatar = document.getElementById("previewAvatar");
+    const previewAvatarImg = document.getElementById("previewAvatarImg");
+
+    const summary = {
+      name: document.getElementById("summaryName"),
+      email: document.getElementById("summaryEmail"),
+      phone: document.getElementById("summaryPhone"),
+      age: document.getElementById("summaryAge"),
+      address: document.getElementById("summaryAddress")
+    };
+    const summaryAvatar = document.getElementById("summaryAvatar");
+    const summaryAvatarImg = document.getElementById("summaryAvatarImg");
+
+    let currentPhoto = "";
+    let pendingPhoto = "";
+
+    function getActiveEmail(){
+      return String(localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+    }
+    function getProfileKey(email){
+      const clean = String(email || "").trim().toLowerCase();
+      return clean ? `dateme_profile_${clean}` : "dateme_profile";
+    }
+    function readStore(){
+      const active = getActiveEmail();
+      if (active){
+        try{
+          const stored = JSON.parse(localStorage.getItem(getProfileKey(active)) || "{}");
+          if (stored && Object.keys(stored).length) return stored;
+        }catch(e){
+          // fall through to default store
+        }
+      }
+      try{ return JSON.parse(localStorage.getItem("dateme_profile") || "{}"); }catch(e){ return {}; }
+    }
+    function saveStore(data){
+      const active = getActiveEmail();
+      const email = String(data.email || active || "").trim().toLowerCase();
+      if (email) localStorage.setItem("dateme_active_user", email);
+      localStorage.setItem(getProfileKey(email), JSON.stringify(data));
+      localStorage.setItem("dateme_profile", JSON.stringify(data));
+    }
+    function buildAddress(data){
+      const parts = [data.address, data.city, data.state, data.country, data.zip].filter(Boolean);
+      return parts.length ? parts.join(", ") : "-";
+    }
+    function setAvatar(src){
+      if (src){
+        avatarImg.src = src;
+        summaryAvatarImg.src = src;
+        avatarBox.classList.add("has-img");
+        summaryAvatar.classList.add("has-img");
+      }else{
+        avatarImg.removeAttribute("src");
+        summaryAvatarImg.removeAttribute("src");
+        avatarBox.classList.remove("has-img");
+        summaryAvatar.classList.remove("has-img");
+      }
+    }
+    function updatePreview(){
+      summary.name.textContent = fields.name.value || "Your name";
+      summary.email.textContent = fields.email.value || "you@example.com";
+      const phoneFull = fields.phone.value ? `${fields.phoneCode.value} ${fields.phone.value}` : "-";
+      summary.phone.textContent = phoneFull;
+      summary.age.textContent = fields.age.value || "-";
+      const data = collectData();
+      summary.address.textContent = buildAddress(data);
+    }
+    function collectData(){
+      return {
+        name: fields.name.value.trim(),
+        email: fields.email.value.trim(),
+        phone: fields.phone.value.trim(),
+        phoneCode: fields.phoneCode.value,
+        age: fields.age.value.trim(),
+        address: fields.address.value.trim(),
+        city: fields.city.value.trim(),
+        state: fields.state.value.trim(),
+        country: fields.country.value.trim(),
+        zip: fields.zip.value.trim(),
+        photo: currentPhoto
+      };
+    }
+    function load(){
+      const data = readStore();
+      fields.name.value = data.name || "";
+      fields.email.value = data.email || "";
+      fields.phone.value = data.phone || "";
+      fields.phoneCode.value = data.phoneCode || "+880";
+      fields.age.value = data.age || "";
+      fields.address.value = data.address || "";
+      fields.city.value = data.city || "";
+      fields.state.value = data.state || "";
+      fields.country.value = data.country || "";
+      fields.zip.value = data.zip || "";
+      currentPhoto = data.photo || "";
+      pendingPhoto = "";
+      setAvatar(currentPhoto);
+      updatePreview();
+      if (savePhotoBtn) savePhotoBtn.style.display = "none";
+    }
+
+    form.addEventListener("input", updatePreview);
+
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      if (pendingPhoto){
+        currentPhoto = pendingPhoto;
+        pendingPhoto = "";
+        if (savePhotoBtn) savePhotoBtn.style.display = "none";
+      }
+      saveStore(collectData());
+      statusEl.textContent = "Saved.";
+      setTimeout(()=> statusEl.textContent = "", 1600);
+      form.style.display = "none";
+      document.getElementById("profileSummary").style.display = "grid";
+    });
+
+    document.getElementById("resetProfile").addEventListener("click", ()=>{
+      const active = getActiveEmail();
+      if (active) localStorage.removeItem(getProfileKey(active));
+      localStorage.removeItem("dateme_profile");
+      currentPhoto = "";
+      load();
+      statusEl.textContent = "Reset.";
+      setTimeout(()=> statusEl.textContent = "", 1600);
+    });
+
+    document.getElementById("editProfileBtn").addEventListener("click", ()=>{
+      document.getElementById("profileSummary").style.display = "none";
+      form.style.display = "grid";
+    });
+
+    function compressImage(dataUrl, cb){
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        const out = canvas.toDataURL("image/jpeg", 0.8);
+        cb(out);
+      };
+      img.src = dataUrl;
+    }
+
+    document.getElementById("profilePhoto").addEventListener("change", (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        compressImage(reader.result, (result) => {
+          pendingPhoto = result;
+          setAvatar(pendingPhoto);
+          updatePreview();
+          if (savePhotoBtn) savePhotoBtn.style.display = "inline-flex";
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (savePhotoBtn){
+      savePhotoBtn.addEventListener("click", ()=>{
+        if (!pendingPhoto) return;
+        currentPhoto = pendingPhoto;
+        pendingPhoto = "";
+        try{
+          saveStore(collectData());
+        }catch(e){
+          statusEl.textContent = "Photo save failed. Try a smaller image.";
+          setTimeout(()=> statusEl.textContent = "", 1800);
+          return;
+        }
+        savePhotoBtn.style.display = "none";
+        statusEl.textContent = "Photo saved.";
+        setTimeout(()=> statusEl.textContent = "", 1600);
+      });
+    }
+
+    const themeBtn = document.getElementById("themeBtn");
+    if (themeBtn){
+      themeBtn.addEventListener("click", ()=>{
+        const cur = document.body.getAttribute("data-theme") || "dark";
+        const next = cur === "dark" ? "light" : "dark";
+        if (next === "light") document.body.setAttribute("data-theme","light");
+        else document.body.removeAttribute("data-theme");
+      });
+    }
+
+    load();
+    form.style.display = "none";
+    document.getElementById("profileSummary").style.display = "grid";
+  </script>
+</body>
+</html>

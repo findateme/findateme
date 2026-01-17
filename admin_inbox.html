@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Admin Inbox</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+</head>
+<body data-page="admin">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <a class="logo" href="home.html" aria-label="DateMe Home">
+          <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+            <path d="M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z"
+              fill="none" stroke="rgba(255,255,255,.92)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" transform="translate(-24,0)" />
+            <path d="M60 100 C60 100, 24 74, 24 44 C24 28, 36 18, 50 18 C64 18, 74 27, 80 36 C86 27, 96 18, 110 18 C124 18, 136 28, 136 44 C136 74, 60 100, 60 100 Z"
+              fill="none" stroke="rgba(255,77,109,.95)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" transform="translate(-8,0)" opacity=".95" />
+          </svg>
+          <span class="logoType"><b>Date</b>Me</span>
+        </a>
+      </div>
+      <div class="topbar__right">
+        <span class="pill ghost">Admin Inbox</span>
+        <a class="pill ghost" href="admin_users.html">Admin Signups</a>
+        <a class="pill ghost" href="admin_home.html">Admin Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout adminLayout">
+    <section class="content">
+      <div class="cardbox">
+        <h1 class="h1" style="margin:0 0 6px;">Messages</h1>
+        <p class="muted" style="margin:0;">This shows messages sent to your admin email.</p>
+        <div class="authMsg muted" id="adminInboxMsg" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="cardbox adminCard" style="margin-top:14px;">
+        <h3 style="margin:0 0 10px;">Send a reply</h3>
+        <form id="adminReplyForm" class="adminReply">
+          <input class="authInput" name="receiver_email" type="email" placeholder="Receiver email" required />
+          <textarea class="authInput adminTextarea" name="body" placeholder="Your message" rows="3" required></textarea>
+          <button class="authBtn" type="submit">Send Reply</button>
+        </form>
+      </div>
+
+      <div class="cardbox adminCard" style="margin-top:14px;">
+        <h3 style="margin:0 0 10px;">Latest messages</h3>
+        <div class="adminList" id="adminInboxList">
+          <div class="muted">Loading…</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = window.API_BASE || "";
+    const ADMIN_EMAIL = String(window.DATEME_ADMIN_EMAIL || "").trim();
+    const listEl = document.getElementById("adminInboxList");
+    const msgEl = document.getElementById("adminInboxMsg");
+    const formEl = document.getElementById("adminReplyForm");
+
+    function escapeHTML(value){
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function formatMessage(text){
+      return escapeHTML(text).replace(/\n/g, "<br>");
+    }
+
+    async function loadMessages(){
+      if (!listEl) return;
+      if (!ADMIN_EMAIL){
+        listEl.innerHTML = '<div class="muted">Admin email not configured.</div>';
+        return;
+      }
+      try{
+        const res = await fetch(`${API_BASE}/get_messages.php?email=${encodeURIComponent(ADMIN_EMAIL)}`);
+        const data = await res.json();
+        const rows = data.messages || [];
+        listEl.innerHTML = rows.map(r => `
+          <div class="adminMsg">
+            <div class="adminMsg__meta">
+              <span>${escapeHTML(r.sender_email || "")}</span>
+              <span>→</span>
+              <span>${escapeHTML(r.receiver_email || "")}</span>
+              <span class="muted">${escapeHTML(r.created_at || "")}</span>
+            </div>
+            <div class="adminMsg__body">${formatMessage(r.body || "")}</div>
+          </div>
+        `).join("") || '<div class="muted">No messages yet.</div>';
+      }catch(e){
+        listEl.innerHTML = '<div class="muted">Failed to load messages.</div>';
+      }
+    }
+
+    if (formEl){
+      formEl.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!ADMIN_EMAIL) return;
+        const form = new FormData(formEl);
+        const receiver = String(form.get("receiver_email") || "").trim();
+        const body = String(form.get("body") || "").trim();
+        msgEl.textContent = "";
+        msgEl.className = "authMsg muted";
+        if (!receiver || !body){
+          msgEl.textContent = "Receiver and message are required.";
+          msgEl.className = "authMsg err";
+          return;
+        }
+        try{
+          const res = await fetch(`${API_BASE}/send_message.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sender_email: ADMIN_EMAIL,
+              receiver_email: receiver,
+              body
+            })
+          });
+          const data = await res.json();
+          if (!data.ok){
+            msgEl.textContent = data.error || "Failed to send.";
+            msgEl.className = "authMsg err";
+            return;
+          }
+          formEl.reset();
+          msgEl.textContent = "Reply sent.";
+          msgEl.className = "authMsg ok";
+          loadMessages();
+        }catch(e){
+          msgEl.textContent = "Failed to send.";
+          msgEl.className = "authMsg err";
+        }
+      });
+    }
+
+    loadMessages();
+  </script>
+</body>
+</html>

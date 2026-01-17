@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Inbox</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="inbox.js" defer></script>
+</head>
+
+<body data-page="inbox">
+  <div class="inboxShell">
+    <!-- Sidebar (Messenger-style) -->
+    <aside class="inboxSidebar">
+      <div class="inboxSidebar__top">
+        <a class="logo" href="home.html" aria-label="DateMe Home">
+          <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+            <path
+              d="M60 104
+                 C60 104, 18 76, 18 42
+                 C18 22, 34 10, 50 10
+                 C67 10, 79 23, 84 33
+                 C89 23, 101 10, 118 10
+                 C134 10, 150 22, 150 42
+                 C150 76, 60 104, 60 104 Z"
+              fill="none"
+              stroke="rgba(255,255,255,.92)"
+              stroke-width="8"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              transform="translate(-24,0)"
+            />
+            <path
+              d="M60 100
+                 C60 100, 24 74, 24 44
+                 C24 28, 36 18, 50 18
+                 C64 18, 74 27, 80 36
+                 C86 27, 96 18, 110 18
+                 C124 18, 136 28, 136 44
+                 C136 74, 60 100, 60 100 Z"
+              fill="none"
+              stroke="rgba(255,77,109,.95)"
+              stroke-width="4"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              transform="translate(-8,0)"
+              opacity=".95"
+            />
+          </svg>
+          <span class="logoType"><b>Date</b>Me</span>
+        </a>
+        <div class="inboxSidebar__actions"></div>
+      </div>
+
+      <div class="inboxSearch">
+        <input class="inboxSearch__input" type="text" placeholder="Search Messenger" aria-label="Search" />
+      </div>
+
+      <div class="inboxSectionLabel">Chats</div>
+      <div id="threadList" class="contacts"></div>
+
+      <div id="emptyThreads" class="inboxEmpty" style="display:none;">
+        No chats yet. Go to People → open a profile → Chat.
+      </div>
+
+      <div class="inboxSidebar__foot"></div>
+    </aside>
+
+    <!-- Chat panel -->
+    <section class="inboxChat">
+      <div class="inboxChat__head">
+        <div class="inboxChat__user">
+          <div class="inboxChat__avatar" id="chatAvatarWrap">
+            <span class="inboxChat__avatarIcon" aria-hidden="true">👤</span>
+            <img id="chatAvatar" alt="" loading="lazy" />
+          </div>
+          <div class="inboxChat__meta">
+            <div id="chatTitle" class="inboxChat__title">Select a chat</div>
+            <div id="chatSub" class="muted">—</div>
+          </div>
+        </div>
+        <div class="callActions">
+          <button class="iconbtn callBtn backBtn" id="chatBackBtn" type="button" title="Back">←</button>
+          <button class="iconbtn callBtn" id="audioCallBtn" type="button" title="Audio call">📞</button>
+          <button class="iconbtn callBtn video" id="videoCallBtn" type="button" title="Video call" aria-label="Video call">
+            <svg class="callIcon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M16 10.5 20 8v8l-4-2.5v-3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="chatProfileCard" id="chatProfileCard" aria-hidden="true"></div>
+      </div>
+
+      <div id="chatBody" class="inboxChat__body"></div>
+
+      <div class="inboxChat__composer">
+        <button class="inboxChat__emojiBtn" id="emojiBtn" type="button">😊</button>
+        <button class="inboxChat__stickerBtn" id="stickerBtn" type="button">💗</button>
+        <input id="chatInput" class="inboxChat__input" placeholder="Aa" />
+        <button id="sendBtn" class="inboxChat__send" type="button">Send</button>
+      </div>
+      <div class="emojiPicker" id="emojiPicker" style="display:none;">
+        <button type="button">😀</button>
+        <button type="button">😍</button>
+        <button type="button">🥰</button>
+        <button type="button">😊</button>
+        <button type="button">😉</button>
+        <button type="button">😘</button>
+        <button type="button">😂</button>
+        <button type="button">😅</button>
+        <button type="button">😇</button>
+        <button type="button">😎</button>
+        <button type="button">🤝</button>
+        <button type="button">❤️</button>
+        <button type="button">🔥</button>
+        <button type="button">✨</button>
+        <button type="button">💯</button>
+        <button type="button">🙏</button>
+      </div>
+      <div class="stickerPicker" id="stickerPicker" style="display:none;">
+        <div class="stickerGrid">
+          <div class="sticker">💗</div>
+          <div class="sticker">💕</div>
+          <div class="sticker">💞</div>
+          <div class="sticker">❤️</div>
+          <div class="sticker">😍</div>
+          <div class="sticker">😘</div>
+          <div class="sticker">🥰</div>
+          <div class="sticker">💘</div>
+          <div class="sticker">💝</div>
+          <div class="sticker">💖</div>
+          <div class="sticker">💟</div>
+          <div class="sticker">💓</div>
+          <div class="sticker">💌</div>
+          <div class="sticker">💍</div>
+          <div class="sticker">💐</div>
+          <div class="sticker">🌹</div>
+          <div class="sticker">🌷</div>
+          <div class="sticker">🧸</div>
+          <div class="sticker">✨</div>
+          <div class="sticker">🌙</div>
+          <div class="sticker">🎁</div>
+          <div class="sticker">💫</div>
+          <div class="sticker">🫶</div>
+          <div class="sticker">🥺</div>
+          <div class="sticker">😻</div>
+          <div class="sticker">💑</div>
+          <div class="sticker">👩‍❤️‍👨</div>
+          <div class="sticker">👩‍❤️‍💋‍👨</div>
+          <div class="sticker">💋</div>
+          <div class="sticker">💄</div>
+          <div class="sticker">🦋</div>
+          <div class="sticker">🍫</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="callNotice" id="callNotice" aria-hidden="true">
+    <div class="callNotice__backdrop" id="callNoticeClose"></div>
+    <div class="callNotice__panel" role="dialog" aria-modal="true">
+      <h3>Upgrade Required</h3>
+      <p>You can’t place calls until you upgrade your account.</p>
+      <a class="btn primary" href="profile-upgrade.html">Upgrade Now</a>
+    </div>
+  </div>
+
+  <div class="callNotice" id="msgLimitNotice" aria-hidden="true">
+    <div class="callNotice__backdrop" id="msgLimitClose"></div>
+    <div class="callNotice__panel" role="dialog" aria-modal="true">
+      <h3>Upgrade Required</h3>
+      <p>Free message limit reached. Upgrade to keep chatting.</p>
+      <a class="btn primary" href="profile-upgrade.html">Upgrade Now</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Admin Signups</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+</head>
+<body data-page="admin">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <a class="logo" href="home.html" aria-label="DateMe Home">
+          <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+            <path d="M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z"
+              fill="none" stroke="rgba(255,255,255,.92)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" transform="translate(-24,0)" />
+            <path d="M60 100 C60 100, 24 74, 24 44 C24 28, 36 18, 50 18 C64 18, 74 27, 80 36 C86 27, 96 18, 110 18 C124 18, 136 28, 136 44 C136 74, 60 100, 60 100 Z"
+              fill="none" stroke="rgba(255,77,109,.95)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" transform="translate(-8,0)" opacity=".95" />
+          </svg>
+          <span class="logoType"><b>Date</b>Me</span>
+        </a>
+      </div>
+      <div class="topbar__right">
+        <a class="pill ghost" href="admin-conversations.html">Admin Conversations</a>
+        <a class="pill ghost" href="admin_inbox.html">Admin Inbox</a>
+        <a class="pill ghost" href="admin_home.html">Admin Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout adminLayout">
+    <section class="content">
+      <div class="cardbox">
+        <h1 class="h1" style="margin:0 0 6px;">New Signups</h1>
+        <p class="muted" style="margin:0;">Latest signups listed here with username and email.</p>
+      </div>
+
+      <div class="cardbox" style="margin-top:14px;">
+        <div class="adminUsersList" id="adminUsersList">
+          <div class="muted">Loading…</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const listEl = document.getElementById("adminUsersList");
+
+    function escapeHTML(value){
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    const API_BASE = window.API_BASE || "";
+
+    function readUserRegistry(){
+      try{ return JSON.parse(localStorage.getItem("dateme_user_registry") || "[]"); }
+      catch(e){ return []; }
+    }
+
+    function renderUsers(users){
+      listEl.innerHTML = users.map(u => `
+        <div class="adminUserRow">
+          <div class="adminUserName">${escapeHTML(u.name || "New User")}</div>
+          <div class="adminUserMeta">${escapeHTML(u.username || "")} · ${escapeHTML(u.email || "")}</div>
+        </div>
+      `).join("") || '<div class="muted">No signups yet.</div>';
+    }
+
+    async function loadUsers(){
+      if (!listEl) return;
+      try{
+        const res = await fetch(`${API_BASE}/get_users.php`);
+        const data = await res.json();
+        const users = Array.isArray(data.users) ? data.users : [];
+        if (users.length){
+          renderUsers(users);
+          return;
+        }
+      }catch(e){
+        // Fall back to local registry when API is unavailable.
+      }
+      const localUsers = readUserRegistry();
+      if (localUsers.length){
+        renderUsers(localUsers);
+      }else{
+        listEl.innerHTML = '<div class="muted">No signups yet.</div>';
+      }
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

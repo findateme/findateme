@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Admin Conversations</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+</head>
+<body data-page="admin">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <a class="logo" href="home.html" aria-label="DateMe Home">
+          <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+            <path d="M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z"
+              fill="none" stroke="rgba(255,255,255,.92)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" transform="translate(-24,0)" />
+            <path d="M60 100 C60 100, 24 74, 24 44 C24 28, 36 18, 50 18 C64 18, 74 27, 80 36 C86 27, 96 18, 110 18 C124 18, 136 28, 136 44 C136 74, 60 100, 60 100 Z"
+              fill="none" stroke="rgba(255,77,109,.95)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" transform="translate(-8,0)" opacity=".95" />
+          </svg>
+          <span class="logoType"><b>Date</b>Me</span>
+        </a>
+      </div>
+      <div class="topbar__right">
+        <span class="pill ghost">Admin Conversations</span>
+        <a class="pill ghost" href="admin_home.html">Admin Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout adminLayout">
+    <section class="content">
+      <div class="cardbox">
+        <h1 class="h1" style="margin:0 0 6px;">All Conversations</h1>
+        <p class="muted" style="margin:0;">Latest chats move to the top automatically.</p>
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="showUsersBtn" type="button">New Signups</button>
+          <a class="btn ghost" href="admin_users.html">All Signups</a>
+        </div>
+      </div>
+
+      <div class="cardbox" style="margin-top:14px; position:relative; overflow:hidden;">
+        <div class="orbit aboutOrbit" aria-hidden="true">
+          <span class="orbit__heart h1">💗</span>
+          <span class="orbit__heart h2">💖</span>
+          <span class="orbit__heart h3">💞</span>
+          <span class="orbit__heart h4">💘</span>
+          <span class="orbit__heart h5">💕</span>
+          <span class="orbit__heart h6">💜</span>
+          <span class="orbit__heart h7">💓</span>
+          <span class="orbit__heart h8">💝</span>
+        </div>
+        <div class="adminShell">
+          <div>
+            <div class="adminListPanel" id="adminList"></div>
+          </div>
+          <div class="adminChat">
+          <div class="adminChat__head" id="adminChatHead">
+              <div>
+                <div id="adminChatName" style="font-weight:800;">Select a profile</div>
+                <div class="adminContact__meta" id="adminChatMeta">—</div>
+              </div>
+            </div>
+            <div class="adminChat__body" id="adminChatBody">
+              <div class="muted">Choose a profile to view messages.</div>
+            </div>
+            <div class="adminChat__composer">
+              <input id="adminReplyInput" type="text" placeholder="Type a reply..." />
+              <button class="authBtn" id="adminSendBtn" type="button">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="adminModal" id="adminUsersModal" aria-hidden="true">
+    <div class="adminModal__backdrop" id="adminUsersClose"></div>
+    <div class="adminModal__panel" role="dialog" aria-modal="true" aria-labelledby="adminUsersTitle">
+      <button class="adminModal__x" id="adminUsersX" type="button" aria-label="Close">✕</button>
+      <h2 id="adminUsersTitle">New Signups</h2>
+      <div class="adminUsersList" id="adminUsersList"></div>
+    </div>
+  </div>
+
+  <div class="adminModal" id="adminWelcome" aria-hidden="true">
+    <div class="adminModal__backdrop" id="adminWelcomeClose"></div>
+    <div class="adminModal__panel" role="dialog" aria-modal="true" aria-labelledby="adminWelcomeTitle">
+      <button class="adminModal__x" id="adminWelcomeX" type="button" aria-label="Close">✕</button>
+      <h2 id="adminWelcomeTitle">Welcome Boss</h2>
+      <p class="muted">They all are waiting for your response.</p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.API_BASE || "";
+    const ADMIN_EMAIL = String(window.DATEME_ADMIN_EMAIL || "").trim();
+    const WOMEN_TARGET = 200;
+    const MEN_TARGET = 170;
+    const LOCAL_WOMEN_IMAGES = [
+      "assets/profile-01.jpg","assets/profile-02.jpg","assets/profile-03.jpg","assets/profile-04.jpg","assets/profile-05.jpg",
+      "assets/profile-06.jpg","assets/profile-07.jpg","assets/profile-08.jpg","assets/profile-09.jpg","assets/profile-10.jpg",
+      "assets/profile-11.jpg","assets/profile-12.jpg","assets/profile-13.jpg","assets/profile-14.jpg","assets/profile-15.jpg",
+      "assets/profile-16.jpg","assets/profile-17.jpg","assets/profile-18.jpg","assets/profile-19.jpg","assets/profile-20.jpg",
+      "assets/profile-21.jpg","assets/profile-22.jpg","assets/profile-23.jpg","assets/profile-24.jpg","assets/profile-25.jpg",
+      "assets/profile-26.jpg","assets/profile-27.jpg","assets/profile-28.jpg","assets/profile-29.jpg","assets/profile-30.jpg",
+      "assets/profile-31.jpg","assets/profile-32.jpg","assets/profile-33.jpg","assets/profile-34.jpg","assets/profile-35.jpg"
+    ].slice().reverse();
+    const EXTRA_NAMES = ["Nora","Riya","Maya","Anika","Zara","Kiara","Mina","Sana","Lara","Tia","Rosa","Nina","Aria","Meera","Tanya","Alina","Daisy","Reina","Isha","Rina","Kira","Lola","Pia","Sumi","Rhea","Nora","Mina","Lana","Ira","Zoya"];
+    const EXTRA_NAMES_MEN = ["Noah","Ethan","Leo","Mason","Liam","Lucas","Jay","Ari","Zane","Kian","Daniel","Owen","James","Ryan","Alex","Luke","Adam","Jack","Milo","Finn"];
+    const EXTRA_PLACES = [
+      {city:"New York", country:"USA"},{city:"Los Angeles", country:"USA"},{city:"Chicago", country:"USA"},
+      {city:"Houston", country:"USA"},{city:"Miami", country:"USA"},{city:"Dallas", country:"USA"},
+      {city:"Seattle", country:"USA"},{city:"Boston", country:"USA"},{city:"San Diego", country:"USA"},
+      {city:"San Francisco", country:"USA"},{city:"Atlanta", country:"USA"},{city:"Austin", country:"USA"}
+    ];
+    const MEN_PLACES = [
+      {city:"New York", country:"USA"},{city:"Los Angeles", country:"USA"},{city:"Chicago", country:"USA"},
+      {city:"Austin", country:"USA"},{city:"Seattle", country:"USA"},{city:"Boston", country:"USA"}
+    ];
+
+    function makeProfiles(total, gender){
+      const out = [];
+      for (let i = 0; i < total; i++){
+        const namePool = gender === "men" ? EXTRA_NAMES_MEN : EXTRA_NAMES;
+        const placePool = gender === "men" ? MEN_PLACES : EXTRA_PLACES;
+        const place = placePool[i % placePool.length];
+        const name = namePool[i % namePool.length];
+        const img = gender === "women" ? (LOCAL_WOMEN_IMAGES[i] || LOCAL_WOMEN_IMAGES[i % LOCAL_WOMEN_IMAGES.length]) : "https://randomuser.me/api/portraits/men/" + (i % 80) + ".jpg";
+        out.push({
+          key: `${gender}-${i+1}`,
+          name,
+          city: place.city,
+          country: place.country,
+          img
+        });
+      }
+      return out;
+    }
+
+    const profiles = [
+      ...makeProfiles(WOMEN_TARGET, "women"),
+      ...makeProfiles(MEN_TARGET, "men")
+    ];
+
+    const listEl = document.getElementById("adminList");
+    const bodyEl = document.getElementById("adminChatBody");
+    const nameEl = document.getElementById("adminChatName");
+    const metaEl = document.getElementById("adminChatMeta");
+    const inputEl = document.getElementById("adminReplyInput");
+    const sendBtn = document.getElementById("adminSendBtn");
+
+    let activeKey = "";
+    let latestMap = {};
+
+    function escapeHTML(value){
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function formatMessage(text){
+      return escapeHTML(text).replace(/\n/g, "<br>");
+    }
+
+    function renderList(){
+      const sorted = profiles.slice().sort((a,b) => (latestMap[b.key] || 0) - (latestMap[a.key] || 0));
+      listEl.innerHTML = sorted.map(p => `
+        <div class="adminContact adminContact--compact ${p.key === activeKey ? "active":""}" data-key="${p.key}">
+          <div style="font-weight:700">${p.name}</div>
+          <span class="adminBadge" id="badge-${p.key}">1</span>
+        </div>
+      `).join("");
+      listEl.querySelectorAll(".adminContact").forEach(el => {
+        el.onclick = () => openThread(el.getAttribute("data-key"));
+      });
+    }
+
+    async function loadThread(key){
+      const res = await fetch(`${API_BASE}/get_thread.php?profile_key=${encodeURIComponent(key)}`);
+      const data = await res.json();
+      return data.messages || [];
+    }
+
+    async function openThread(key){
+      activeKey = key;
+      const p = profiles.find(x => x.key === key);
+      if (p){
+        nameEl.textContent = p.name;
+        metaEl.textContent = `${p.city}, ${p.country}`;
+      }
+      renderList();
+      const msgs = await loadThread(key);
+      const lastSender = [...msgs].reverse().find(m => m.sender_email !== ADMIN_EMAIL);
+      bodyEl.innerHTML = msgs.map(m => `
+        <div class="adminBubble ${m.sender_email === ADMIN_EMAIL ? "me":"them"}">
+          ${formatMessage(m.body || "")}
+        </div>
+      `).join("") || '<div class="muted">No messages yet.</div>';
+      bodyEl.dataset.replyTo = lastSender ? lastSender.sender_email : "";
+      bodyEl.scrollTop = bodyEl.scrollHeight;
+    }
+
+    async function refreshLatest(){
+      const tasks = profiles.map(async (p) => {
+        try{
+          const res = await fetch(`${API_BASE}/get_thread.php?profile_key=${encodeURIComponent(p.key)}`);
+          const data = await res.json();
+          const msgs = data.messages || [];
+          const last = msgs[msgs.length - 1];
+          latestMap[p.key] = last ? Date.parse(last.created_at) : 0;
+        }catch(e){
+          latestMap[p.key] = latestMap[p.key] || 0;
+        }
+      });
+      await Promise.all(tasks);
+      renderList();
+    }
+
+    async function sendReply(){
+      if (!activeKey) return;
+      const text = (inputEl.value || "").trim();
+      if (!text) return;
+      const replyTo = bodyEl.dataset.replyTo || "";
+      await fetch(`${API_BASE}/send_message.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_email: ADMIN_EMAIL,
+          receiver_email: replyTo || "user@example.com",
+        body: text,
+        profile_key: activeKey,
+        profile_name: nameEl.textContent || ""
+      })
+    });
+      inputEl.value = "";
+      await openThread(activeKey);
+      await refreshLatest();
+    }
+
+    sendBtn.onclick = sendReply;
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendReply();
+    });
+
+    renderList();
+    refreshLatest();
+    setInterval(refreshLatest, 15000);
+
+    const usersBtn = document.getElementById("showUsersBtn");
+    const usersModal = document.getElementById("adminUsersModal");
+    const usersClose = document.getElementById("adminUsersClose");
+    const usersX = document.getElementById("adminUsersX");
+    const usersList = document.getElementById("adminUsersList");
+
+    async function openUsers(){
+      if (!usersModal || !usersList) return;
+      const res = await fetch(`${API_BASE}/get_users.php`);
+      const data = await res.json();
+      const users = data.users || [];
+      usersList.innerHTML = users.map(u => `
+        <div class="adminUserRow">
+          <div class="adminUserName">${u.name || "New User"}</div>
+          <div class="adminUserMeta">${u.username || ""} · ${u.email || ""}</div>
+        </div>
+      `).join("") || '<div class="muted">No signups yet.</div>';
+      usersModal.classList.add("show");
+      usersModal.setAttribute("aria-hidden","false");
+    }
+    function closeUsers(){
+      if (!usersModal) return;
+      usersModal.classList.remove("show");
+      usersModal.setAttribute("aria-hidden","true");
+    }
+    if (usersBtn) usersBtn.onclick = openUsers;
+    if (usersClose) usersClose.onclick = closeUsers;
+    if (usersX) usersX.onclick = closeUsers;
+    if (usersModal){
+      usersModal.addEventListener("click", (e) => {
+        if (e.target === usersModal) closeUsers();
+      });
+    }
+
+    const adminWelcome = document.getElementById("adminWelcome");
+    const adminWelcomeClose = document.getElementById("adminWelcomeClose");
+    const adminWelcomeX = document.getElementById("adminWelcomeX");
+    if (localStorage.getItem("dateme_admin_welcome") === "true" && adminWelcome){
+      adminWelcome.classList.add("show");
+      adminWelcome.setAttribute("aria-hidden","false");
+      localStorage.removeItem("dateme_admin_welcome");
+    }
+    const closeWelcome = () => {
+      if (!adminWelcome) return;
+      adminWelcome.classList.remove("show");
+      adminWelcome.setAttribute("aria-hidden","true");
+    };
+    if (adminWelcomeClose) adminWelcomeClose.onclick = closeWelcome;
+    if (adminWelcomeX) adminWelcomeX.onclick = closeWelcome;
+    if (adminWelcome){
+      adminWelcome.addEventListener("click", (e) => {
+        if (e.target === adminWelcome) closeWelcome();
+      });
+    }
+  </script>
+</body>
+</html>

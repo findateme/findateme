@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DateMe — Profile Upgrade</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+  <style>
+    .upgradeLogo .logoMark{
+      width:46px;
+      height:46px;
+      filter: drop-shadow(0 8px 16px rgba(255,79,216,.35));
+    }
+    .upgradeLogo .logoType{
+      font-size:32px;
+      text-shadow: 0 6px 20px rgba(255,79,216,.25);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+      <a class="logo upgradeLogo" href="signup.html" aria-label="Back to Signup">
+        <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
+          <path
+            d="M60 104
+               C60 104, 18 76, 18 42
+               C18 22, 34 10, 50 10
+               C67 10, 79 23, 84 33
+               C89 23, 101 10, 118 10
+               C134 10, 150 22, 150 42
+               C150 76, 60 104, 60 104 Z"
+            fill="none"
+            stroke="rgba(255,255,255,.92)"
+            stroke-width="8"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-24,0)"
+          />
+          <path
+            d="M60 100
+               C60 100, 24 74, 24 44
+               C24 28, 36 18, 50 18
+               C64 18, 74 27, 80 36
+               C86 27, 96 18, 110 18
+               C124 18, 136 28, 136 44
+               C136 74, 60 100, 60 100 Z"
+            fill="none"
+            stroke="rgba(255,77,109,.95)"
+            stroke-width="4"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            transform="translate(-8,0)"
+            opacity=".95"
+          />
+        </svg>
+        <span class="logoType"><b>Date</b>Me</span>
+      </a>
+      <div class="topbar__right">
+        <a class="pill ghost" href="signup.html">Back to Signup</a>
+      </div>
+    </div>
+
+      <div class="topbar__right">
+        <a class="pill ghost" href="home.html">Back</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout" style="grid-template-columns:1fr;">
+    <section class="content">
+      <div class="card-shell" style="max-width:720px; margin:18px auto;">
+        <div class="orbit" aria-hidden="true">
+          <span class="orbit__heart h1">💗</span>
+          <span class="orbit__heart h2">💖</span>
+          <span class="orbit__heart h3">💞</span>
+          <span class="orbit__heart h4">💘</span>
+          <span class="orbit__heart h5">💕</span>
+          <span class="orbit__heart h6">💜</span>
+          <span class="orbit__heart h7">💓</span>
+          <span class="orbit__heart h8">💝</span>
+        </div>
+        <div class="cardbox">
+        <div class="cardbox small" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
+          <div style="font-weight:800;">Limited-time offer</div>
+          <div class="mono" id="countdownClock" style="font-weight:800;">300:00:00</div>
+        </div>
+        <h1 class="h1" style="margin-bottom:6px;">Profile Upgrade — $8</h1>
+        <div class="cardbox small">
+          <div style="font-weight:800; margin-bottom:6px;">Pay with Binance (USDT)</div>
+          <div class="muted" style="font-size:13px;">Send $8 using TRC20 or BEP20 network.</div>
+          <div class="cardbox small" style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div>
+              <div style="font-weight:800;">Offer ends soon</div>
+              <div class="muted" style="font-size:12px;">Countdown is live on top.</div>
+            </div>
+            <div class="pill ghost" style="font-weight:800;">$8</div>
+          </div>
+          <div style="height:10px;"></div>
+
+          <div class="cardbox small paymentRow">
+            <div class="paymentRow__content">
+              <div style="font-weight:700;">USDT (TRC20)</div>
+              <div class="mono paymentRow__addr">TCBFWrepuPqQWvdchhJ8RtQB9nTrn86cPb</div>
+            </div>
+            <button class="btn paymentRow__btn" type="button" onclick="copyText('addr-trc20')">Copy</button>
+          </div>
+
+          <div style="height:8px;"></div>
+
+          <div class="cardbox small paymentRow">
+            <div class="paymentRow__content">
+              <div style="font-weight:700;">USDT (BEP20)</div>
+              <div class="mono paymentRow__addr">0x82ec9da2a486c0875ce67710ab7b7ad3b0490ce3</div>
+            </div>
+            <button class="btn paymentRow__btn" type="button" onclick="copyText('addr-bep20')">Copy</button>
+          </div>
+
+          <div style="height:10px;"></div>
+          <div class="muted" style="font-size:12px;">After payment, paste your TXID:</div>
+          <div style="height:6px;"></div>
+          <select id="networkSelect" class="input">
+            <option value="TRC20">Network: TRC20 (USDT)</option>
+            <option value="BEP20">Network: BEP20 (USDT)</option>
+          </select>
+          <input id="txidInput" class="input" placeholder="Paste TXID here" style="margin-top:8px;" />
+          <div style="height:10px;"></div>
+          <button class="btn primary" type="button" id="upgradeBtn">Confirm Upgrade</button>
+          <div class="muted" style="font-size:12px; margin-top:8px;" id="txidNotice">Upgrade activates after TXID verification.</div>
+        </div>
+
+        <div style="height:14px;"></div>
+        <p class="muted" style="margin:0 0 6px;">Everything you unlock with premium upgrade:</p>
+        <ul class="muted" style="margin:0; padding-left:18px; font-size:12px; line-height:1.7;">
+          <li>View locked stories</li>
+          <li>Direct call access</li>
+          <li>Audio & video calling</li>
+          <li>Live status viewing</li>
+          <li>Phone number visibility</li>
+        </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function copyText(id){
+      const map = {
+        "addr-trc20": "TCBFWrepuPqQWvdchhJ8RtQB9nTrn86cPb",
+        "addr-bep20": "0x82ec9da2a486c0875ce67710ab7b7ad3b0490ce3"
+      };
+      const text = map[id] || "";
+      if (!text) return;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+      }
+    }
+
+    const countdownEl = document.getElementById("countdownClock");
+    const countdownKey = "dateme_upgrade_countdown_end";
+    const countdownHours = 300;
+    let countdownEnd = Date.now() + countdownHours * 60 * 60 * 1000;
+    localStorage.setItem(countdownKey, String(countdownEnd));
+    function renderCountdown(){
+      const diff = Math.max(0, countdownEnd - Date.now());
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      if (countdownEl) countdownEl.textContent = `${hours}h ${String(mins).padStart(2,"0")}m ${String(secs).padStart(2,"0")}s left`;
+    }
+    renderCountdown();
+    setInterval(renderCountdown, 1000);
+
+    document.getElementById("upgradeBtn").addEventListener("click", async () => {
+      const txid = document.getElementById("txidInput").value.trim();
+      const notice = document.getElementById("txidNotice");
+      const chain = document.getElementById("networkSelect").value;
+      if (!txid) {
+        if (notice) notice.textContent = "Please paste your TXID first.";
+        return;
+      }
+      if (notice) notice.textContent = "Verifying TXID…";
+      try{
+        const API_BASE = window.API_BASE || "";
+        const res = await fetch(`${API_BASE}/verify_txid.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txid, chain })
+        });
+        const data = await res.json();
+        if (!data.ok){
+          if (notice) notice.textContent = "TXID not verified yet. Please check network or try again.";
+          return;
+        }
+        if (notice) notice.textContent = "Verified ✅ Premium activated.";
+        localStorage.setItem("dateme_txid", txid);
+        localStorage.setItem("dateme_upgrade_verified", "true");
+        localStorage.setItem("dateme_upgrade_just_activated", "true");
+        setTimeout(() => window.location.href = "home.html", 800);
+      }catch(e){
+        if (notice) notice.textContent = "Verification failed. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>

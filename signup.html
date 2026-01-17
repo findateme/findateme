@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DateMe — Sign up</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-page="signup">
+  <a class="authBack" href="index.html" aria-label="Back to landing">←</a>
+  <main class="authWrap">
+    <div class="card-shell">
+      <div class="orbit" aria-hidden="true">
+        <span class="orbit__heart h1">💗</span>
+        <span class="orbit__heart h2">💖</span>
+        <span class="orbit__heart h3">💞</span>
+        <span class="orbit__heart h4">💘</span>
+        <span class="orbit__heart h5">💕</span>
+        <span class="orbit__heart h6">💜</span>
+        <span class="orbit__heart h7">💓</span>
+        <span class="orbit__heart h8">💝</span>
+      </div>
+      <div class="pumping-heart" aria-hidden="true"></div>
+      <div class="loveBurst" id="loveBurst" aria-hidden="true"></div>
+      <section class="authCard">
+        <div class="loveCounter" aria-hidden="true">
+          <span class="loveCounter__dot">💗</span>
+          <span id="loveCount">0</span>
+        </div>
+      <div class="authHeader">
+        <div>
+          <div class="authBrand">DateMe 💕</div>
+          <h1>Create account</h1>
+          <p class="muted">Join to unlock People</p>
+        </div>
+        <a class="pill ghost" href="login.html">Login</a>
+      </div>
+
+      <form id="signupForm" class="authForm">
+        <div>
+          <div class="authLabel">Profile photo</div>
+          <label class="authPhotoBox" id="suPhotoBox">
+            <span class="authPhotoText">Add photo</span>
+            <img id="suPhotoPreview" class="authPhotoPreview" alt="" />
+            <input id="suPhoto" type="file" accept="image/*" required />
+          </label>
+        </div>
+        <div class="authGrid">
+          <input id="suFirst" class="authInput" type="text" placeholder="First name" autocomplete="given-name" required />
+          <input id="suLast" class="authInput" type="text" placeholder="Last name" autocomplete="family-name" required />
+        </div>
+        <input id="suUsername" class="authInput important" type="text" placeholder="Username" autocomplete="username" required />
+        <div class="authGrid">
+          <div class="dobSelect">
+            <select id="suBirthDay" class="authInput dobInput" required>
+              <option value="">Day</option>
+            </select>
+            <select id="suBirthMonth" class="authInput dobInput" required>
+              <option value="">Month</option>
+            </select>
+            <select id="suBirthYear" class="authInput dobInput" required>
+              <option value="">Year</option>
+            </select>
+          </div>
+          <input id="suAge" class="authInput" type="number" placeholder="Age" readonly />
+        </div>
+        <div class="authGrid">
+          <input id="suCity" class="authInput" type="text" placeholder="City" autocomplete="address-level2" required />
+          <select id="suCountry" class="authInput" required>
+            <option value="">Country</option>
+            <option value="Bangladesh">Bangladesh</option>
+            <option value="India">India</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <option value="Canada">Canada</option>
+            <option value="Australia">Australia</option>
+            <option value="UAE">UAE</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
+            <option value="Singapore">Singapore</option>
+            <option value="Malaysia">Malaysia</option>
+            <option value="Thailand">Thailand</option>
+            <option value="Philippines">Philippines</option>
+            <option value="Japan">Japan</option>
+            <option value="South Korea">South Korea</option>
+            <option value="Turkey">Turkey</option>
+          </select>
+        </div>
+        <select id="suGender" class="authInput" required>
+          <option value="">Gender</option>
+          <option value="women">Female</option>
+          <option value="men">Male</option>
+        </select>
+        <div class="authPhoneRow">
+          <select id="suPhoneCode" class="authInput phoneCode" required>
+            <option value="+880">+880 BD</option>
+            <option value="+1">+1 US</option>
+            <option value="+44">+44 UK</option>
+            <option value="+91">+91 IN</option>
+            <option value="+61">+61 AU</option>
+            <option value="+971">+971 UAE</option>
+            <option value="+966">+966 KSA</option>
+            <option value="+65">+65 SG</option>
+            <option value="+60">+60 MY</option>
+            <option value="+81">+81 JP</option>
+            <option value="+82">+82 KR</option>
+            <option value="+90">+90 TR</option>
+          </select>
+          <input id="suPhone" class="authInput" type="text" placeholder="Phone number" autocomplete="tel" required />
+        </div>
+        <input id="suEmail" class="authInput" type="email" placeholder="Email (login)" autocomplete="email" required />
+        <div class="authPass">
+          <input id="suPass" class="authInput" type="password" placeholder="Password (min 6)" autocomplete="new-password" required />
+          <button class="passToggle" type="button" data-target="suPass">Show</button>
+        </div>
+        <div class="authPass">
+          <input id="suPass2" class="authInput" type="password" placeholder="Confirm password" autocomplete="new-password" required />
+          <button class="passToggle" type="button" data-target="suPass2">Show</button>
+        </div>
+        <button id="suBtn" class="authBtn" type="submit">Sign up</button>
+      </form>
+
+      <div id="suMsg" class="authMsg muted"></div>
+
+  <div class="authFooter">
+    <span class="muted"></span>
+    <a class="muted" href="login.html">Already have account?</a>
+  </div>
+  </section>
+    </div>
+  </main>
+
+  <div class="welcomeModal" id="signupWelcomeModal" aria-hidden="true" hidden>
+    <div class="welcomeModal__backdrop" id="signupWelcomeClose"></div>
+    <div class="welcomeModal__panel" role="dialog" aria-modal="true" aria-labelledby="signupWelcomeTitle">
+      <div class="welcomeBadge">Welcome ✨</div>
+      <h2 class="welcomeTitle" id="signupWelcomeTitle">Your account is ready</h2>
+      <p class="muted">Press OK to continue to Home.</p>
+      <button class="btn primary" id="signupWelcomeOk" type="button">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+    const form = document.getElementById("signupForm");
+    const firstEl = document.getElementById("suFirst");
+    const lastEl = document.getElementById("suLast");
+    const usernameEl = document.getElementById("suUsername");
+    const birthDayEl = document.getElementById("suBirthDay");
+    const birthMonthEl = document.getElementById("suBirthMonth");
+    const birthYearEl = document.getElementById("suBirthYear");
+    const ageEl = document.getElementById("suAge");
+    const emailEl = document.getElementById("suEmail");
+    const passEl  = document.getElementById("suPass");
+    const pass2El = document.getElementById("suPass2");
+    const phoneCodeEl = document.getElementById("suPhoneCode");
+    const phoneEl = document.getElementById("suPhone");
+    const cityEl = document.getElementById("suCity");
+    const countryEl = document.getElementById("suCountry");
+    const genderEl = document.getElementById("suGender");
+    const photoEl = document.getElementById("suPhoto");
+    const msgEl   = document.getElementById("suMsg");
+    const btnEl   = document.getElementById("suBtn");
+    const photoBox = document.getElementById("suPhotoBox");
+    const photoPreview = document.getElementById("suPhotoPreview");
+    const loveBurst = document.getElementById("loveBurst");
+    const loveCountEl = document.getElementById("loveCount");
+    let pendingPhoto = "";
+    let loveCount = 0;
+    let lastLoveTs = 0;
+
+    function showSignupWelcome(){
+      const modal = document.getElementById("signupWelcomeModal");
+      const close = document.getElementById("signupWelcomeClose");
+      const ok = document.getElementById("signupWelcomeOk");
+      if (!modal) return;
+      const hide = () => {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden","true");
+        modal.setAttribute("hidden","hidden");
+        location.href = "home.html";
+      };
+      modal.removeAttribute("hidden");
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden","false");
+      if (close) close.onclick = hide;
+      if (ok) ok.onclick = hide;
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) hide();
+      });
+    }
+
+    function setMsg(text, type="muted"){
+      msgEl.textContent = text || "";
+      msgEl.className = "authMsg " + (type || "muted");
+    }
+
+    function setLoading(loading){
+      btnEl.disabled = !!loading;
+      btnEl.textContent = loading ? "Signing up..." : "Sign up";
+    }
+
+    function getProfileKey(email){
+      const clean = String(email || "").trim().toLowerCase();
+      return clean ? `dateme_profile_${clean}` : "dateme_profile";
+    }
+
+    function getActiveEmail(){
+      return String(localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+    }
+
+    function readProfileStore(){
+      const email = String(emailEl?.value || "").trim().toLowerCase() || getActiveEmail();
+      if (email){
+        try{ return JSON.parse(localStorage.getItem(getProfileKey(email)) || "{}"); }
+        catch(e){ return {}; }
+      }
+      try{ return JSON.parse(localStorage.getItem("dateme_profile") || "{}"); }
+      catch(e){ return {}; }
+    }
+
+    function readUserRegistry(){
+      try{ return JSON.parse(localStorage.getItem("dateme_user_registry") || "[]"); }
+      catch(e){ return []; }
+    }
+
+    function saveUserRegistry(list){
+      localStorage.setItem("dateme_user_registry", JSON.stringify(list || []));
+    }
+
+    function upsertRegistryEntry(list, entry){
+      const email = String(entry?.email || "").trim().toLowerCase();
+      if (!email){
+        list.push(entry);
+        return;
+      }
+      const idx = list.findIndex(u => String(u?.email || "").trim().toLowerCase() === email);
+      if (idx >= 0){
+        list[idx] = { ...list[idx], ...entry };
+      }else{
+        list.push(entry);
+      }
+    }
+
+    function isUsernameTaken(name){
+      const uname = String(name || "").trim().toLowerCase();
+      if (!uname) return false;
+      const registry = readUserRegistry();
+      return registry.some(u => String(u.username || "").toLowerCase() === uname);
+    }
+
+    function isEmailTaken(email){
+      const em = String(email || "").trim().toLowerCase();
+      if (!em) return false;
+      const registry = readUserRegistry();
+      return registry.some(u => String(u.email || "").toLowerCase() === em);
+    }
+
+    function getDobString(){
+      if (!birthDayEl || !birthMonthEl || !birthYearEl) return "";
+      if (!birthDayEl.value || !birthMonthEl.value || !birthYearEl.value) return "";
+      return `${birthDayEl.value}/${birthMonthEl.value}/${birthYearEl.value}`;
+    }
+
+    function saveProfileDraft(){
+      const existing = readProfileStore();
+      const fullName = [firstEl.value, lastEl.value].filter(Boolean).join(" ").trim();
+      const data = {
+        ...existing,
+        name: fullName,
+        username: (usernameEl.value || "").trim(),
+        email: (emailEl.value || "").trim(),
+        phone: (phoneEl.value || "").trim(),
+        phoneCode: (phoneCodeEl?.value || "").trim(),
+        age: (ageEl.value || "").trim(),
+        birth: getDobString(),
+        city: (cityEl.value || "").trim(),
+        country: (countryEl.value || "").trim(),
+        gender: (genderEl.value || "").trim(),
+        photo: pendingPhoto || existing.photo || ""
+      };
+      localStorage.setItem("dateme_profile", JSON.stringify(data));
+      if (data.email){
+        localStorage.setItem(getProfileKey(data.email), JSON.stringify(data));
+        localStorage.setItem("dateme_active_user", data.email.toLowerCase());
+      }
+    }
+
+    function addCustomProfile(){
+      const profile = readProfileStore();
+      const email = (profile.email || "").trim().toLowerCase();
+      if (!profile.name || !email) return;
+      let list = [];
+      try{
+        list = JSON.parse(localStorage.getItem("dateme_custom_profiles") || "[]");
+      }catch(e){
+        list = [];
+      }
+      if (list.some(p => String(p.email || "").toLowerCase() === email)){
+        return;
+      }
+      const custom = {
+        id: `u-${Date.now()}`,
+        name: profile.name,
+        username: profile.username || "",
+        age: Number(profile.age) || 22,
+        city: profile.city || "",
+        country: profile.country || "",
+        img: profile.photo || "",
+        bio: "New here — say hi and be kind.",
+        tags: ["New"],
+        online: true,
+        gender: profile.gender || "women",
+        email
+      };
+      list.unshift(custom);
+      localStorage.setItem("dateme_custom_profiles", JSON.stringify(list));
+
+      const genderKey = (custom.gender === "men") ? "dateme_profiles_men" : "dateme_profiles_women";
+      let genderList = [];
+      try{
+        genderList = JSON.parse(localStorage.getItem(genderKey) || "[]");
+      }catch(e){
+        genderList = [];
+      }
+      if (!genderList.some(p => String(p.email || "").toLowerCase() === email)){
+        genderList.unshift(custom);
+        localStorage.setItem(genderKey, JSON.stringify(genderList));
+      }
+      localStorage.setItem("dateme_profiles", JSON.stringify(genderList));
+    }
+
+    function addNotification(userEmail){
+      let items = [];
+      const key = `dateme_notifications_${String(userEmail || "guest").trim().toLowerCase() || "guest"}`;
+      try{ items = JSON.parse(localStorage.getItem(key) || "[]"); }catch(e){ items = []; }
+      items.unshift({
+        text: "Congratulations! Your account is ready.",
+        ts: Date.now(),
+        read: false
+      });
+      localStorage.setItem(key, JSON.stringify(items));
+    }
+
+    function parseDobParts(){
+      const dd = Number(birthDayEl?.value || "");
+      const mm = Number(birthMonthEl?.value || "");
+      const yyyy = Number(birthYearEl?.value || "");
+      if (!dd || !mm || !yyyy) return null;
+      if (yyyy < 1900 || yyyy > new Date().getFullYear()) return null;
+      const dt = new Date(yyyy, mm - 1, dd);
+      if (dt.getFullYear() !== yyyy || dt.getMonth() !== mm - 1 || dt.getDate() !== dd) return null;
+      return dt;
+    }
+
+    function computeAge(){
+      const dob = parseDobParts();
+      if (!dob) return "";
+      const diff = Date.now() - dob.getTime();
+      const age = new Date(diff).getUTCFullYear() - 1970;
+      return age > 0 ? String(age) : "";
+    }
+
+    function updateAge(){
+      if (!ageEl) return;
+      ageEl.value = computeAge();
+      saveProfileDraft();
+    }
+
+    if (birthDayEl) birthDayEl.addEventListener("change", updateAge);
+    if (birthMonthEl) birthMonthEl.addEventListener("change", updateAge);
+    if (birthYearEl) birthYearEl.addEventListener("change", updateAge);
+
+    function spawnLove(target){
+      if (!loveBurst || !target) return;
+      const now = Date.now();
+      if (now - lastLoveTs < 90) return;
+      lastLoveTs = now;
+
+      const rect = target.getBoundingClientRect();
+      const wrapRect = loveBurst.getBoundingClientRect();
+      const x = rect.left - wrapRect.left + rect.width * 0.2 + Math.random() * rect.width * 0.6;
+      const y = rect.top - wrapRect.top + rect.height * 0.2;
+      const heart = document.createElement("span");
+      heart.className = "typingLove";
+      heart.textContent = "💗";
+      const size = 10 + Math.floor(Math.random() * 8);
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      heart.style.fontSize = `${size}px`;
+      heart.style.opacity = `${0.6 + Math.random() * 0.4}`;
+      loveBurst.appendChild(heart);
+      loveCount += 1;
+      if (loveCountEl) loveCountEl.textContent = String(loveCount);
+      setTimeout(() => heart.remove(), 19000);
+    }
+
+    form.querySelectorAll("input, select").forEach((el) => {
+      el.addEventListener("input", () => spawnLove(el));
+    });
+
+    if (birthDayEl && birthMonthEl && birthYearEl){
+      for (let d = 1; d <= 31; d++){
+        const val = String(d).padStart(2, "0");
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = val;
+        birthDayEl.appendChild(opt);
+      }
+      const months = [
+        "01 Jan","02 Feb","03 Mar","04 Apr","05 May","06 Jun",
+        "07 Jul","08 Aug","09 Sep","10 Oct","11 Nov","12 Dec"
+      ];
+      months.forEach((label, idx) => {
+        const val = String(idx + 1).padStart(2, "0");
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = label;
+        birthMonthEl.appendChild(opt);
+      });
+      const currentYear = new Date().getFullYear();
+      for (let y = currentYear - 18; y >= 1900; y--){
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = String(y);
+        birthYearEl.appendChild(opt);
+      }
+    }
+
+    document.querySelectorAll(".passToggle").forEach((btn) => {
+      btn.onclick = () => {
+        const id = btn.getAttribute("data-target");
+        const input = document.getElementById(id);
+        if (!input) return;
+        const isPwd = input.type === "password";
+        input.type = isPwd ? "text" : "password";
+        btn.textContent = isPwd ? "Hide" : "Show";
+      };
+    });
+
+    function forceOrbit(){
+      const orbit = document.querySelector(".orbit");
+      if (orbit){
+        orbit.classList.remove("orbitForce");
+        orbit.style.animation = "none";
+        void orbit.offsetHeight;
+        orbit.style.animation = "";
+        orbit.classList.add("orbitForce");
+      }
+      document.querySelectorAll(".orbit__heart").forEach((h) => {
+        h.classList.remove("orbitForce");
+        h.style.animation = "none";
+        void h.offsetHeight;
+        h.style.animation = "";
+        h.classList.add("orbitForce");
+      });
+    }
+
+    window.addEventListener("pageshow", forceOrbit);
+
+    function compressImage(dataUrl, cb){
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        const out = canvas.toDataURL("image/jpeg", 0.8);
+        cb(out);
+      };
+      img.src = dataUrl;
+    }
+
+    if (photoEl){
+      photoEl.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          compressImage(reader.result, (result) => {
+            pendingPhoto = result;
+            if (photoPreview) photoPreview.src = result;
+            if (photoBox) photoBox.classList.add("has-photo");
+            saveProfileDraft();
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      localStorage.removeItem("dateme_signup_flow");
+
+      if (!form.reportValidity()){
+        setMsg("Please fill out all required fields.", "err");
+        return;
+      }
+
+      if (!photoEl.files || !photoEl.files[0]){
+        setMsg("Please upload a profile photo.", "err");
+        return;
+      }
+
+      const dob = parseDobParts();
+      if (!dob || !ageEl.value){
+        setMsg("Please select a valid birth date.", "err");
+        return;
+      }
+
+      const username = (usernameEl.value || "").trim();
+      const email = (emailEl.value || "").trim();
+      const pass  = passEl.value || "";
+      const pass2 = pass2El.value || "";
+
+      setMsg("", "muted");
+
+      if (!username){
+        setMsg("Username is required.", "err");
+        usernameEl.focus();
+        return;
+      }
+      if (isUsernameTaken(username)){
+        setMsg("Username already taken. Choose a different one.", "err");
+        usernameEl.focus();
+        return;
+      }
+      if (isEmailTaken(email)){
+        setMsg("This email already has an account.", "err");
+        emailEl.focus();
+        return;
+      }
+
+      const API_BASE = window.API_BASE || "";
+
+      if (pass.length < 6){
+        setMsg("Password must be at least 6 characters.", "err");
+        return;
+      }
+      if (pass !== pass2){
+        setMsg("Passwords do not match.", "err");
+        return;
+      }
+
+      saveProfileDraft();
+      if (pendingPhoto){
+        const draft = readProfileStore();
+        draft.photo = pendingPhoto;
+        localStorage.setItem(getProfileKey(email), JSON.stringify(draft));
+        localStorage.setItem("dateme_profile", JSON.stringify(draft));
+      }
+      setLoading(true);
+
+      const { data, error } = await sb.auth.signUp({ email, password: pass });
+     const user = data.user;
+
+const { error: insertError } = await sb
+  .from("users")
+  .insert({
+    id: user.id, // ⚠️ MUST match auth.uid()
+    name: fullName,
+    email,
+    username,
+    city: (cityEl.value || "").trim(),
+    country: (countryEl.value || "").trim(),
+    gender: (genderEl.value || "").trim(),
+    age,
+    photo
+  });
+
+if (insertError){
+  setMsg(insertError.message, "err");
+  setLoading(false);
+  return;
+}
+      if (error){
+        setMsg(error.message, "err");
+        setLoading(false);
+        return;
+      }
+
+      const fullName = [firstEl.value, lastEl.value].filter(Boolean).join(" ").trim();
+      const profileDraft = readProfileStore();
+      const age = Number(ageEl.value) || "";
+      const photo = pendingPhoto || profileDraft.photo || "";
+
+
+      const registry = readUserRegistry();
+      upsertRegistryEntry(registry, { email, username, name: fullName });
+      saveUserRegistry(registry);
+
+      localStorage.setItem("dateme_signup_welcome", fullName || "Welcome");
+      localStorage.setItem("dateme_user_welcome_notice", "true");
+      localStorage.removeItem("dateme_signup_flow");
+      localStorage.setItem("dateme_active_user", email.toLowerCase());
+      const finalDraft = readProfileStore();
+      localStorage.setItem(getProfileKey(email), JSON.stringify(finalDraft));
+      localStorage.setItem("dateme_profile", JSON.stringify(finalDraft));
+
+      // ✅ If email confirmation ON => session null
+      if (!data?.session){
+        setMsg("Signup success ✅ Please confirm your email.", "ok");
+        addNotification(email);
+        setTimeout(showSignupWelcome, 400);
+        return;
+      }
+
+      // ✅ If session exists => go home
+      setMsg("Account created ✅ Redirecting...", "ok");
+      addNotification(email);
+      setTimeout(showSignupWelcome, 400);
+    });
+  </script>
+</body>
+</html>

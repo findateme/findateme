@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DateMe — Login</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body data-page="login">
+  <a class="authBack" href="index.html" aria-label="Back to landing">←</a>
+  <main class="authWrap">
+    <div class="card-shell">
+      <div class="orbit" aria-hidden="true">
+        <span class="orbit__heart h1">💗</span>
+        <span class="orbit__heart h2">💖</span>
+        <span class="orbit__heart h3">💞</span>
+        <span class="orbit__heart h4">💘</span>
+        <span class="orbit__heart h5">💕</span>
+        <span class="orbit__heart h6">💜</span>
+        <span class="orbit__heart h7">💓</span>
+        <span class="orbit__heart h8">💝</span>
+      </div>
+      <div class="pumping-heart" aria-hidden="true"></div>
+      <div class="loveBurst" id="loveBurst" aria-hidden="true"></div>
+      <section class="authCard">
+        <div class="loveCounter" aria-hidden="true">
+          <span class="loveCounter__dot">💗</span>
+          <span id="loveCount">0</span>
+        </div>
+      <div class="authHeader">
+        <div>
+          <div class="authBrand">DateMe ❤️</div>
+          <h1>Welcome back</h1>
+          <p class="muted">Login to continue</p>
+        </div>
+        <a class="pill ghost" href="signup.html">Sign up</a>
+      </div>
+
+      <form id="loginForm" class="authForm">
+        <input id="liEmail" class="authInput" type="email" placeholder="Email" autocomplete="email" required />
+        <div class="authPass">
+          <input id="liPass" class="authInput" type="password" placeholder="Password" autocomplete="current-password" required />
+          <button class="passToggle" type="button" data-target="liPass">Show</button>
+        </div>
+        <button id="liBtn" class="authBtn" type="submit">Login</button>
+      </form>
+
+      <div id="liMsg" class="authMsg muted"></div>
+
+      <div class="authFooter">
+        <button class="mutedLink mutedLink--premium" id="forgotBtn" type="button">Forgot Password?</button>
+        <a class="muted" href="signup.html">Create account</a>
+      </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="forgotModal" id="forgotModal" aria-hidden="true" hidden>
+    <div class="forgotModal__backdrop" id="forgotClose"></div>
+    <div class="forgotModal__panel" role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
+      <button class="forgotModal__x" id="forgotX" type="button" aria-label="Close">✕</button>
+      <h2 id="forgotTitle">Reset password</h2>
+      <p class="muted">Enter your username to continue.</p>
+      <div class="forgotField">
+        <label for="forgotUsername">Username</label>
+        <input id="forgotUsername" type="text" placeholder="Your username" autocomplete="username" />
+      </div>
+      <div class="forgotField is-hidden" id="newPassWrap">
+        <label for="forgotPass">New password</label>
+        <input id="forgotPass" type="password" placeholder="New password" />
+      </div>
+      <div class="forgotField is-hidden" id="newPass2Wrap">
+        <label for="forgotPass2">Confirm password</label>
+        <input id="forgotPass2" type="password" placeholder="Confirm password" />
+      </div>
+      <div class="authMsg" id="forgotMsg"></div>
+      <div class="forgotActions">
+        <button class="authBtn" id="forgotVerifyBtn" type="button">Verify username</button>
+        <button class="authBtn is-hidden" id="forgotSaveBtn" type="button">Save new password</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="forgotModal" id="adminWelcomeModal" aria-hidden="true" hidden>
+    <div class="forgotModal__backdrop"></div>
+    <div class="forgotModal__panel" role="dialog" aria-modal="true" aria-labelledby="adminWelcomeTitle">
+      <h2 id="adminWelcomeTitle">Welcome, Boss</h2>
+      <p class="muted">Opening admin conversations...</p>
+    </div>
+  </div>
+
+  <script>
+    const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+    const form = document.getElementById("loginForm");
+    const emailEl = document.getElementById("liEmail");
+    const passEl  = document.getElementById("liPass");
+    const msgEl   = document.getElementById("liMsg");
+    const btnEl   = document.getElementById("liBtn");
+    const loveBurst = document.getElementById("loveBurst");
+    const loveCountEl = document.getElementById("loveCount");
+    let loveCount = 0;
+    let lastLoveTs = 0;
+
+    function setMsg(text, type="muted"){
+      msgEl.textContent = text || "";
+      msgEl.className = "authMsg " + (type || "muted");
+    }
+
+    function setLoading(loading){
+      btnEl.disabled = !!loading;
+      btnEl.textContent = loading ? "Logging in..." : "Login";
+    }
+
+    function spawnLove(target){
+      if (!loveBurst || !target) return;
+      const now = Date.now();
+      if (now - lastLoveTs < 90) return;
+      lastLoveTs = now;
+
+      const rect = target.getBoundingClientRect();
+      const wrapRect = loveBurst.getBoundingClientRect();
+      const x = rect.left - wrapRect.left + rect.width * 0.2 + Math.random() * rect.width * 0.6;
+      const y = rect.top - wrapRect.top + rect.height * 0.2;
+      const heart = document.createElement("span");
+      heart.className = "typingLove";
+      heart.textContent = "💗";
+      const size = 10 + Math.floor(Math.random() * 8);
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      heart.style.fontSize = `${size}px`;
+      heart.style.opacity = `${0.6 + Math.random() * 0.4}`;
+      loveBurst.appendChild(heart);
+      loveCount += 1;
+      if (loveCountEl) loveCountEl.textContent = String(loveCount);
+      setTimeout(() => heart.remove(), 19000);
+    }
+
+    form.querySelectorAll("input").forEach((el) => {
+      el.addEventListener("input", () => spawnLove(el));
+    });
+
+    document.querySelectorAll(".passToggle").forEach((btn) => {
+      btn.onclick = () => {
+        const id = btn.getAttribute("data-target");
+        const input = document.getElementById(id);
+        if (!input) return;
+        const isPwd = input.type === "password";
+        input.type = isPwd ? "text" : "password";
+        btn.textContent = isPwd ? "Hide" : "Show";
+      };
+    });
+
+    function forceOrbit(){
+      const orbit = document.querySelector(".orbit");
+      if (orbit){
+        orbit.classList.remove("orbitForce");
+        orbit.style.animation = "none";
+        void orbit.offsetHeight;
+        orbit.style.animation = "";
+        orbit.classList.add("orbitForce");
+      }
+      document.querySelectorAll(".orbit__heart").forEach((h) => {
+        h.classList.remove("orbitForce");
+        h.style.animation = "none";
+        void h.offsetHeight;
+        h.style.animation = "";
+        h.classList.add("orbitForce");
+      });
+    }
+
+    window.addEventListener("pageshow", forceOrbit);
+
+    function showAdminWelcomeRedirect(){
+      const modal = document.getElementById("adminWelcomeModal");
+      if (modal){
+        modal.removeAttribute("hidden");
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden","false");
+      }
+      setTimeout(() => {
+        location.href = "admin-conversations.html";
+      }, 700);
+    }
+
+    async function redirectAfterLogin(){
+      const { data: userRes } = await sb.auth.getUser();
+      const user = userRes?.user;
+      if (!user){
+        setMsg("Login success, but user session not found. Try again.", "err");
+        setLoading(false);
+        return;
+      }
+      const email = (user.email || "").toLowerCase();
+      const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
+      localStorage.setItem("dateme_active_user", email);
+      if (email === adminEmail){
+        localStorage.setItem("dateme_signup_welcome", "Toki");
+        localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
+        localStorage.removeItem("dateme_admin_welcome");
+        showAdminWelcomeRedirect();
+        return;
+      }
+      location.href = "home.html";
+    }
+
+    function getProfileKey(email){
+      const clean = String(email || "").trim().toLowerCase();
+      return clean ? `dateme_profile_${clean}` : "dateme_profile";
+    }
+
+    function readLocalProfile(email){
+      try{ return JSON.parse(localStorage.getItem(getProfileKey(email)) || "{}"); }
+      catch(e){ return {}; }
+    }
+
+    function tryLocalLogin(email, pass){
+      const profile = readLocalProfile(email);
+      const storedPass = localStorage.getItem("dateme_local_pass") || "";
+      if (!profile.email || !storedPass) return false;
+      if (String(profile.email).toLowerCase() !== String(email).toLowerCase()) return false;
+      if (String(storedPass) !== String(pass)) return false;
+      localStorage.setItem("dateme_local_session", "true");
+      return true;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = (emailEl.value || "").trim();
+      const pass  = passEl.value || "";
+
+      setMsg("", "muted");
+      setLoading(true);
+
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+      if (error){
+        if (tryLocalLogin(email, pass)){
+          localStorage.setItem("dateme_active_user", email.toLowerCase());
+          const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
+          if (email.toLowerCase() === adminEmail){
+            localStorage.setItem("dateme_signup_welcome", "Toki");
+            localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
+            localStorage.removeItem("dateme_admin_welcome");
+            showAdminWelcomeRedirect();
+            return;
+          }
+          location.href = "home.html";
+          return;
+        }
+        setMsg(error.message, "err");
+        setLoading(false);
+        return;
+      }
+
+      await redirectAfterLogin();
+    });
+
+    const forgotBtn = document.getElementById("forgotBtn");
+    const forgotModal = document.getElementById("forgotModal");
+    const forgotClose = document.getElementById("forgotClose");
+    const forgotX = document.getElementById("forgotX");
+    const forgotMsg = document.getElementById("forgotMsg");
+    const forgotUsername = document.getElementById("forgotUsername");
+    const forgotPass = document.getElementById("forgotPass");
+    const forgotPass2 = document.getElementById("forgotPass2");
+    const verifyBtn = document.getElementById("forgotVerifyBtn");
+    const saveBtn = document.getElementById("forgotSaveBtn");
+    const passWrap = document.getElementById("newPassWrap");
+    const pass2Wrap = document.getElementById("newPass2Wrap");
+
+    function showForgot(){
+      if (!forgotModal) return;
+      forgotModal.removeAttribute("hidden");
+      forgotModal.classList.add("show");
+      forgotModal.setAttribute("aria-hidden","false");
+      if (forgotMsg) forgotMsg.textContent = "";
+      if (passWrap) passWrap.classList.add("is-hidden");
+      if (pass2Wrap) pass2Wrap.classList.add("is-hidden");
+      if (saveBtn) saveBtn.classList.add("is-hidden");
+      if (verifyBtn) verifyBtn.classList.remove("is-hidden");
+    }
+    function hideForgot(){
+      if (!forgotModal) return;
+      forgotModal.classList.remove("show");
+      forgotModal.setAttribute("aria-hidden","true");
+      forgotModal.setAttribute("hidden", "hidden");
+    }
+    if (forgotBtn) forgotBtn.onclick = showForgot;
+    if (forgotClose) forgotClose.onclick = hideForgot;
+    if (forgotX) forgotX.onclick = hideForgot;
+    if (forgotModal){
+      forgotModal.addEventListener("click", (e) => {
+        if (e.target === forgotModal) hideForgot();
+      });
+    }
+    if (forgotModal){
+      forgotModal.classList.remove("show");
+      forgotModal.setAttribute("aria-hidden","true");
+      forgotModal.setAttribute("hidden","hidden");
+    }
+
+    if (verifyBtn){
+      verifyBtn.onclick = () => {
+        const profile = readLocalProfile();
+        const uname = (forgotUsername.value || "").trim().toLowerCase();
+        const saved = String(profile.username || "").trim().toLowerCase();
+        const email = String(profile.email || "").trim();
+        if (!uname || !saved || !email || uname !== saved){
+          forgotMsg.textContent = "Username not found. Please use the username you signed up with.";
+          forgotMsg.className = "authMsg err";
+          return;
+        }
+        forgotMsg.textContent = "Username verified. Set a new password.";
+        forgotMsg.className = "authMsg ok";
+        passWrap.classList.remove("is-hidden");
+        pass2Wrap.classList.remove("is-hidden");
+        saveBtn.classList.remove("is-hidden");
+        verifyBtn.classList.add("is-hidden");
+      };
+    }
+
+    if (saveBtn){
+      saveBtn.onclick = () => {
+        const p1 = (forgotPass.value || "").trim();
+        const p2 = (forgotPass2.value || "").trim();
+        if (p1.length < 6){
+          forgotMsg.textContent = "Password must be at least 6 characters.";
+          forgotMsg.className = "authMsg err";
+          return;
+        }
+        if (p1 !== p2){
+          forgotMsg.textContent = "Passwords do not match.";
+          forgotMsg.className = "authMsg err";
+          return;
+        }
+        localStorage.setItem("dateme_local_pass", p1);
+        localStorage.setItem("dateme_local_session", "true");
+        forgotMsg.textContent = "Password saved. Redirecting...";
+        forgotMsg.className = "authMsg ok";
+        setTimeout(() => {
+          location.href = "home.html";
+        }, 700);
+      };
+    }
+  </script>
+</body>
+</html>
