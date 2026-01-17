@@ -65,6 +65,20 @@ async function ensureUsersTable(){
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )`
     );
+    
+    // Add password_hash column if it doesn't exist (migration)
+    try {
+      await pool.query(
+        `ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)`
+      );
+      console.log("✓ Added password_hash column to users table");
+    } catch (e) {
+      // Column already exists, ignore error
+      if (!String(e.message).includes("Duplicate column")) {
+        console.log("✓ password_hash column already exists");
+      }
+    }
+    
     console.log("✓ users table ready");
   } catch (err) {
     console.error("users table error:", err);
