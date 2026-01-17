@@ -49,17 +49,24 @@
     
     /* Hide broken images and show gradient placeholder */
     img[src*="randomuser.me"],
-    img[src*="profile-3"] {
+    img[src*="profile-"] {
       background: linear-gradient(135deg, #ff4fd8, #7c4dff) !important;
       color: white !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       font-weight: bold !important;
+      min-height: 120px !important;
     }
     
-    img[src*="randomuser.me"]::before,
-    img[src*="profile-3"]::before {
+    .person img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      background: linear-gradient(135deg, #ff4fd8, #7c4dff);
+    }
+    
+    img[src*="assets/profile"]::before {
       content: '👤' !important;
       font-size: 48px !important;
     }
