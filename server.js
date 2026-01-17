@@ -399,6 +399,133 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+// ===== USER AUTHENTICATION APIs =====
+
+// REGISTER - নতুন user
+app.post("/api/register", async (req, res) => {
+  const { email, username, password, name, city, country, gender, age, photo } = req.body;
+  
+  if (!email || !username || !password) {
+    return res.status(400).json({ ok: false, error: "Missing required fields" });
+  }
+
+  try {
+    // Check if email/username exists
+    const [existing] = await pool.query(
+      "SELECT email, username FROM users WHERE email = ? OR username = ?",
+      [email.toLowerCase(), username.toLowerCase()]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ ok: false, error: "Email or username already taken" });
+    }
+
+    // Simple password hash (use bcrypt in production!)
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update(password + email).digest('hex');
+
+    // Insert user
+    await pool.query(
+      `INSERT INTO users (email, username, name, password_hash, created_at)
+       VALUES (?, ?, ?, ?, NOW())`,
+      [email.toLowerCase(), username.toLowerCase(), name || "", hash]
+    );
+
+    // Insert profile
+    await pool.query(
+      `INSERT INTO user_profiles (email, city, country, gender, age, photo)
+       VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+       city=VALUES(city), country=VALUES(country), gender=VALUES(gender), age=VALUES(age), photo=VALUES(photo)`,
+      [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photo || ""]
+    );
+
+    res.json({ ok: true, message: "Registration successful", email: email.toLowerCase() });
+  } catch (err) {
+    console.error("register error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// LOGIN - ইউজার লগইন করা
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+  
+  if (!email || !password) {
+    return res.status(400).json({ ok: false, error: "Email and password required" });
+  }
+
+  try {
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update(password + email).digest('hex');
+
+    const [rows] = await pool.query(
+      `SELECT u.id, u.email, u.username, u.name,
+              p.city, p.country, p.gender, p.age, p.photo
+       FROM users u
+       LEFT JOIN user_profiles p ON p.email = u.email
+       WHERE u.email = ? AND u.password_hash = ?`,
+      [email.toLowerCase(), hash]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ ok: false, error: "Invalid email or password" });
+    }
+
+    res.json({ ok: true, user: rows[0] });
+  } catch (err) {
+    console.error("login error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// SEARCH - username দিয়ে search করা
+app.get("/api/search", async (req, res) => {
+  const username = req.query.username || "";
+  
+  if (!username || username.length < 2) {
+    return res.json({ ok: true, users: [] });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT u.id, u.email, u.username, u.name,
+              p.city, p.country, p.gender, p.age, p.photo
+       FROM users u
+       LEFT JOIN user_profiles p ON p.email = u.email
+       WHERE u.username LIKE ? LIMIT 50`,
+      [`%${username}%`]
+    );
+
+    res.json({ ok: true, users: rows });
+  } catch (err) {
+    console.error("search error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// UPDATE PROFILE - প্রোফাইল আপডেট করা
+app.put("/api/profile", async (req, res) => {
+  const { email, city, country, gender, age, photo } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email required" });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE user_profiles 
+       SET city=?, country=?, gender=?, age=?, photo=?, updated_at=NOW()
+       WHERE email = ?`,
+      [city || "", country || "", gender || "", age || 0, photo || "", email.toLowerCase()]
+    );
+
+    res.json({ ok: true, message: "Profile updated" });
+  } catch (err) {
+    console.error("profile update error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`DateMe server running on http://localhost:${PORT}`);
 });
