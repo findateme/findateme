@@ -244,12 +244,20 @@ const STORY_TTL_MS = 24 * 60 * 60 * 1000;
 
 function loadStories(){
   let list = [];
-  try{ list = JSON.parse(localStorage.getItem(STORIES_KEY) || "[]"); }catch(e){ list = []; }
+  try {
+    list = JSON.parse(localStorage.getItem(STORIES_KEY) || "[]");
+  } catch(e) {
+    list = [];
+  }
+  
   const now = Date.now();
   const filtered = Array.isArray(list) ? list.filter(s => (s.expiresAt || 0) > now) : [];
+  
+  // Only save back if we removed expired stories
   if (filtered.length !== list.length){
     localStorage.setItem(STORIES_KEY, JSON.stringify(filtered));
   }
+  
   return filtered;
 }
 
@@ -404,7 +412,19 @@ function init(){
   if (savedGender === "men") state.gender = "men";
   setGender(state.gender);
 
-  // ✅ save profiles for inbox page
+  // ✅ Load cached profiles synchronously (fast)
+  const cacheKey = state.gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+    if (Array.isArray(cached) && cached.length > 0) {
+      state.all = cached;
+    } else {
+      state.all = state.gender === "men" ? MEN_LIST : WOMEN_LIST;
+    }
+  } catch(e) {
+    state.all = state.gender === "men" ? MEN_LIST : WOMEN_LIST;
+  }
+
   localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
 
   initLikeCounts();
@@ -415,8 +435,10 @@ function init(){
 
   applyFilters();
   
-  // ✅ Sync remote profiles immediately
-  syncRemoteProfiles(state.gender);
+  // ⚡ Sync remote profiles in background (non-blocking)
+  setTimeout(() => {
+    syncRemoteProfiles(state.gender);
+  }, 500);
   
   // ❌ Auto-refresh disabled - was causing page refresh every 30 seconds
   // Users can manually refresh if needed
@@ -472,53 +494,88 @@ function init(){
         return;
       }
       
-      const maxSize = 50 * 1024 * 1024; // 50MB for video
+      // Size limits
+      const maxImageSize = 5 * 1024 * 1024; // 5MB for images
+      const maxVideoSize = 50 * 1024 * 1024; // 50MB for videos
+      const maxSize = isImage ? maxImageSize : maxVideoSize;
+      
       if (file.size > maxSize){
-        alert("File too large. Please use under 50MB.");
+        alert(`File too large. Images: max 5MB, Videos: max 50MB.`);
         storyInput.value = "";
         return;
       }
       
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result;
-        const profile = readActiveProfile();
-        const email = getActiveEmail() || String(profile.email || "").trim().toLowerCase();
-        
-        // Get current user ID
-        const currentUser = (() => {
-          try {
-            const u = localStorage.getItem("dateme_current_user");
-            return u ? JSON.parse(u) : null;
-          } catch(e) { return null; }
-        })();
-        
-        if (!email){
-          alert("Please complete your profile before adding a story.");
-          return;
-        }
-        const list = loadStories();
-        const next = list.filter(s => s.id !== email);
-        
-        const isImage = String(file.type || "").startsWith("image/");
-        const isVideo = String(file.type || "").startsWith("video/");
-        
-        next.unshift({
-          id: email,
-          uploadedBy: currentUser?.id || email, // Store who uploaded this
-          name: profile.name || "Story",
-          media: dataUrl, // Use 'media' instead of 'img'
-          type: isVideo ? "video" : "image", // Store type
-          createdAt: Date.now(),
-          expiresAt: Date.now() + STORY_TTL_MS,
-          reactions: {} // Store reactions: { userId: '👍' }
-        });
-        saveStories(next);
-        renderStories();
-        storyInput.value = "";
-      };
-      reader.readAsDataURL(file);
+      // For images, compress before storing
+      if (isImage){
+        const canvas = document.createElement("canvas");
+        const img = new Image();
+        img.onload = () => {
+          // Limit dimensions to 800x800 max
+          let width = img.width;
+          let height = img.height;
+          if (width > 800 || height > 800){
+            const ratio = Math.min(800 / width, 800 / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+          saveStory(file, compressedDataUrl, isVideo);
+        };
+        img.onerror = () => {
+          // If image fails to process, use original
+          const reader = new FileReader();
+          reader.onload = () => saveStory(file, reader.result, isVideo);
+          reader.readAsDataURL(file);
+        };
+        img.src = URL.createObjectURL(file);
+      } else {
+        // For videos, just store directly
+        const reader = new FileReader();
+        reader.onload = () => saveStory(file, reader.result, isVideo);
+        reader.readAsDataURL(file);
+      }
     });
+  }
+  
+  // Helper function to save story
+  function saveStory(file, dataUrl, isVideo){
+    const profile = readActiveProfile();
+    const email = getActiveEmail() || String(profile.email || "").trim().toLowerCase();
+    
+    // Get current user ID
+    const currentUser = (() => {
+      try {
+        const u = localStorage.getItem("dateme_current_user");
+        return u ? JSON.parse(u) : null;
+      } catch(e) { return null; }
+    })();
+    
+    if (!email){
+      alert("Please complete your profile before adding a story.");
+      return;
+    }
+    
+    const list = loadStories();
+    const next = list.filter(s => s.id !== email);
+    
+    next.unshift({
+      id: email,
+      uploadedBy: currentUser?.id || email, // Store who uploaded this
+      name: profile.name || "Story",
+      media: dataUrl, // Use 'media' instead of 'img'
+      type: isVideo ? "video" : "image", // Store type
+      createdAt: Date.now(),
+      expiresAt: Date.now() + STORY_TTL_MS,
+      reactions: {} // Store reactions: { userId: '👍' }
+    });
+    saveStories(next);
+    renderStories();
+    const storyInput = $("storyInput");
+    if (storyInput) storyInput.value = "";
   }
 
   // theme toggle
@@ -757,7 +814,18 @@ function mergeCustomProfiles(list, gender){
 function renderStories(){
   const stories = $("stories");
   if (!stories) return;
-  const list = loadStories();
+  
+  let list = [];
+  try {
+    // Load only first 50 stories to avoid DOM overload
+    const allStories = JSON.parse(localStorage.getItem(STORIES_KEY) || "[]");
+    const now = Date.now();
+    list = Array.isArray(allStories) 
+      ? allStories.filter(s => (s.expiresAt || 0) > now).slice(0, 50)
+      : [];
+  } catch(e) {
+    list = [];
+  }
   
   // Get current user
   const currentUser = (() => {
@@ -780,9 +848,10 @@ function renderStories(){
     return !currentUser || s.uploadedBy !== currentUser.id;
   });
   
-  const customStories = otherUsersStories.map(s => `
+  // Limit to first 30 stories for performance
+  const customStories = otherUsersStories.slice(0, 30).map(s => `
     <div class="story" data-story-type="custom" data-story-id="${s.id}">
-      <div class="story__ring"><img src="${s.media || s.img}" alt="${s.name}" loading="lazy"/></div>
+      <div class="story__ring"><img src="${s.media || s.img}" alt="${s.name}" loading="lazy" decoding="async"/></div>
       <div class="story__name">${s.name}</div>
     </div>
   `);
