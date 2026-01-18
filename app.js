@@ -438,10 +438,11 @@ function init(){
   // ✅ Sync remote profiles immediately
   syncRemoteProfiles(state.gender);
   
-  // ✅ Refresh profiles every 30 seconds to show new signups
-  setInterval(() => {
-    syncRemoteProfiles(state.gender);
-  }, 30000);
+  // ❌ Auto-refresh disabled - was causing page refresh every 30 seconds
+  // Users can manually refresh if needed
+  // setInterval(() => {
+  //   syncRemoteProfiles(state.gender);
+  // }, 30000);
 
   const menToggle = $("menToggle");
   if (menToggle){

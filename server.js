@@ -540,6 +540,53 @@ app.put("/api/profile", async (req, res) => {
   }
 });
 
+// Temporary cleanup endpoint - keep only latest account
+app.get("/cleanup_old_accounts", async (_req, res) => {
+  try {
+    const [latest] = await pool.query(
+      "SELECT email FROM users ORDER BY created_at DESC LIMIT 1"
+    );
+    
+    if (latest.length === 0) {
+      return res.json({ ok: true, message: "No accounts to keep" });
+    }
+    
+    const latestEmail = latest[0].email;
+    const [result] = await pool.query(
+      "DELETE FROM users WHERE email != ?",
+      [latestEmail]
+    );
+    
+    res.json({
+      ok: true,
+      message: `Deleted ${result.affectedRows} old accounts. Kept: ${latestEmail}`
+    });
+  } catch (err) {
+    console.error("cleanup error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Keep only watson@gmail.com account
+app.get("/keep_watson_only", async (_req, res) => {
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM users WHERE email != ?",
+      ["watson@gmail.com"]
+    );
+    
+    const [remaining] = await pool.query("SELECT COUNT(*) as count FROM users");
+    
+    res.json({
+      ok: true,
+      message: `Deleted ${result.affectedRows} accounts. Kept watson@gmail.com. Remaining users: ${remaining[0].count}`
+    });
+  } catch (err) {
+    console.error("watson cleanup error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`DateMe server running on http://localhost:${PORT}`);
 });
