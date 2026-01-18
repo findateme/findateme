@@ -113,6 +113,68 @@
       emailEl.value = savedEmail;
     }
 
+    // ✅ Record device login - track which devices user has logged in from
+    function recordDeviceLogin(email, profile) {
+      if (!email) return;
+      
+      // Get device info
+      const ua = navigator.userAgent;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const deviceType = isMobile ? "Mobile" : "Desktop";
+      const browserName = ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Other";
+      
+      // Create device object
+      const device = {
+        id: `device-${Date.now()}`,
+        type: deviceType,
+        browser: browserName,
+        loginTime: Date.now(),
+        lastSeen: Date.now(),
+        ua: ua.substring(0, 100) // Store partial UA for identification
+      };
+      
+      // Store device in profile's linked devices
+      const emailKey = `dateme_profile_${email.toLowerCase()}`;
+      const storedProfile = readLocalProfile(email);
+      if (!storedProfile.linkedDevices) {
+        storedProfile.linkedDevices = [];
+      }
+      
+      // Check if device already exists (based on browser+type)
+      const existingDevice = storedProfile.linkedDevices.find(d => 
+        d.type === deviceType && d.browser === browserName
+      );
+      
+      if (existingDevice) {
+        // Update last seen
+        existingDevice.lastSeen = Date.now();
+      } else {
+        // Add new device
+        storedProfile.linkedDevices.push(device);
+      }
+      
+      // Keep only last 10 devices
+      if (storedProfile.linkedDevices.length > 10) {
+        storedProfile.linkedDevices = storedProfile.linkedDevices.slice(-10);
+      }
+      
+      // Update profile with new device info
+      localStorage.setItem(emailKey, JSON.stringify(storedProfile));
+      localStorage.setItem("dateme_profile", JSON.stringify(storedProfile));
+      
+      // Also update in custom profiles list
+      try {
+        const customList = JSON.parse(localStorage.getItem("dateme_custom_profiles") || "[]");
+        const customProfile = customList.find(u => String(u.email || "").toLowerCase() === email.toLowerCase());
+        if (customProfile) {
+          customProfile.linkedDevices = storedProfile.linkedDevices;
+          localStorage.setItem("dateme_custom_profiles", JSON.stringify(customList));
+        }
+      } catch (e) {
+        console.log("Could not update custom profiles list");
+      }
+    }
+
     function setMsg(text, type="muted"){
       msgEl.textContent = text || "";
       msgEl.className = "authMsg " + (type || "muted");
@@ -216,6 +278,8 @@
           localStorage.setItem("dateme_profile", JSON.stringify(profileData));
           // Store as current user
           localStorage.setItem("dateme_current_user", JSON.stringify(profileData));
+          // Record this device login
+          recordDeviceLogin(email, profileData);
         }
       } catch (e) {
         console.log("Could not fetch profile from server:", e.message);
@@ -238,6 +302,34 @@
       return clean ? `dateme_profile_${clean}` : "dateme_profile";
     }
 
+    // ✅ Migrate old user data to new format if needed (backward compatibility)
+    function migrateOldProfileFormat(email) {
+      const emailLower = String(email || "").trim().toLowerCase();
+      if (!emailLower) return null;
+      
+      // Try to find old profile format
+      let profile = null;
+      
+      // Check if profile exists in new format
+      const profileKey = getProfileKey(emailLower);
+      try {
+        const stored = localStorage.getItem(profileKey);
+        if (stored) {
+          profile = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.log("Could not parse profile");
+      }
+      
+      // If found and missing linkedDevices, add it
+      if (profile && !profile.linkedDevices) {
+        profile.linkedDevices = [];
+        localStorage.setItem(profileKey, JSON.stringify(profile));
+      }
+      
+      return profile;
+    }
+
     function readLocalProfile(email){
       try{ return JSON.parse(localStorage.getItem(getProfileKey(email)) || "{}"); }
       catch(e){ return {}; }
@@ -246,7 +338,11 @@
     function tryLocalLogin(email, pass){
       const profile = readLocalProfile(email);
       const storedPass = localStorage.getItem("dateme_local_pass") || "";
-      if (!profile.email || !storedPass) return false;
+      if (!profile.email || !storedPass) {
+        // Migrate old data if exists
+        migrateOldProfileFormat(email);
+        return false;
+      }
       if (String(profile.email).toLowerCase() !== String(email).toLowerCase()) return false;
       if (String(storedPass) !== String(pass)) return false;
       localStorage.setItem("dateme_local_session", "true");
@@ -254,6 +350,7 @@
       localStorage.setItem(getProfileKey(email), JSON.stringify(profile));
       localStorage.setItem("dateme_profile", JSON.stringify(profile));
       localStorage.setItem("dateme_current_user", JSON.stringify(profile));
+      recordDeviceLogin(email, profile);
       return true;
     }
 
