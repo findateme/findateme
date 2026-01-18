@@ -70,7 +70,9 @@
           <input id="suAge" class="authInput" type="number" placeholder="Age" readonly />
         </div>
         <div class="authGrid">
-          <input id="suCity" class="authInput" type="text" placeholder="City" autocomplete="address-level2" required />
+          <select id="suCity" class="authInput" required>
+            <option value="">Select City</option>
+          </select>
           <select id="suCountry" class="authInput" required>
             <option value="">Country</option>
             <option value="Bangladesh">Bangladesh</option>
@@ -173,6 +175,42 @@
     let pendingPhoto = "";
     let loveCount = 0;
     let lastLoveTs = 0;
+
+    // City mapping by country
+    const citiesByCountry = {
+      "Bangladesh": ["Dhaka", "Chittagong", "Sylhet", "Khulna", "Rajshahi", "Barisal", "Rangpur", "Mymensingh"],
+      "India": ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow"],
+      "USA": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"],
+      "UK": ["London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Liverpool", "Newcastle", "Sheffield", "Bristol", "Edinburgh"],
+      "Canada": ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa", "Edmonton", "Winnipeg", "Quebec City", "Hamilton", "Kitchener"],
+      "Australia": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Logan City"],
+      "UAE": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain"],
+      "Saudi Arabia": ["Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Abha", "Tabuk"],
+      "Singapore": ["Singapore"],
+      "Malaysia": ["Kuala Lumpur", "George Town", "Johor Bahru", "Klang", "Shah Alam", "Selangor", "Petaling Jaya", "Subang Jaya"],
+      "Thailand": ["Bangkok", "Chiang Mai", "Phuket", "Pattaya", "Chiang Rai", "Hat Yai", "Ubon Ratchathani"],
+      "Philippines": ["Manila", "Cebu", "Davao", "Quezon City", "Caloocan", "Makati", "Quezon", "Pasig"],
+      "Japan": ["Tokyo", "Osaka", "Yokohama", "Kobe", "Kyoto", "Kawasaki", "Saitama", "Hiroshima", "Fukuoka", "Hamamatsu"],
+      "South Korea": ["Seoul", "Busan", "Incheon", "Daegu", "Daejeon", "Gwangju", "Ulsan", "Sejong"],
+      "Turkey": ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya", "Gaziantep", "Konya", "Kayseri"]
+    };
+
+    // Update city dropdown when country changes
+    function updateCities() {
+      const selectedCountry = countryEl.value;
+      const cities = citiesByCountry[selectedCountry] || [];
+      
+      cityEl.innerHTML = '<option value="">Select City</option>';
+      cities.forEach(city => {
+        const option = document.createElement("option");
+        option.value = city;
+        option.textContent = city;
+        cityEl.appendChild(option);
+      });
+    }
+
+    // Event listener for country change
+    countryEl.addEventListener("change", updateCities);
 
     function showSignupWelcome(){
       const modal = document.getElementById("signupWelcomeModal");
