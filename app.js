@@ -31,34 +31,34 @@ const REMOTE_CACHE_KEY = "dateme_remote_profiles";
 
 // demo profiles (unique images via randomuser ids)
 const DEMO = [
-  { name:"Emily Johnson", age:27, country:"India", city:"Kolkata", online:false, tags:["Coffee","Movies","Poetry"], bio:"Deep talks and warm hugs—my favorite vibe.", img:"assets/profile-01.jpg" },
-  { name:"Sophia Martinez", age:23, country:"India", city:"Mumbai", online:true, tags:["Dance","Travel","Food"], bio:"Adventure outside, loyal inside.", img:"assets/profile-02.jpg" },
-  { name:"Olivia Brown", age:22, country:"India", city:"Bengaluru", online:true, tags:["Yoga","Books","Music"], bio:"Calm mornings and honest love matter to me.", img:"assets/profile-03.jpg" },
+  { name:"Emily Johnson", age:27, country:"India", city:"Kolkata", online:false, tags:["Coffee","Movies","Poetry"], img:"assets/profile-01.jpg" },
+  { name:"Sophia Martinez", age:23, country:"India", city:"Mumbai", online:true, tags:["Dance","Travel","Food"], img:"assets/profile-02.jpg" },
+  { name:"Olivia Brown", age:22, country:"India", city:"Bengaluru", online:true, tags:["Yoga","Books","Music"], img:"assets/profile-03.jpg" },
 
-  { name:"Ava Williams", age:22, country:"Nepal", city:"Kathmandu", online:true, tags:["Books","Art","Hiking"], bio:"Gentle energy only—slow love feels right.", img:"assets/profile-04.jpg" },
-  { name:"Isabella Garcia", age:24, country:"Nepal", city:"Pokhara", online:false, tags:["Nature","Coffee","Photography"], bio:"Smiles first… then forever.", img:"assets/profile-05.jpg" },
+  { name:"Ava Williams", age:22, country:"Nepal", city:"Kathmandu", online:true, tags:["Books","Art","Hiking"], img:"assets/profile-04.jpg" },
+  { name:"Isabella Garcia", age:24, country:"Nepal", city:"Pokhara", online:false, tags:["Nature","Coffee","Photography"], img:"assets/profile-05.jpg" },
 
-  { name:"Mia Rodriguez", age:29, country:"Malaysia", city:"Kuala Lumpur", online:false, tags:["Food","Fitness","Travel"], bio:"If you’re sincere, I’m all in.", img:"assets/profile-06.jpg" },
-  { name:"Charlotte Miller", age:26, country:"Malaysia", city:"Penang", online:true, tags:["Cooking","Movies","Beach"], bio:"Emotionally mature love is my thing.", img:"assets/profile-07.jpg" },
+  { name:"Mia Rodriguez", age:29, country:"Malaysia", city:"Kuala Lumpur", online:false, tags:["Food","Fitness","Travel"], img:"assets/profile-06.jpg" },
+  { name:"Charlotte Miller", age:26, country:"Malaysia", city:"Penang", online:true, tags:["Cooking","Movies","Beach"], img:"assets/profile-07.jpg" },
 
-  { name:"Amelia Davis", age:26, country:"Thailand", city:"Bangkok", online:true, tags:["Beach","Fashion","Anime"], bio:"Playful love with real loyalty.", img:"assets/profile-08.jpg" },
-  { name:"Harper Wilson", age:23, country:"Thailand", city:"Chiang Mai", online:false, tags:["Nature","Cafe","Music"], bio:"Be clear and kind—no games.", img:"assets/profile-09.jpg" },
+  { name:"Amelia Davis", age:26, country:"Thailand", city:"Bangkok", online:true, tags:["Beach","Fashion","Anime"], img:"assets/profile-08.jpg" },
+  { name:"Harper Wilson", age:23, country:"Thailand", city:"Chiang Mai", online:false, tags:["Nature","Cafe","Music"], img:"assets/profile-09.jpg" },
 
-  { name:"Evelyn Anderson", age:24, country:"Japan", city:"Osaka", online:true, tags:["Anime","Music","Citywalk"], bio:"Tell me your favorite song.", img:"assets/profile-10.jpg" },
-  { name:"Abigail Taylor", age:22, country:"China", city:"Shanghai", online:false, tags:["Art","Coffee","Study"], bio:"Small surprises, big respect.", img:"assets/profile-11.jpg" },
-  { name:"Ella Thomas", age:23, country:"South Korea", city:"Seoul", online:true, tags:["K-drama","Dance","Cafe"], bio:"Honesty and effort win me over.", img:"https://randomuser.me/api/portraits/women/18.jpg" },
+  { name:"Evelyn Anderson", age:24, country:"Japan", city:"Osaka", online:true, tags:["Anime","Music","Citywalk"], img:"assets/profile-10.jpg" },
+  { name:"Abigail Taylor", age:22, country:"China", city:"Shanghai", online:false, tags:["Art","Coffee","Study"], img:"assets/profile-11.jpg" },
+  { name:"Ella Thomas", age:23, country:"South Korea", city:"Seoul", online:true, tags:["K-drama","Dance","Cafe"], img:"https://randomuser.me/api/portraits/women/18.jpg" },
 
-  { name:"Scarlett Moore", age:28, country:"UK", city:"London", online:true, tags:["Tech","Design","Coffee"], bio:"Clear intentions and warm effort matter.", img:"https://randomuser.me/api/portraits/women/21.jpg" },
-  { name:"Grace Jackson", age:26, country:"France", city:"Paris", online:false, tags:["Art","Fashion","Cafe"], bio:"Make me laugh and you’ll win me.", img:"https://randomuser.me/api/portraits/women/22.jpg" },
-  { name:"Lily White", age:25, country:"Italy", city:"Milan", online:true, tags:["Cooking","Fashion","Travel"], bio:"Show up for me—I’ll shine for us.", img:"https://randomuser.me/api/portraits/women/23.jpg" },
-  { name:"Victoria Harris", age:27, country:"Spain", city:"Barcelona", online:true, tags:["Beach","Dance","Food"], bio:"Passion with peace—no drama.", img:"https://randomuser.me/api/portraits/women/24.jpg" },
+  { name:"Scarlett Moore", age:28, country:"UK", city:"London", online:true, tags:["Tech","Design","Coffee"], img:"https://randomuser.me/api/portraits/women/21.jpg" },
+  { name:"Grace Jackson", age:26, country:"France", city:"Paris", online:false, tags:["Art","Fashion","Cafe"], img:"https://randomuser.me/api/portraits/women/22.jpg" },
+  { name:"Lily White", age:25, country:"Italy", city:"Milan", online:true, tags:["Cooking","Fashion","Travel"], img:"https://randomuser.me/api/portraits/women/23.jpg" },
+  { name:"Victoria Harris", age:27, country:"Spain", city:"Barcelona", online:true, tags:["Beach","Dance","Food"], img:"https://randomuser.me/api/portraits/women/24.jpg" },
 
-  { name:"Aria Martin", age:25, country:"USA", city:"New York", online:false, tags:["Gym","Travel","Movies"], bio:"Simple dates, real vibes.", img:"https://randomuser.me/api/portraits/women/30.jpg" },
-  { name:"Zoey Thompson", age:24, country:"USA", city:"Los Angeles", online:true, tags:["Music","Beach","Photography"], bio:"A cute love story—cinematic but real.", img:"https://randomuser.me/api/portraits/women/31.jpg" },
-  { name:"Natalie Lopez", age:26, country:"USA", city:"Chicago", online:true, tags:["Design","Coffee","Books"], bio:"Good communication makes me melt.", img:"https://randomuser.me/api/portraits/women/32.jpg" },
+  { name:"Aria Martin", age:25, country:"USA", city:"New York", online:false, tags:["Gym","Travel","Movies"], img:"https://randomuser.me/api/portraits/women/30.jpg" },
+  { name:"Zoey Thompson", age:24, country:"USA", city:"Los Angeles", online:true, tags:["Music","Beach","Photography"], img:"https://randomuser.me/api/portraits/women/31.jpg" },
+  { name:"Natalie Lopez", age:26, country:"USA", city:"Chicago", online:true, tags:["Design","Coffee","Books"], img:"https://randomuser.me/api/portraits/women/32.jpg" },
 
-  { name:"Hannah Lee", age:24, country:"Canada", city:"Toronto", online:true, tags:["Nature","Cooking","Hiking"], bio:"Let’s be soft with each other.", img:"https://randomuser.me/api/portraits/women/33.jpg" },
-  { name:"Brooklyn Perez", age:28, country:"Canada", city:"Vancouver", online:false, tags:["Hiking","Coffee","Movies"], bio:"Consistent kindness is everything.", img:"https://randomuser.me/api/portraits/women/34.jpg" }
+  { name:"Hannah Lee", age:24, country:"Canada", city:"Toronto", online:true, tags:["Nature","Cooking","Hiking"], img:"https://randomuser.me/api/portraits/women/33.jpg" },
+  { name:"Brooklyn Perez", age:28, country:"Canada", city:"Vancouver", online:false, tags:["Hiking","Coffee","Movies"], img:"https://randomuser.me/api/portraits/women/34.jpg" }
 ];
 
 const EXTRA_TARGET = 200;
@@ -329,7 +329,6 @@ function mapRemoteUser(u){
     gender,
     online: false,
     tags: ["New"],
-    bio: "New here — say hi and be kind.",
     img: u.photo || pickFallbackImage(seed, gender)
   };
 }
@@ -746,7 +745,6 @@ function mergeCustomProfiles(list, gender){
     email: p.email || "",
     online: true,
     tags: Array.isArray(p.tags) && p.tags.length ? p.tags : ["New"],
-    bio: p.bio || "New here — say hi and be kind.",
     img: p.img || "https://via.placeholder.com/80?text=User"
   }));
   return mapped.concat(list);

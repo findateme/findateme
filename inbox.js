@@ -414,7 +414,6 @@ function setProfileCard(p, threadKey){
         <div class="chatProfileCard__meta">${escapeHTML(location || "Location hidden")}</div>
       </div>
     </div>
-    <div class="chatProfileCard__bio">${escapeHTML(p.bio || "No bio yet.")}</div>
     <div class="chatProfileCard__tags">
       ${tags.map(t => `<span class="chatProfileCard__tag">${escapeHTML(t)}</span>`).join("")}
     </div>
