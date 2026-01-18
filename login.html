@@ -199,6 +199,22 @@
       const email = (user.email || "").toLowerCase();
       const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
       localStorage.setItem("dateme_active_user", email);
+      
+      // ✅ Fetch and store profile data from server
+      try {
+        const response = await fetch(`${window.API_BASE}/api/search?username=${encodeURIComponent(email)}`);
+        const data = await response.json();
+        if (data.ok && data.users && data.users.length > 0) {
+          const profileData = data.users[0];
+          localStorage.setItem(getProfileKey(email), JSON.stringify(profileData));
+          localStorage.setItem("dateme_profile", JSON.stringify(profileData));
+        }
+      } catch (e) {
+        console.log("Could not fetch profile from server:", e.message);
+      }
+      
+      localStorage.setItem("dateme_local_session", "true");
+      
       if (email === adminEmail){
         localStorage.setItem("dateme_signup_welcome", "Toki");
         localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
@@ -226,6 +242,9 @@
       if (String(profile.email).toLowerCase() !== String(email).toLowerCase()) return false;
       if (String(storedPass) !== String(pass)) return false;
       localStorage.setItem("dateme_local_session", "true");
+      localStorage.setItem("dateme_active_user", email.toLowerCase());
+      localStorage.setItem(getProfileKey(email), JSON.stringify(profile));
+      localStorage.setItem("dateme_profile", JSON.stringify(profile));
       return true;
     }
 
