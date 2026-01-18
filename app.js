@@ -151,26 +151,10 @@ const EXTRA_TAGS = [
   ["Cooking","Anime","Citywalk"],
   ["Poetry","Tea","Sunsets"]
 ];
-const EXTRA_BIOS = [
-  "Soft vibes, real conversations.",
-  "Here for honesty and calm love.",
-  "Kindness first, always.",
-  "Looking for a meaningful connection.",
-  "Peaceful heart, playful smile.",
-  "Serious intent, warm energy."
-];
-
 const EXTRA_NAMES_MEN = [
   "Arman","Rafi","Nabil","Hasan","Siam","Fahim","Rizwan","Imran","Zahid","Tariq",
   "Ayaan","Rohan","Kabir","Rayhan","Faris","Sami","Zayan","Adil","Omar","Saif",
   "Noah","Ethan","Leo","Mason","Liam","Lucas","Jay","Ari","Zane","Kian"
-];
-const EXTRA_BIOS_MEN = [
-  "Calm energy, honest intentions.",
-  "Looking for something real.",
-  "Respect and effort matter most.",
-  "Simple dates, real vibes.",
-  "Kind heart, clear goals."
 ];
 
 const LOCAL_WOMEN_IMAGES = [
@@ -215,7 +199,6 @@ function generateProfiles(count, startIndex, gender){
   const out = [];
   for (let i = 0; i < count; i++){
     const namePool = gender === "men" ? EXTRA_NAMES_MEN : EXTRA_NAMES;
-    const bioPool = gender === "men" ? EXTRA_BIOS_MEN : EXTRA_BIOS;
     const placePool = gender === "men" ? MEN_PLACES : EXTRA_PLACES;
     const nameIndex = startIndex + i;
     const name = (gender !== "men" && WOMEN_NAMES_100[nameIndex])
@@ -223,7 +206,6 @@ function generateProfiles(count, startIndex, gender){
       : namePool[(startIndex + i) % namePool.length];
     const place = placePool[(startIndex + i) % placePool.length];
     const tags = EXTRA_TAGS[(startIndex + i) % EXTRA_TAGS.length];
-    const bio = bioPool[(startIndex + i) % bioPool.length];
     const age = 21 + ((startIndex + i) % 9);
     const imgId = (startIndex + i) % 90;
     const localImg =
@@ -244,7 +226,6 @@ function generateProfiles(count, startIndex, gender){
       country: place.country,
       online: false,
       tags,
-      bio,
       img: localImg || `https://randomuser.me/api/portraits/${gender === "men" ? "men" : "women"}/${imgId}.jpg`
     });
   }
