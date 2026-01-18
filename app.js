@@ -995,7 +995,6 @@ function cardHTML(p){
 
         <div class="pcard__sub">${displayCity}, ${displayCountry}</div>
         ${nearLine}
-        <p class="pcard__bio">${p.bio}</p>
 
         <div class="pcard__tags">
           ${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}
