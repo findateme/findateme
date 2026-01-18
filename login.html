@@ -260,9 +260,11 @@
       setMsg("", "muted");
       setLoading(true);
 
+      // First, try Supabase auth
       const { error } = await sb.auth.signInWithPassword({ email, password: pass });
 
       if (error){
+        // If Supabase fails, try local login fallback
         if (tryLocalLogin(email, pass)){
           localStorage.setItem("dateme_active_user", email.toLowerCase());
           const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
@@ -276,7 +278,7 @@
           location.href = "home.html";
           return;
         }
-        setMsg(error.message, "err");
+        setMsg("❌ Invalid email or password. Please check and try again.", "err");
         setLoading(false);
         return;
       }

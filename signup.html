@@ -652,11 +652,13 @@
       localStorage.removeItem("dateme_signup_flow");
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem("dateme_local_session", "true"); // ✅ Mark as authenticated
+      localStorage.setItem("dateme_local_pass", pass); // ✅ Store password for login fallback
       const finalDraft = readProfileStore();
       finalDraft.email = email.toLowerCase();
       finalDraft.username = username.toLowerCase();
       localStorage.setItem(getProfileKey(email), JSON.stringify(finalDraft));
       localStorage.setItem("dateme_profile", JSON.stringify(finalDraft));
+      localStorage.setItem("dateme_current_user", JSON.stringify(finalDraft));
 
       setMsg("Account created ✅ Redirecting...", "ok");
       addNotification(email);
