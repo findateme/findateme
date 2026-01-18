@@ -107,6 +107,12 @@
     let loveCount = 0;
     let lastLoveTs = 0;
 
+    // ✅ Auto-fill email if user logged in before
+    const savedEmail = localStorage.getItem("dateme_active_user");
+    if (savedEmail && emailEl) {
+      emailEl.value = savedEmail;
+    }
+
     function setMsg(text, type="muted"){
       msgEl.textContent = text || "";
       msgEl.className = "authMsg " + (type || "muted");
@@ -282,6 +288,11 @@
         setLoading(false);
         return;
       }
+
+      // ✅ Supabase success: Always store password for local fallback
+      localStorage.setItem("dateme_active_user", email.toLowerCase());
+      localStorage.setItem("dateme_local_pass", pass);
+      localStorage.setItem("dateme_local_session", "true");
 
       await redirectAfterLogin();
     });

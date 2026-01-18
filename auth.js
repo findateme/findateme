@@ -20,8 +20,9 @@ async function getPaidStatus(userId) {
 
 async function logout() {
   await sb.auth.signOut();
-  localStorage.removeItem("dateme_local_session");
-  localStorage.removeItem("dateme_active_user");
+  // ⚠️ DO NOT clear dateme_active_user or dateme_local_pass
+  // They should persist for login after days
+  localStorage.removeItem("dateme_local_session"); // Only clear session flag, not credentials
   location.href = "login.html";
 }
 
