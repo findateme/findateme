@@ -845,16 +845,9 @@ function updateLastSeen(prevIds, nextIds){
 }
 
 function initLikeCounts(){
+  // Initialize empty like map - no auto-likes
+  // Like structure: { "userId-profileId-imageIndex": true }
   const map = safeParse(localStorage.getItem(LIKE_KEY)) || {};
-  let changed = false;
-  state.all.forEach(p => {
-    const key = profileKey(p.id);
-    if (!map[key]) {
-      map[key] = randInt(120, 3200);
-      changed = true;
-    }
-  });
-  if (changed) localStorage.setItem(LIKE_KEY, JSON.stringify(map));
   state.likes = map;
 }
 
@@ -954,7 +947,11 @@ function loadMore(reset=false){
 }
 
 function cardHTML(p){
-  const likes = state.likes[profileKey(p.id)] || 0;
+  // Count actual likes for this profile (any picture)
+  const likeKeyPrefix = profileKey(p.id) + "-";
+  const likes = Object.keys(state.likes)
+    .filter(k => k.startsWith(likeKeyPrefix))
+    .length;
   const displayCity = String(p.city || "").trim() || "Unknown City";
   const displayCountry = String(p.country || "").trim() || "Unknown Country";
   const showNear = state.nearReady && state.nearIds.includes(p.id);

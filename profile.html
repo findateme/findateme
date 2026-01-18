@@ -406,6 +406,18 @@
             </div>
           </div>
 
+          <!-- Picture Gallery Upload Section -->
+          <div style="border-top: 1px solid rgba(255,255,255,.14); padding-top: 24px; margin-top: 24px;">
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Profile Gallery (up to 10 photos)</h3>
+            <div id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            </div>
+            <label class="btn" style="cursor: pointer; display: inline-flex;">
+              + Add Photo
+              <input id="galleryPhotoInput" type="file" accept="image/*" hidden />
+            </label>
+            <div id="galleryStatus" style="font-size: 12px; color: var(--muted); margin-top: 8px;"></div>
+          </div>
+
           <div class="fieldGrid">
             <label class="field">
               <span>Full name</span>
@@ -687,6 +699,85 @@
       });
     }
 
+    // Gallery upload handler
+    const galleryInput = document.getElementById("galleryPhotoInput");
+    const galleryGrid = document.getElementById("galleryGrid");
+    const galleryStatus = document.getElementById("galleryStatus");
+    
+    function loadGallery(){
+      const active = getActiveEmail();
+      if (!active) return;
+      const profileKey = getProfileKey(active);
+      const profile = readStore();
+      const pictures = profile.pictures || [];
+      
+      galleryGrid.innerHTML = "";
+      pictures.forEach((pic, idx) => {
+        const div = document.createElement("div");
+        div.style.cssText = "position: relative; width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,.06);";
+        div.innerHTML = `
+          <img src="${pic}" style="width: 100%; height: 100%; object-fit: cover;">
+          <button type="button" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.7); color: #fff; border: none; border-radius: 4px; width: 20px; height: 20px; cursor: pointer; font-size: 12px; padding: 0;">×</button>
+        `;
+        const deleteBtn = div.querySelector("button");
+        deleteBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          pictures.splice(idx, 1);
+          profile.pictures = pictures;
+          saveStore(profile);
+          loadGallery();
+          updateGalleryStatus();
+        });
+        galleryGrid.appendChild(div);
+      });
+      updateGalleryStatus();
+    }
+    
+    function updateGalleryStatus(){
+      const active = getActiveEmail();
+      if (!active) return;
+      const profile = readStore();
+      const count = (profile.pictures || []).length;
+      galleryStatus.textContent = `${count} / 10 photos`;
+    }
+    
+    if (galleryInput){
+      galleryInput.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        const active = getActiveEmail();
+        if (!active) return;
+        
+        const profile = readStore();
+        const pictures = profile.pictures || [];
+        
+        if (pictures.length >= 10){
+          galleryStatus.textContent = "Maximum 10 photos reached";
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const dataUrl = e.target?.result;
+            if (typeof dataUrl === "string" && dataUrl.length < 5000000){
+              pictures.push(dataUrl);
+              profile.pictures = pictures;
+              saveStore(profile);
+              loadGallery();
+              updateGalleryStatus();
+              galleryStatus.textContent = "Photo added!";
+              setTimeout(() => updateGalleryStatus(), 1500);
+            }
+          } catch (err) {
+            galleryStatus.textContent = "Photo too large";
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     const themeBtn = document.getElementById("themeBtn");
     if (themeBtn){
       themeBtn.addEventListener("click", ()=>{
@@ -698,6 +789,7 @@
     }
 
     load();
+    loadGallery();
     form.style.display = "none";
     document.getElementById("profileSummary").style.display = "grid";
   </script>

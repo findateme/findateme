@@ -208,6 +208,8 @@
           const profileData = data.users[0];
           localStorage.setItem(getProfileKey(email), JSON.stringify(profileData));
           localStorage.setItem("dateme_profile", JSON.stringify(profileData));
+          // Store as current user
+          localStorage.setItem("dateme_current_user", JSON.stringify(profileData));
         }
       } catch (e) {
         console.log("Could not fetch profile from server:", e.message);
@@ -245,6 +247,7 @@
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem(getProfileKey(email), JSON.stringify(profile));
       localStorage.setItem("dateme_profile", JSON.stringify(profile));
+      localStorage.setItem("dateme_current_user", JSON.stringify(profile));
       return true;
     }
 

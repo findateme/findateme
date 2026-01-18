@@ -357,7 +357,8 @@
         tags: ["New"],
         online: true,
         gender: profile.gender || "women",
-        email
+        email,
+        pictures: [] // Array to store up to 10 user photos
       };
       list.unshift(custom);
       localStorage.setItem("dateme_custom_profiles", JSON.stringify(list));
@@ -374,6 +375,9 @@
         localStorage.setItem(genderKey, JSON.stringify(genderList));
       }
       localStorage.setItem("dateme_profiles", JSON.stringify(genderList));
+      
+      // Store current user
+      localStorage.setItem("dateme_current_user", JSON.stringify(custom));
     }
 
     function addNotification(userEmail){

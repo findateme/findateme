@@ -78,10 +78,9 @@
 
       <div class="profileGrid">
         <div class="cardbox">
-          <h3 class="sideTitle">Gallery (Locked)</h3>
+          <h3 class="sideTitle">Profile Gallery</h3>
           <div class="profileGallery" id="pvGallery"></div>
           <div style="height:10px"></div>
-          <a class="btn primary" href="profile-upgrade.html">Upgrade to Unlock</a>
         </div>
 
         <div class="cardbox">
@@ -102,6 +101,14 @@
     const params = new URLSearchParams(location.search);
     const id = params.get("id");
     const gender = params.get("gender") || "women";
+
+    // Get current user info
+    const currentUser = (() => {
+      try{
+        const u = localStorage.getItem("dateme_current_user");
+        return u ? JSON.parse(u) : null;
+      }catch(e){ return null; }
+    })();
 
     function getProfiles(){
       try{ return JSON.parse(localStorage.getItem("dateme_profiles") || "[]"); }
@@ -125,6 +132,9 @@
       try{ return JSON.parse(localStorage.getItem("dateme_last_seen_map") || "{}"); }
       catch(e){ return {}; }
     })();
+
+    // Check if current user is viewing their own profile
+    const isOwnProfile = currentUser && String(currentUser.id) === String(id);
 
     function formatLastSeen(ts){
       if (!ts) return "Last seen a few hours ago";
@@ -158,7 +168,12 @@
       }
       const likesEl = document.getElementById("pvLikes");
       if (likesEl){
-        likesEl.textContent = `${likeMap[`${gender}-${p.id}`] || 0} likes`;
+        // Count total unique likes for this profile
+        const profileLikePrefix = `${gender}-${p.id}-`;
+        const totalLikes = Object.keys(likeMap)
+          .filter(k => k.startsWith(profileLikePrefix))
+          .length;
+        likesEl.textContent = `${totalLikes} likes`;
       }
       const chatBtn = document.getElementById("pvChatBtn");
       if (chatBtn){
@@ -170,15 +185,17 @@
       }
       const gallery = document.getElementById("pvGallery");
       if (gallery){
-        const items = Array.from({length:6}).map(() => `
+        const pictures = Array.isArray(p.pictures) && p.pictures.length > 0 ? p.pictures : [];
+        const items = pictures.slice(0, 10).map(pic => `
           <div class="profileThumb">
-            <img src="${p.img}" alt="" />
-            <div class="lockOverlay small">
-              <div class="lockOverlay__icon">🔒</div>
-            </div>
+            <img src="${pic}" alt="Gallery photo" />
           </div>
         `);
-        gallery.innerHTML = items.join("");
+        gallery.innerHTML = items.length > 0 ? items.join("") : `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--muted);">
+            No photos uploaded yet
+          </div>
+        `;
       }
     }
 
@@ -198,13 +215,38 @@
 
     const likeBtn = document.getElementById("pvLikeBtn");
     if (likeBtn){
+      // Disable like button if viewing own profile
+      if (isOwnProfile){
+        likeBtn.disabled = true;
+        likeBtn.title = "You can't like your own profile";
+        likeBtn.style.opacity = "0.5";
+        likeBtn.style.cursor = "not-allowed";
+      }
+      
       likeBtn.addEventListener("click", () => {
-        if (!p) return;
+        if (!p || isOwnProfile) return;
+        
+        // Use current user ID (0 if not logged in)
+        const userId = (currentUser && currentUser.id) || "guest";
+        const likeKey = `${gender}-${p.id}-img0-${userId}`;
+        
+        // Check if already liked
+        if (likeMap[likeKey]){
+          return; // Already liked this picture
+        }
+        
         likeBtn.classList.add("liked");
-        likeMap[`${gender}-${p.id}`] = (likeMap[`${gender}-${p.id}`] || 0) + 1;
+        likeMap[likeKey] = true;
         localStorage.setItem("dateme_like_counts", JSON.stringify(likeMap));
+        
+        // Update like count
+        const profileLikePrefix = `${gender}-${p.id}-`;
+        const totalLikes = Object.keys(likeMap)
+          .filter(k => k.startsWith(profileLikePrefix))
+          .length;
+        
         const likesEl = document.getElementById("pvLikes");
-        if (likesEl) likesEl.textContent = `${likeMap[`${gender}-${p.id}`]} likes`;
+        if (likesEl) likesEl.textContent = `${totalLikes} likes`;
         showLikePop();
       });
     }
