@@ -709,6 +709,46 @@ body[data-page="signup"] .heart::after{
   100%{transform: translateY(-120vh) rotate(45deg); opacity:.1;}
 }
 
+/* 🌟 Emoji Orbit Animation - Beautiful Hearts & Stars Circling */
+.emoji-orbit {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.orbit-container {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border: 2px solid rgba(255, 79, 216, 0.15);
+  border-radius: 50%;
+  animation: orbitSpin 20s linear infinite;
+}
+
+.orbit-container.alt {
+  animation-duration: 25s;
+  animation-direction: reverse;
+}
+
+.orbit-emoji {
+  position: absolute;
+  font-size: 24px;
+  animation: twinkle 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 79, 216, 0.4));
+  user-select: none;
+}
+
+@keyframes orbitSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
 
 .layout{
   max-width: var(--max);
