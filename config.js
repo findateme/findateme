@@ -9,5 +9,5 @@ window.ADDR_BSC   = "0x82ec9da2a486c0875ce67710ab7b7ad3b0490ce3";
 // Admin email for UI-only admin controls
 window.DATEME_ADMIN_EMAIL = "toki11799@gmail.com";
 
-// API base for Node server - Custom domain
-window.API_BASE = "https://www.findateme.com";
+// API base for Node server - Render.com deployment
+window.API_BASE = "https://fin-date-me.onrender.com";
