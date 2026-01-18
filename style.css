@@ -1114,6 +1114,14 @@ body[data-theme="light"] .storyModal__panel{background: rgba(255,255,255,.92)}
   object-fit: cover;
   filter: saturate(1.02);
 }
+.storyModal__media video{
+  width:100%;
+  height:100%;
+  min-height: 360px;
+  object-fit: cover;
+  background: #000;
+}
+}
 .storyModal__lock{
   position:absolute;
   inset:0;

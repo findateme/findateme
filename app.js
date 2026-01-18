@@ -462,16 +462,23 @@ function init(){
     storyInput.addEventListener("change", () => {
       const file = storyInput.files && storyInput.files[0];
       if (!file) return;
-      if (!String(file.type || "").startsWith("image/")){
-        alert("Only images are allowed for stories.");
+      
+      const isImage = String(file.type || "").startsWith("image/");
+      const isVideo = String(file.type || "").startsWith("video/");
+      
+      if (!isImage && !isVideo){
+        alert("Only images and videos are allowed for stories.");
         storyInput.value = "";
         return;
       }
-      if (file.size > 2 * 1024 * 1024){
-        alert("Image too large. Please use under 2MB.");
+      
+      const maxSize = 50 * 1024 * 1024; // 50MB for video
+      if (file.size > maxSize){
+        alert("File too large. Please use under 50MB.");
         storyInput.value = "";
         return;
       }
+      
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result;
@@ -492,13 +499,19 @@ function init(){
         }
         const list = loadStories();
         const next = list.filter(s => s.id !== email);
+        
+        const isImage = String(file.type || "").startsWith("image/");
+        const isVideo = String(file.type || "").startsWith("video/");
+        
         next.unshift({
           id: email,
           uploadedBy: currentUser?.id || email, // Store who uploaded this
           name: profile.name || "Story",
-          img: dataUrl,
+          media: dataUrl, // Use 'media' instead of 'img'
+          type: isVideo ? "video" : "image", // Store type
           createdAt: Date.now(),
-          expiresAt: Date.now() + STORY_TTL_MS
+          expiresAt: Date.now() + STORY_TTL_MS,
+          reactions: {} // Store reactions: { userId: '👍' }
         });
         saveStories(next);
         renderStories();
@@ -769,7 +782,7 @@ function renderStories(){
   
   const customStories = otherUsersStories.map(s => `
     <div class="story" data-story-type="custom" data-story-id="${s.id}">
-      <div class="story__ring"><img src="${s.img}" alt="${s.name}" loading="lazy"/></div>
+      <div class="story__ring"><img src="${s.media || s.img}" alt="${s.name}" loading="lazy"/></div>
       <div class="story__name">${s.name}</div>
     </div>
   `);
@@ -788,7 +801,14 @@ function renderStories(){
       el.onclick = () => {
         const id = el.getAttribute("data-story-id");
         const item = list.find(s => s.id === id);
-        if (item) openStoryModal({ name: item.name, img: item.img, uploadedBy: item.uploadedBy });
+        if (item) openStoryModal({ 
+          name: item.name, 
+          media: item.media || item.img,
+          type: item.type || "image",
+          uploadedBy: item.uploadedBy,
+          storyId: item.id,
+          reactions: item.reactions || {}
+        });
       };
       return;
     }
@@ -1061,13 +1081,108 @@ function showLikePop(){
 }
 
 function openStoryModal(p){
-  if ($("storyModalImg") && p?.img) $("storyModalImg").src = p.img;
-  if ($("storyModalName")) $("storyModalName").textContent = p ? `${p.name}'s Story` : "Story";
+  const imgEl = $("storyModalImg");
+  const videoEl = $("storyModalVideo");
+  const timerEl = $("storyModalTimer");
+  const nameEl = $("storyModalName");
   const lock = document.querySelector(".storyModal__lock");
   const info = document.querySelector(".storyModal__info .muted");
+  const reactBtn = $("storyReactBtn");
+  const deleteBtn = $("storyDeleteBtn");
+  
+  // Get current user
+  const currentUser = (() => {
+    try {
+      const u = localStorage.getItem("dateme_current_user");
+      return u ? JSON.parse(u) : null;
+    } catch(e) { return null; }
+  })();
+  
   const unlocked = hasUpgrade();
+  
+  // Set name
+  if (nameEl) nameEl.textContent = p ? `${p.name}'s Story` : "Story";
+  
+  // Handle media display
+  if (p?.type === "video" && videoEl) {
+    if (imgEl) imgEl.style.display = "none";
+    videoEl.style.display = "block";
+    videoEl.src = p.media;
+    videoEl.controls = false;
+    videoEl.muted = true;
+    
+    // Setup 30 second timer for video
+    if (timerEl) {
+      timerEl.style.display = "block";
+      let remaining = 30;
+      timerEl.textContent = `${remaining}s`;
+      
+      const interval = setInterval(() => {
+        remaining--;
+        timerEl.textContent = `${remaining}s`;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          closeStoryModal();
+        }
+      }, 1000);
+      
+      videoEl.play();
+    }
+  } else if (p?.media && imgEl) {
+    if (videoEl) videoEl.style.display = "none";
+    imgEl.style.display = "block";
+    imgEl.src = p.media;
+    if (timerEl) timerEl.style.display = "none";
+  }
+  
+  // Show/hide lock based on upgrade status
   if (lock) lock.style.display = unlocked ? "none" : "flex";
-  if (info) info.textContent = unlocked ? "Enjoy the full story." : "Stories are premium-only. Upgrade to view.";
+  if (info) info.textContent = unlocked ? "Enjoy the story." : "Stories are premium-only. Upgrade to view.";
+  
+  // Show delete button only if current user is owner
+  if (deleteBtn) {
+    if (currentUser && p?.uploadedBy === currentUser.id) {
+      deleteBtn.style.display = "block";
+      deleteBtn.onclick = () => {
+        if (confirm("Delete this story?")) {
+          const list = loadStories();
+          const updated = list.filter(s => s.id !== p.storyId);
+          saveStories(updated);
+          renderStories();
+          closeStoryModal();
+        }
+      };
+    } else {
+      deleteBtn.style.display = "none";
+    }
+  }
+  
+  // Show react button only if user is upgraded AND not owner
+  if (reactBtn) {
+    if (unlocked && currentUser && p?.uploadedBy !== currentUser.id) {
+      reactBtn.style.display = "block";
+      const userReaction = p?.reactions?.[currentUser.id];
+      reactBtn.textContent = userReaction ? `${userReaction} Reacted` : "👍 React";
+      
+      reactBtn.onclick = () => {
+        const list = loadStories();
+        const story = list.find(s => s.id === p.storyId);
+        if (story) {
+          if (!story.reactions) story.reactions = {};
+          if (story.reactions[currentUser.id]) {
+            delete story.reactions[currentUser.id];
+          } else {
+            story.reactions[currentUser.id] = "👍";
+          }
+          saveStories(list);
+          reactBtn.textContent = story.reactions[currentUser.id] ? "👍 Reacted" : "👍 React";
+        }
+      };
+    } else {
+      reactBtn.style.display = "none";
+    }
+  }
+  
   const modal = $("storyModal");
   if (modal) modal.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -1076,6 +1191,18 @@ function openStoryModal(p){
 function closeStoryModal(){
   const modal = $("storyModal");
   if (modal) modal.classList.remove("show");
+  
+  // Stop video
+  const videoEl = $("storyModalVideo");
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.src = "";
+  }
+  
+  // Clear timer
+  const timerEl = $("storyModalTimer");
+  if (timerEl) timerEl.style.display = "none";
+  
   document.body.style.overflow = "";
 }
 
