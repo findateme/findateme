@@ -477,6 +477,15 @@ function init(){
         const dataUrl = reader.result;
         const profile = readActiveProfile();
         const email = getActiveEmail() || String(profile.email || "").trim().toLowerCase();
+        
+        // Get current user ID
+        const currentUser = (() => {
+          try {
+            const u = localStorage.getItem("dateme_current_user");
+            return u ? JSON.parse(u) : null;
+          } catch(e) { return null; }
+        })();
+        
         if (!email){
           alert("Please complete your profile before adding a story.");
           return;
@@ -485,6 +494,7 @@ function init(){
         const next = list.filter(s => s.id !== email);
         next.unshift({
           id: email,
+          uploadedBy: currentUser?.id || email, // Store who uploaded this
           name: profile.name || "Story",
           img: dataUrl,
           createdAt: Date.now(),
@@ -735,25 +745,36 @@ function renderStories(){
   const stories = $("stories");
   if (!stories) return;
   const list = loadStories();
+  
+  // Get current user
+  const currentUser = (() => {
+    try {
+      const u = localStorage.getItem("dateme_current_user");
+      return u ? JSON.parse(u) : null;
+    } catch(e) { return null; }
+  })();
+  
   const addStory = `
     <div class="story story--add" data-add-story="1">
       <div class="story__ring"><span class="story__plus">＋</span></div>
       <div class="story__name">Your Story</div>
     </div>
   `;
-  const customStories = list.map(s => `
+  
+  // Filter out current user's own story and show only other users' uploaded stories
+  const otherUsersStories = list.filter(s => {
+    // Show story if it's not from current user
+    return !currentUser || s.uploadedBy !== currentUser.id;
+  });
+  
+  const customStories = otherUsersStories.map(s => `
     <div class="story" data-story-type="custom" data-story-id="${s.id}">
       <div class="story__ring"><img src="${s.img}" alt="${s.name}" loading="lazy"/></div>
       <div class="story__name">${s.name}</div>
     </div>
   `);
-  const defaultStories = state.all.slice(0,25).map(p => `
-    <div class="story" data-story="${p.id}">
-      <div class="story__ring"><img src="${p.img}" alt="${p.name}" loading="lazy"/></div>
-      <div class="story__name">${p.name}</div>
-    </div>
-  `);
-  stories.innerHTML = [addStory, ...customStories, ...defaultStories].join("");
+  
+  stories.innerHTML = [addStory, ...customStories].join("");
   stories.querySelectorAll(".story").forEach(el => {
     if (el.getAttribute("data-add-story") === "1"){
       el.onclick = () => {
@@ -767,15 +788,10 @@ function renderStories(){
       el.onclick = () => {
         const id = el.getAttribute("data-story-id");
         const item = list.find(s => s.id === id);
-        if (item) openStoryModal({ name: item.name, img: item.img });
+        if (item) openStoryModal({ name: item.name, img: item.img, uploadedBy: item.uploadedBy });
       };
       return;
     }
-    el.onclick = () => {
-      const id = el.getAttribute("data-story");
-      const p = state.all.find(x => String(x.id) === String(id));
-      openStoryModal(p);
-    };
   });
 }
 
