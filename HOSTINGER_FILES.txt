@@ -1,0 +1,45 @@
+# Hostinger এ এই files upload করুন (Frontend only)
+
+HTML Pages:
+- index.html
+- login.html
+- signup.html
+- home.html
+- profile.html
+- profile-view.html
+- profile-upgrade.html
+- inbox.html
+- notifications.html
+- admin-conversations.html
+- admin_home.html
+- admin_inbox.html
+- admin_users.html
+
+CSS:
+- style.css
+- landing.css
+
+JavaScript:
+- app.js
+- auth.js
+- landing-auth.js
+- landing.js
+- inbox.js
+- people.js
+- keep-alive.js
+- config.js
+
+Folders:
+- assets/ (সব image files সহ)
+
+Optional:
+- package.json (reference এর জন্য)
+
+❌ Upload করবেন না:
+- .env (Security)
+- .gitignore
+- node_modules
+- server.js
+- package-lock.json
+- .git folder
+- cleanup files

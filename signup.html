@@ -653,7 +653,9 @@
       localStorage.removeItem("dateme_signup_flow");
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem("dateme_local_session", "true"); // ✅ Mark as authenticated
-      localStorage.setItem("dateme_local_pass", pass); // ✅ Store password for login fallback
+      // Store password for local fallback: both global (legacy) and per-email key
+      localStorage.setItem("dateme_local_pass", pass);
+      try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
       const finalDraft = readProfileStore();
       finalDraft.email = email.toLowerCase();
       finalDraft.username = username.toLowerCase();

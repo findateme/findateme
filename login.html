@@ -337,7 +337,11 @@
 
     function tryLocalLogin(email, pass){
       const profile = readLocalProfile(email);
-      const storedPass = localStorage.getItem("dateme_local_pass") || "";
+      // Prefer per-email stored password, fallback to legacy global key
+      const perKey = `dateme_local_pass_${String(email||"").toLowerCase()}`;
+      const storedPassPer = localStorage.getItem(perKey);
+      const storedPassGlobal = localStorage.getItem("dateme_local_pass") || "";
+      const storedPass = storedPassPer || storedPassGlobal;
       if (!profile.email || !storedPass) {
         // Migrate old data if exists
         migrateOldProfileFormat(email);
@@ -386,9 +390,10 @@
         return;
       }
 
-      // ✅ Supabase success: Always store password for local fallback
+      // ✅ Supabase success: Always store password for local fallback (global+per-email)
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem("dateme_local_pass", pass);
+      try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
       localStorage.setItem("dateme_local_session", "true");
 
       await redirectAfterLogin();
@@ -472,7 +477,13 @@
           forgotMsg.className = "authMsg err";
           return;
         }
+        // Save new password globally (legacy) and per-email when possible
         localStorage.setItem("dateme_local_pass", p1);
+        try {
+          const profile = readLocalProfile();
+          const email = String(profile.email || localStorage.getItem("dateme_active_user") || "").toLowerCase();
+          if (email) localStorage.setItem(`dateme_local_pass_${email}`, p1);
+        } catch (e) {}
         localStorage.setItem("dateme_local_session", "true");
         forgotMsg.textContent = "Password saved. Redirecting...";
         forgotMsg.className = "authMsg ok";
