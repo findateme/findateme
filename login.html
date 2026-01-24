@@ -257,36 +257,46 @@
     }
 
     async function redirectAfterLogin(){
-      const { data: userRes } = await sb.auth.getUser();
-      const user = userRes?.user;
-      if (!user){
-        setMsg("Login success, but user session not found. Try again.", "err");
-        setLoading(false);
+      // Fallback to stored active user if input field is empty
+      const email = (emailEl.value || localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+      if (!email){
+        // Still mark session and proceed to home; avoid blocking on missing input value
+        localStorage.setItem("dateme_local_session", "true");
+        location.href = "home.html";
         return;
       }
-      const email = (user.email || "").toLowerCase();
-      const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
+
       localStorage.setItem("dateme_active_user", email);
-      
-      // ✅ Fetch and store profile data from server
-      try {
-        const response = await fetch(`${window.API_BASE}/api/search?username=${encodeURIComponent(email)}`);
-        const data = await response.json();
-        if (data.ok && data.users && data.users.length > 0) {
-          const profileData = data.users[0];
-          localStorage.setItem(getProfileKey(email), JSON.stringify(profileData));
-          localStorage.setItem("dateme_profile", JSON.stringify(profileData));
-          // Store as current user
-          localStorage.setItem("dateme_current_user", JSON.stringify(profileData));
-          // Record this device login
-          recordDeviceLogin(email, profileData);
-        }
-      } catch (e) {
-        console.log("Could not fetch profile from server:", e.message);
-      }
-      
       localStorage.setItem("dateme_local_session", "true");
-      
+
+      // Prefer already-stored profile
+      let profileData = null;
+      try {
+        const stored = localStorage.getItem(getProfileKey(email)) || localStorage.getItem("dateme_profile");
+        if (stored) profileData = JSON.parse(stored);
+      } catch (e) {}
+
+      // If not found, try fetching (best-effort)
+      if (!profileData) {
+        try {
+          const response = await fetch(`${window.API_BASE}/api/search?username=${encodeURIComponent(email)}`);
+          const data = await response.json();
+          if (data.ok && data.users && data.users.length > 0) {
+            profileData = data.users[0];
+          }
+        } catch (e) {
+          console.log("Could not fetch profile from server:", e.message);
+        }
+      }
+
+      if (profileData) {
+        localStorage.setItem(getProfileKey(email), JSON.stringify(profileData));
+        localStorage.setItem("dateme_profile", JSON.stringify(profileData));
+        localStorage.setItem("dateme_current_user", JSON.stringify(profileData));
+        recordDeviceLogin(email, profileData);
+      }
+
+      const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
       if (email === adminEmail){
         localStorage.setItem("dateme_signup_welcome", "Toki");
         localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
@@ -425,6 +435,8 @@
             showAdminWelcomeRedirect();
             return;
           }
+          setMsg("Login successful ✅ (local)", "ok");
+          setLoading(false);
           location.href = "home.html";
           return;
         }
@@ -439,6 +451,8 @@
       try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
       localStorage.setItem("dateme_local_session", "true");
 
+      setMsg("Login successful ✅", "ok");
+      setLoading(false);
       await redirectAfterLogin();
     });
 

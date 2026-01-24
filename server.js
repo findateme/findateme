@@ -145,7 +145,7 @@ app.get("/get_users.php", async (_req, res) => {
     let rows = [];
     try {
       const [joined] = await pool.query(
-        `SELECT u.id, u.name, u.username, u.email, u.created_at,
+        `SELECT u.id, u.email, u.username, u.name,
                 p.city, p.country, p.gender, p.age, p.photo
          FROM users u
          LEFT JOIN user_profiles p ON p.email = u.email
@@ -274,7 +274,19 @@ app.post("/register_user.php", async (req, res) => {
         console.error("register_user profile error:", profileErr);
       }
     }
-    res.json({ ok: true });
+      // Return user data for immediate login across all devices
+      const userObj = {
+        id: email.toLowerCase(),
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+        name: name || "",
+        city: city || "",
+        country: country || "",
+        gender: gender || "",
+        age: Number(age) || 0,
+        photo: photo || ""
+      };
+      res.json({ ok: true, message: "Registration successful", email: email.toLowerCase(), user: userObj });
   } catch (err) {
     if (err && err.code === "ER_DUP_ENTRY") {
       return res.status(409).json({ ok: false, error: "Email or username already exists." });
@@ -453,7 +465,20 @@ app.post("/api/register", async (req, res) => {
       [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photo || ""]
     );
 
-    res.json({ ok: true, message: "Registration successful", email: email.toLowerCase() });
+        // Return user data for immediate login across all devices
+        const userObj = {
+          id: email.toLowerCase(),
+          email: email.toLowerCase(),
+          username: username.toLowerCase(),
+          name: name || "",
+          city: city || "",
+          country: country || "",
+          gender: gender || "",
+          age: Number(age) || 0,
+          photo: photo || ""
+        };
+
+        res.json({ ok: true, message: "Registration successful", email: email.toLowerCase(), user: userObj });
   } catch (err) {
     console.error("register error:", err);
     res.status(500).json({ ok: false, error: err.message });
