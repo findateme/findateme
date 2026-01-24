@@ -379,7 +379,7 @@
 
       const API_BASE = window.API_BASE || "";
 
-      // Try API/Database login first
+      // Try API/Database login first (PRIMARY)
       if (API_BASE) {
         try {
           const response = await fetch(`${API_BASE}/api/login`, {
@@ -390,18 +390,24 @@
           
           const result = await response.json();
           if (result.ok) {
-            // API login successful
+            // ✅ API login successful - main flow
             localStorage.setItem("dateme_active_user", email.toLowerCase());
             localStorage.setItem("dateme_local_pass", pass);
             localStorage.setItem("dateme_local_session", "true");
             try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
             
-            // Store user profile from API
+            // Store user profile from API response
             if (result.user) {
-              localStorage.setItem(getProfileKey(email), JSON.stringify(result.user));
-              localStorage.setItem("dateme_profile", JSON.stringify(result.user));
-              localStorage.setItem("dateme_current_user", JSON.stringify(result.user));
+              const userData = result.user;
+              userData.email = email.toLowerCase();
+              localStorage.setItem(getProfileKey(email), JSON.stringify(userData));
+              localStorage.setItem("dateme_profile", JSON.stringify(userData));
+              localStorage.setItem("dateme_current_user", JSON.stringify(userData));
+              recordDeviceLogin(email, userData);
             }
+
+            setMsg("Login successful ✅", "ok");
+            setLoading(false);
 
             const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
             if (email.toLowerCase() === adminEmail){
@@ -412,48 +418,49 @@
               return;
             }
             
-            await redirectAfterLogin();
+            // Direct redirect, no async redirect function
+            setTimeout(() => {
+              location.href = "home.html";
+            }, 500);
             return;
           }
         } catch (apiErr) {
-          console.log("API login failed, trying Supabase...", apiErr);
+          console.error("API login error:", apiErr.message);
+          // Continue to Supabase fallback
         }
       }
 
-      // Try Supabase auth
+      // Try Supabase auth (FALLBACK)
       const { error } = await sb.auth.signInWithPassword({ email, password: pass });
 
       if (error){
-        // If Supabase fails, try local login fallback
-        if (tryLocalLogin(email, pass)){
-          localStorage.setItem("dateme_active_user", email.toLowerCase());
-          const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
-          if (email.toLowerCase() === adminEmail){
-            localStorage.setItem("dateme_signup_welcome", "Toki");
-            localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
-            localStorage.removeItem("dateme_admin_welcome");
-            showAdminWelcomeRedirect();
-            return;
-          }
-          setMsg("Login successful ✅ (local)", "ok");
-          setLoading(false);
-          location.href = "home.html";
-          return;
-        }
         setMsg("❌ Invalid email or password. Please check and try again.", "err");
         setLoading(false);
         return;
       }
 
-      // ✅ Supabase success: Always store password for local fallback (global+per-email)
+      // ✅ Supabase success: Store password for local fallback
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem("dateme_local_pass", pass);
       try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
       localStorage.setItem("dateme_local_session", "true");
 
-      setMsg("Login successful ✅", "ok");
+      setMsg("Login successful ✅ (Supabase)", "ok");
       setLoading(false);
-      await redirectAfterLogin();
+      
+      const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
+      if (email.toLowerCase() === adminEmail){
+        localStorage.setItem("dateme_signup_welcome", "Toki");
+        localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
+        localStorage.removeItem("dateme_admin_welcome");
+        showAdminWelcomeRedirect();
+        return;
+      }
+
+      // Direct redirect
+      setTimeout(() => {
+        location.href = "home.html";
+      }, 500);
     });
 
     const forgotBtn = document.getElementById("forgotBtn");
