@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DateMe — Admin Accounts</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+
+  <style>
+    body[data-page="admin-accounts"] {
+      background: linear-gradient(135deg, #0b0f1e 0%, #1a1f3a 100%);
+    }
+
+    .adminContainer {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #e0e0e0;
+    }
+
+    .adminHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 79, 216, 0.2);
+    }
+
+    .adminHeader h1 {
+      margin: 0;
+      font-size: 28px;
+      background: linear-gradient(135deg, #ff4fd8, #7c4dff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .adminHeader .backBtn {
+      padding: 8px 16px;
+      background: rgba(124, 77, 255, 0.1);
+      border: 1px solid #7c4dff;
+      color: #7c4dff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .adminHeader .backBtn:hover {
+      background: rgba(124, 77, 255, 0.2);
+    }
+
+    .statsBar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .statCard {
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 4px solid #ff4fd8;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .statCard.users {
+      border-left-color: #7c4dff;
+    }
+
+    .statCard.male {
+      border-left-color: #4df0ff;
+    }
+
+    .statCard.female {
+      border-left-color: #ff4fd8;
+    }
+
+    .statCard .statValue {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff4fd8, #7c4dff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 5px;
+    }
+
+    .statCard .statLabel {
+      font-size: 12px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .tableWrapper {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 79, 216, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tableHeader {
+      display: grid;
+      grid-template-columns: 1.5fr 2fr 1.5fr 1.5fr 1fr;
+      gap: 15px;
+      padding: 15px 20px;
+      background: rgba(124, 77, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 79, 216, 0.1);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #7c4dff;
+      letter-spacing: 0.5px;
+    }
+
+    .tableRow {
+      display: grid;
+      grid-template-columns: 1.5fr 2fr 1.5fr 1.5fr 1fr;
+      gap: 15px;
+      padding: 12px 20px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 79, 216, 0.05);
+      transition: all 0.2s;
+    }
+
+    .tableRow:hover {
+      background: rgba(124, 77, 255, 0.08);
+    }
+
+    .tableRow:last-child {
+      border-bottom: none;
+    }
+
+    .userName {
+      font-weight: 600;
+      color: #ff4fd8;
+    }
+
+    .userEmail {
+      color: #4df0ff;
+      word-break: break-all;
+      font-size: 12px;
+    }
+
+    .userInfo {
+      font-size: 12px;
+      color: #b0b0b0;
+    }
+
+    .userGender {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(77, 240, 255, 0.1);
+      border: 1px solid #4df0ff;
+      color: #4df0ff;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .userGender.female {
+      background: rgba(255, 79, 216, 0.1);
+      border-color: #ff4fd8;
+      color: #ff4fd8;
+    }
+
+    .userDate {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .noData {
+      padding: 40px 20px;
+      text-align: center;
+      color: #666;
+    }
+
+    .loadingSpinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(124, 77, 255, 0.2);
+      border-top-color: #7c4dff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .searchBar {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .searchInput {
+      flex: 1;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(124, 77, 255, 0.2);
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+
+    .searchInput::placeholder {
+      color: #666;
+    }
+
+    .searchInput:focus {
+      outline: none;
+      border-color: #7c4dff;
+      background: rgba(124, 77, 255, 0.1);
+    }
+
+    @media (max-width: 900px) {
+      .tableHeader,
+      .tableRow {
+        grid-template-columns: 1fr 1.5fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .adminContainer {
+        padding: 10px;
+      }
+
+      .tableHeader,
+      .tableRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .tableHeader {
+        display: none;
+      }
+
+      .tableRow {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 79, 216, 0.1);
+        margin-bottom: 10px;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .tableRow::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #7c4dff;
+        font-size: 10px;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body data-page="admin-accounts">
+  <div class="adminContainer">
+    <div class="adminHeader">
+      <h1>Registered Accounts</h1>
+      <button class="backBtn" onclick="history.back()">← Back</button>
+    </div>
+
+    <div class="statsBar">
+      <div class="statCard users">
+        <div class="statValue" id="totalUsers">0</div>
+        <div class="statLabel">Total Users</div>
+      </div>
+      <div class="statCard female">
+        <div class="statValue" id="femaleCount">0</div>
+        <div class="statLabel">Female Users</div>
+      </div>
+      <div class="statCard male">
+        <div class="statValue" id="maleCount">0</div>
+        <div class="statLabel">Male Users</div>
+      </div>
+    </div>
+
+    <div class="searchBar">
+      <input 
+        type="text" 
+        class="searchInput" 
+        id="searchInput" 
+        placeholder="Search by email, username, or name..." 
+      />
+    </div>
+
+    <div class="tableWrapper">
+      <div class="tableHeader">
+        <div>Username</div>
+        <div>Email</div>
+        <div>Info</div>
+        <div>Gender</div>
+        <div>Joined</div>
+      </div>
+      <div id="usersTable">
+        <div class="noData">
+          <div class="loadingSpinner"></div>
+          <div style="margin-top: 10px;">Loading accounts...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.API_BASE || "";
+
+    let allUsers = [];
+    let filteredUsers = [];
+
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/users`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        if (result.ok) {
+          allUsers = result.users || [];
+          filteredUsers = [...allUsers];
+          renderTable();
+          updateStats();
+        } else {
+          showError(result.error || "Failed to load users");
+        }
+      } catch (err) {
+        console.error("Load users error:", err);
+        showError("Could not load users: " + err.message);
+      }
+    }
+
+    function updateStats() {
+      const total = filteredUsers.length;
+      const female = filteredUsers.filter(u => u.gender === "women").length;
+      const male = filteredUsers.filter(u => u.gender === "men").length;
+
+      document.getElementById("totalUsers").textContent = total;
+      document.getElementById("femaleCount").textContent = female;
+      document.getElementById("maleCount").textContent = male;
+    }
+
+    function renderTable() {
+      const container = document.getElementById("usersTable");
+
+      if (filteredUsers.length === 0) {
+        container.innerHTML = `<div class="noData">No users found</div>`;
+        return;
+      }
+
+      container.innerHTML = filteredUsers.map(user => {
+        const date = new Date(user.created_at);
+        const dateStr = date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+
+        const genderBadge = user.gender === "women" ? "Female" : "Male";
+        const genderClass = user.gender === "women" ? "female" : "";
+
+        return `
+          <div class="tableRow" data-label="Name | Email | Info | Gender | Joined">
+            <div class="userName">${escapeHtml(user.username || "N/A")}</div>
+            <div class="userEmail">${escapeHtml(user.email)}</div>
+            <div class="userInfo">
+              ${user.age ? user.age + " years" : ""}${user.age && (user.city || user.country) ? ", " : ""}${user.city ? user.city : ""}${user.city && user.country ? ", " : ""}${user.country ? user.country : ""}
+            </div>
+            <div>
+              <span class="userGender ${genderClass}">${genderBadge}</span>
+            </div>
+            <div class="userDate">${dateStr}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function showError(message) {
+      const container = document.getElementById("usersTable");
+      container.innerHTML = `<div class="noData" style="color: #ff6b6b;">⚠️ ${escapeHtml(message)}</div>`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        filteredUsers = [...allUsers];
+      } else {
+        filteredUsers = allUsers.filter(user =>
+          user.email.toLowerCase().includes(query) ||
+          user.username.toLowerCase().includes(query) ||
+          (user.name && user.name.toLowerCase().includes(query))
+        );
+      }
+      renderTable();
+      updateStats();
+    });
+
+    // Load users on page load
+    loadUsers();
+  </script>
+</body>
+</html>

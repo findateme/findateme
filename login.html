@@ -367,7 +367,50 @@
       setMsg("", "muted");
       setLoading(true);
 
-      // First, try Supabase auth
+      const API_BASE = window.API_BASE || "";
+
+      // Try API/Database login first
+      if (API_BASE) {
+        try {
+          const response = await fetch(`${API_BASE}/api/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email.toLowerCase(), password: pass })
+          });
+          
+          const result = await response.json();
+          if (result.ok) {
+            // API login successful
+            localStorage.setItem("dateme_active_user", email.toLowerCase());
+            localStorage.setItem("dateme_local_pass", pass);
+            localStorage.setItem("dateme_local_session", "true");
+            try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
+            
+            // Store user profile from API
+            if (result.user) {
+              localStorage.setItem(getProfileKey(email), JSON.stringify(result.user));
+              localStorage.setItem("dateme_profile", JSON.stringify(result.user));
+              localStorage.setItem("dateme_current_user", JSON.stringify(result.user));
+            }
+
+            const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
+            if (email.toLowerCase() === adminEmail){
+              localStorage.setItem("dateme_signup_welcome", "Toki");
+              localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
+              localStorage.removeItem("dateme_admin_welcome");
+              showAdminWelcomeRedirect();
+              return;
+            }
+            
+            await redirectAfterLogin();
+            return;
+          }
+        } catch (apiErr) {
+          console.log("API login failed, trying Supabase...", apiErr);
+        }
+      }
+
+      // Try Supabase auth
       const { error } = await sb.auth.signInWithPassword({ email, password: pass });
 
       if (error){

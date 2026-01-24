@@ -113,17 +113,241 @@
           <div style="font-weight:800;">Limited-time offer</div>
           <div class="mono" id="countdownClock" style="font-weight:800;">300:00:00</div>
         </div>
-        <h1 class="h1" style="margin-bottom:6px;">Profile Upgrade — $8</h1>
-        <div class="cardbox small">
-          <div style="font-weight:800; margin-bottom:6px;">Pay with Binance (USDT)</div>
-          <div class="muted" style="font-size:13px;">Send $8 using TRC20 or BEP20 network.</div>
-          <div class="cardbox small" style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <div>
-              <div style="font-weight:800;">Offer ends soon</div>
-              <div class="muted" style="font-size:12px;">Countdown is live on top.</div>
+        <h1 class="h1" style="margin-bottom:6px;">Profile Upgrade — $14</h1>
+        
+        <!-- Payment Method Selection -->
+        <div id="paymentMethods" class="payment-graph" style="margin-bottom:20px;">
+          <div style="font-weight:800; margin-bottom:12px;">Select Payment Method</div>
+          
+          <!-- Local Payment -->
+          <div class="payment-option-btn graph-node" data-method="local" onclick="showLocalPaymentOptions()">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#10B981" rx="16"/>
+              <circle cx="60" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
+              <circle cx="140" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
+              <rect x="40" y="130" width="120" height="40" fill="none" stroke="white" stroke-width="6" rx="4"/>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">Local Payment</div>
+              <div class="muted" style="font-size:12px;">Pay locally in Bangladesh</div>
             </div>
-            <div class="pill ghost" style="font-weight:800;">$8</div>
+            <span class="method-indicator">›</span>
           </div>
+
+          <!-- International Payment -->
+          <div class="payment-option-btn graph-node" data-method="international" onclick="showInternationalPaymentOptions()">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#3B82F6" rx="16"/>
+              <circle cx="100" cy="100" r="70" fill="none" stroke="white" stroke-width="6"/>
+              <line x1="100" y1="30" x2="100" y2="170" stroke="white" stroke-width="6"/>
+              <ellipse cx="100" cy="60" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
+              <ellipse cx="100" cy="100" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
+              <ellipse cx="100" cy="140" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">International Payment</div>
+              <div class="muted" style="font-size:12px;">Global payment methods</div>
+            </div>
+            <span class="method-indicator">›</span>
+          </div>
+
+          <!-- Crypto Payment -->
+          <div class="payment-option-btn graph-node" data-method="crypto" onclick="showCryptoPaymentOptions()">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#F59E0B" rx="16"/>
+              <circle cx="100" cy="100" r="60" fill="none" stroke="white" stroke-width="6"/>
+              <path d="M 70 100 L 100 70 L 130 100 L 100 130 Z" fill="none" stroke="white" stroke-width="6"/>
+              <circle cx="100" cy="100" r="15" fill="white"/>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">Crypto Payment</div>
+              <div class="muted" style="font-size:12px;">Pay with cryptocurrency</div>
+            </div>
+            <span class="method-indicator">›</span>
+          </div>
+        </div>
+
+        <!-- Local Payment Options -->
+        <div id="localPaymentOptions" style="display:none; margin-bottom:20px;">
+          <div style="font-weight:800; margin-bottom:12px;">Local Payment Methods</div>
+          
+          <div class="payment-option-btn graph-node" data-method="bkash" onclick="selectPaymentMethod('bkash')">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#E2136E" rx="16"/>
+              <!-- bKash original bird logo -->
+              <!-- Pink wings -->
+              <polygon points="100,60 130,80 110,100" fill="#FF1493"/>
+              <polygon points="100,60 70,80 90,100" fill="#E2136E" opacity="0.8"/>
+              <!-- Golden accent -->
+              <polygon points="110,100 130,80 150,90" fill="#FFD700"/>
+              <!-- Orange accent -->
+              <polygon points="90,100 70,80 50,90" fill="#FFA500"/>
+              <!-- Body -->
+              <polygon points="90,100 110,100 105,130 95,130" fill="#FF69B4"/>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">bKash</div>
+              <div class="muted" style="font-size:12px;">Fast payment</div>
+            </div>
+            <span class="method-indicator">›</span>
+          </div>
+
+          <div class="payment-option-btn graph-node" data-method="cash" onclick="selectPaymentMethod('cash')">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#DC143C" rx="16"/>
+              <!-- Nagad circular spiral design -->
+              <circle cx="100" cy="100" r="60" fill="none" stroke="white" stroke-width="10" opacity="0.8"/>
+              <circle cx="100" cy="100" r="45" fill="none" stroke="#FFD700" stroke-width="8"/>
+              <path d="M 80 100 Q 100 80 120 100" fill="none" stroke="white" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="100" cy="100" r="20" fill="#FFD700"/>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">Nagad</div>
+              <div class="muted" style="font-size:12px;">Send money fast</div>
+            </div>
+            <span class="method-indicator">›</span></span>
+          </div>
+
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+        </div>
+
+        <!-- International Payment Options -->
+        <div id="internationalPaymentOptions" style="display:none; margin-bottom:20px;">
+          <div style="font-weight:800; margin-bottom:12px;">International Payment Methods</div>
+          
+          <div class="payment-option-btn graph-node" data-method="paypal" onclick="selectPaymentMethod('paypal')">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#E8E8E8" rx="16"/>
+              <!-- Dark blue P -->
+              <g>
+                <path d="M 45 70 L 45 130 L 60 130" fill="none" stroke="#003087" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 60 70 Q 75 70 75 85 Q 75 100 60 100" fill="none" stroke="#003087" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              <!-- Light blue P -->
+              <g>
+                <path d="M 100 70 L 100 130 L 115 130" fill="none" stroke="#0070E0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 115 70 Q 130 70 130 85 Q 130 100 115 100" fill="none" stroke="#0070E0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              <!-- PayPal text -->
+              <text x="100" y="165" font-size="18" font-weight="900" fill="#003087" text-anchor="middle">PayPal</text>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">PayPal</div>
+              <div class="muted" style="font-size:12px;">Secure international payment</div>
+            </div>
+            <span class="method-indicator">›</span>
+          </div>
+
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+        </div>
+
+        <!-- Crypto Payment Options -->
+        <div id="cryptoPaymentOptions" style="display:none; margin-bottom:20px;">
+          <div style="font-weight:800; margin-bottom:12px;">Crypto Payment Methods</div>
+          
+          <div class="payment-option-btn graph-node" data-method="binance" onclick="selectPaymentMethod('binance')">
+            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#F3BA2F" rx="16"/>
+              <g transform="translate(100, 100)">
+                <polygon points="0,-50 50,-25 50,25 0,50 -50,25 -50,-25" fill="none" stroke="black" stroke-width="8"/>
+              </g>
+              <text x="100" y="140" font-size="90" font-weight="900" fill="black" text-anchor="middle" font-family="Arial">B</text>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-weight:700;">USDT (Binance)</div>
+              <div class="muted" style="font-size:12px;">Crypto payment</div>
+            </div>
+            <span class="method-indicator">›</span>
+          </div>
+
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+        </div>
+
+        <!-- bKash Payment Section -->
+        <div class="payment-section" id="bkash-section" style="display:none;">
+          <div style="font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center;">
+            <svg class="payment-icon-inline" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#E2136E" rx="16"/>
+              <circle cx="100" cy="100" r="85" fill="none" stroke="white" stroke-width="10"/>
+              <text x="100" y="130" font-size="100" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">b</text>
+            </svg>
+            bKash Payment
+          </div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send payment to the number below</div>
+          <div class="cardbox small paymentRow">
+            <div class="paymentRow__content">
+              <div style="font-weight:700;">bKash Account</div>
+              <div class="mono paymentRow__addr" id="bkash-number">01700000000</div>
+            </div>
+            <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('bkash')">Copy</button>
+          </div>
+          <input class="input" type="text" placeholder="Enter Transaction ID" id="bkash-txid" style="margin-top:10px;">
+          <button class="btn primary" type="button" onclick="confirmPayment('bkash')" style="margin-top:10px; width:100%;">Confirm Payment</button>
+          <button class="btn" type="button" onclick="closePaymentSection()" style="margin-top:8px; width:100%;">← Back</button>
+        </div>
+
+        <!-- Nagad Payment Section -->
+        <div class="payment-section" id="cash-section" style="display:none;">
+          <div style="font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center;">
+            <svg class="payment-icon-inline" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#DC143C" rx="16"/>
+              <circle cx="100" cy="100" r="40" fill="none" stroke="white" stroke-width="3"/>
+              <circle cx="100" cy="100" r="32" fill="none" stroke="#FFD59A" stroke-width="2"/>
+              <circle cx="100" cy="100" r="24" fill="none" stroke="white" stroke-width="2"/>
+              <path d="M 100 76 Q 115 85 115 100 Q 115 115 100 124 Q 85 115 85 100 Q 85 85 100 76" fill="#FFD59A" opacity="0.8"/>
+            </svg>
+            Nagad Payment
+          </div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send money to Nagad number and paste transaction ID</div>
+          <div class="cardbox small paymentRow">
+            <div class="paymentRow__content">
+              <div style="font-weight:700;">Nagad Number</div>
+              <div class="mono paymentRow__addr" id="nagad-number">01700000000</div>
+            </div>
+            <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('nagad')">Copy</button>
+          </div>
+          <input class="input" type="text" placeholder="Paste Transaction ID here" id="nagad-txid" style="margin-top:10px;">
+          <button class="btn primary" type="button" onclick="confirmPayment('nagad')" style="margin-top:10px; width:100%;">Confirm Payment</button>
+          <button class="btn" type="button" onclick="closePaymentSection()" style="margin-top:8px; width:100%;">← Back</button>
+        </div>
+
+        <!-- PayPal Payment Section -->
+        <div class="payment-section" id="paypal-section" style="display:none;">
+          <div style="font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center;">
+            <svg class="payment-icon-inline" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#003087" rx="16"/>
+              <path d="M 60 70 Q 60 60 70 60 L 120 60 Q 135 60 135 75 L 135 125 Q 135 140 120 140 L 70 140 Q 60 140 60 130 L 60 70 Z" fill="none" stroke="white" stroke-width="8"/>
+              <text x="100" y="135" font-size="80" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">P</text>
+            </svg>
+            PayPal Payment
+          </div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">নিরাপদ আন্তর্জাতিক পেমেন্ট</div>
+          <div class="cardbox small paymentRow">
+            <div class="paymentRow__content">
+              <div style="font-weight:700;">PayPal Email</div>
+              <div class="mono paymentRow__addr" id="paypal-email">admin@dateme.app</div>
+            </div>
+            <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('paypal')">Copy</button>
+          </div>
+          <button class="btn primary" type="button" onclick="openPayPal()" style="margin-top:12px; width:100%;">Open PayPal</button>
+          <input class="input" type="text" placeholder="Enter Transaction ID after payment" id="paypal-txid" style="margin-top:10px;">
+          <button class="btn" type="button" onclick="confirmPayment('paypal')" style="margin-top:8px; width:100%;">Confirm Payment</button>
+          <button class="btn ghost" type="button" onclick="closePaymentSection()" style="margin-top:8px; width:100%;">← Back</button>
+        </div>
+
+        <!-- Binance (USDT) Payment Section -->
+        <div class="payment-section" id="binance-section" style="display:none;">
+          <div style="font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center;">
+            <svg class="payment-icon-inline" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="200" fill="#F3BA2F" rx="16"/>
+              <g transform="translate(100, 100)">
+                <polygon points="0,-50 50,-25 50,25 0,50 -50,25 -50,-25" fill="none" stroke="black" stroke-width="8"/>
+              </g>
+              <text x="100" y="140" font-size="90" font-weight="900" fill="black" text-anchor="middle" font-family="Arial">B</text>
+            </svg>
+            USDT (Binance)
+          </div>
+          <div class="muted" style="font-size:13px;">Send $14 USDT via TRC20 or BEP20 network.</div>
           <div style="height:10px;"></div>
 
           <div class="cardbox small paymentRow">
@@ -145,7 +369,7 @@
           </div>
 
           <div style="height:10px;"></div>
-          <div class="muted" style="font-size:12px;">After payment, paste your TXID:</div>
+          <div class="muted" style="font-size:12px;">Paste your TXID after payment:</div>
           <div style="height:6px;"></div>
           <select id="networkSelect" class="input">
             <option value="TRC20">Network: TRC20 (USDT)</option>
@@ -154,7 +378,8 @@
           <input id="txidInput" class="input" placeholder="Paste TXID here" style="margin-top:8px;" />
           <div style="height:10px;"></div>
           <button class="btn primary" type="button" id="upgradeBtn">Confirm Upgrade</button>
-          <div class="muted" style="font-size:12px; margin-top:8px;" id="txidNotice">Upgrade activates after TXID verification.</div>
+          <button class="btn" type="button" onclick="closePaymentSection()" style="margin-top:8px; width:100%;">← Back</button>
+          <div class="muted" style="font-size:12px; margin-top:8px;" id="txidNotice">Premium access will be activated after TXID verification.</div>
         </div>
 
         <div style="height:14px;"></div>
@@ -172,6 +397,121 @@
   </main>
 
   <script>
+    // Show Local Payment Options
+    function showLocalPaymentOptions() {
+      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('localPaymentOptions').style.display = 'block';
+    }
+
+    // Show International Payment Options
+    function showInternationalPaymentOptions() {
+      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('internationalPaymentOptions').style.display = 'block';
+    }
+
+    // Show Crypto Payment Options
+    function showCryptoPaymentOptions() {
+      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('cryptoPaymentOptions').style.display = 'block';
+    }
+
+    // Go Back to Main Payment Menu
+    function goBackToMainPayment() {
+      document.getElementById('localPaymentOptions').style.display = 'none';
+      document.getElementById('internationalPaymentOptions').style.display = 'none';
+      document.getElementById('cryptoPaymentOptions').style.display = 'none';
+      document.getElementById('paymentMethods').style.display = 'block';
+    }
+
+    // Select a specific payment method
+    function selectPaymentMethod(method) {
+      const section = document.getElementById(method + '-section');
+      if (section) {
+        document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
+        document.getElementById('localPaymentOptions').style.display = 'none';
+        document.getElementById('internationalPaymentOptions').style.display = 'none';
+        document.getElementById('cryptoPaymentOptions').style.display = 'none';
+        document.getElementById('paymentMethods').style.display = 'none';
+        section.style.display = 'block';
+      }
+    }
+
+    // Close Payment Section (for individual payment forms)
+    function closePaymentSection() {
+      document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
+      goBackToMainPayment();
+    }
+
+    // Payment method selection for old button click handlers
+    document.querySelectorAll('.payment-option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const method = btn.dataset.method;
+        const section = document.getElementById(method + '-section');
+        if (section && !btn.onclick) {
+          document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
+          document.getElementById('paymentMethods').style.display = 'none';
+          section.style.display = 'block';
+        }
+      });
+    });
+
+    function copyPaymentInfo(method) {
+      let text = '';
+      if (method === 'bkash') {
+        text = document.getElementById('bkash-number').textContent;
+      } else if (method === 'paypal') {
+        text = document.getElementById('paypal-email').textContent;
+      }
+      if (text && navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Copied to clipboard!');
+        });
+      }
+    }
+
+    function openPayPal() {
+      const email = document.getElementById('paypal-email').textContent;
+      window.open('https://www.paypal.me/dateme/8', '_blank');
+    }
+
+    function confirmPayment(method) {
+      let message = '';
+      let txid = '';
+      
+      if (method === 'bkash') {
+        txid = document.getElementById('bkash-txid').value.trim();
+        if (!txid) {
+          alert('Please enter the bKash transaction ID');
+          return;
+        }
+        message = `bKash payment confirmed! Transaction: ${txid}`;
+      } else if (method === 'cash') {
+        const location = document.getElementById('cash-location').value.trim();
+        const phone = document.getElementById('cash-phone').value.trim();
+        if (!location || !phone) {
+          alert('Please enter your location and phone number');
+          return;
+        }
+        message = `Cash payment scheduled! We'll contact you at ${phone}`;
+        txid = `CASH_${Date.now()}`;
+      } else if (method === 'paypal') {
+        txid = document.getElementById('paypal-txid').value.trim();
+        if (!txid) {
+          alert('Please enter the PayPal transaction ID');
+          return;
+        }
+        message = `PayPal payment confirmed! Transaction: ${txid}`;
+      }
+
+      localStorage.setItem('dateme_payment_method', method);
+      localStorage.setItem('dateme_payment_txid', txid);
+      localStorage.setItem('dateme_upgrade_verified', 'true');
+      localStorage.setItem('dateme_upgrade_just_activated', 'true');
+      
+      alert(message + '\n\nYour profile will be upgraded now!');
+      setTimeout(() => window.location.href = 'home.html', 800);
+    }
+
     function copyText(id){
       const map = {
         "addr-trc20": "TCBFWrepuPqQWvdchhJ8RtQB9nTrn86cPb",
@@ -180,7 +520,9 @@
       const text = map[id] || "";
       if (!text) return;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Copied to clipboard!');
+        });
       }
     }
 

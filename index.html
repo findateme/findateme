@@ -598,7 +598,140 @@
       color:var(--muted);
       font-size:13px;
       line-height:1.7;
-      box-shadow: 0 18px 70px rgba(0,0,0,.35);
+    }
+
+    /* Footer Styles */
+    .footer {
+      margin-top: 40px;
+      padding: 20px 0;
+      border-top: 1px solid rgba(255,255,255,.12);
+      text-align: center;
+      background: rgba(255,255,255,.02);
+    }
+    .footerContent {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 0 16px;
+    }
+    .footerContent a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--a);
+      cursor: pointer;
+    }
+    .footerContent a:hover {
+      color: var(--pink);
+    }
+
+    /* Footer Modal */
+    .footerModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .footerModalContent {
+      background: 
+        radial-gradient(520px 260px at 10% 10%, rgba(255,79,216,.18), transparent 60%),
+        radial-gradient(520px 260px at 90% 20%, rgba(124,77,255,.16), transparent 60%),
+        radial-gradient(520px 260px at 50% 90%, rgba(77,240,255,.10), transparent 60%),
+        linear-gradient(135deg, rgba(11,15,30,.95), rgba(10,13,24,.95));
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideUp 0.3s ease-out;
+      box-shadow: 0 20px 80px rgba(255,79,216,.15), 0 20px 80px rgba(0,0,0,.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .footerModalClose {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color var(--a);
+      line-height: 1;
+    }
+    .footerModalClose:hover {
+      color: var(--text);
+    }
+    .footerModalContent h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 24px;
+      color: var(--text);
+    }
+    .footerModalContent h3 {
+      margin-top: 16px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .footerModalContent p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    .footerModalContent ul {
+      color: var(--muted);
+      line-height: 1.8;
+      padding-left: 20px;
+      margin: 12px 0;
+    }
+    .footerModalContent li {
+      margin-bottom: 10px;
+    }
+    .footerModalContent strong {
+      color: var(--text);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .footerContent {
+        gap: 16px;
+        font-size: 13px;
+      }
+      .footerModalContent {
+        padding: 24px;
+        margin: 16px;
+      }
     }
 
     footer{
@@ -742,7 +875,7 @@
           DateMe combines <strong>serious intent</strong>, <strong>flirty chemistry</strong>, and a <strong>premium marriage-minded experience</strong>
           so you don’t waste time on random matches.
         </p>
-        <div class="muted" style="font-size:13px; margin-top:-6px;">many people already signed up</div>
+        <div class="muted" style="font-size:13px; margin-top:-6px;">Many people already signed up</div>
 
         <div class="vibes" id="vibes">
           <div class="toggle active" data-vibe="serious">
@@ -956,7 +1089,7 @@ Join DateMe and start something real.
     </section>
     <section class="privacy" id="privacy">
       <div class="sectionHead">
-        <h2>privacy Policy</h2>
+        <h2>Privacy Policy</h2>
         <p class="muted">Your privacy matters.</p>
       </div>
       <div class="aboutBox">
@@ -981,7 +1114,7 @@ DateMe exists to create connections — not to exploit your data.
     </section>
     <section class="safety" id="safety">
       <div class="sectionHead">
-        <h2>SAfety & Security</h2>
+        <h2>Safety & Security</h2>
         <p class="muted">Your safety is our priority.</p>
       </div>
       <div class="aboutBox">
@@ -1028,17 +1161,7 @@ You’re never alone on DateMe.</div>
 
 
 
-
-    <footer>
-      <div>© <span id="y"></span> ©️ 2025 DateMe. Founded in 2025.</div>
-      <div class="links">
-    <a href="#" onclick="openPopup('privacy')">Privacy</a>
-    <a href="#" onclick="openPopup('terms')">Terms</a>
-    <a href="#" onclick="openPopup('safety')">Safety</a>
-    <a href="#" onclick="openPopup('support')">Support</a>
-  </div>
-    </footer>
-  </div>
+ </div>
 
   <script>
     // Year
@@ -1073,13 +1196,127 @@ You’re never alone on DateMe.</div>
       });
     });
   </script>
-  <div id="popupOverlay" class="popupOverlay">
-  <div class="popupBox">
-    <span class="popupClose" onclick="closePopup()">×</span>
-    <h2 id="popupTitle"></h2>
-    <div id="popupContent"></div>
+
+  <!-- Footer Section -->
+  <footer class="footer">
+    <div class="footerContent">
+      <a href="#" onclick="showFooterModal('privacy'); return false;">Privacy</a>
+      <a href="#" onclick="showFooterModal('terms'); return false;">Terms</a>
+      <a href="#" onclick="showFooterModal('safety'); return false;">Safety</a>
+      <a href="#" onclick="showFooterModal('support'); return false;">Support</a>
+    </div>
+  </footer>
+
+  <!-- Footer Modals -->
+  <div id="footerModal" class="footerModal" onclick="closeFooterModal(event)">
+    <div class="footerModalContent" onclick="event.stopPropagation()">
+      <span class="footerModalClose" onclick="closeFooterModal()">×</span>
+      <h2 id="footerModalTitle"></h2>
+      <div id="footerModalBody"></div>
+    </div>
   </div>
-</div>
+
+<script>
+  const footerContent = {
+    privacy: {
+      title: "Privacy Policy",
+      content: `
+        <h3>Your Privacy, Our Priority</h3>
+        <p>At DateMe, we believe your data is yours. Here's how we protect it:</p>
+        <ul>
+          <li><strong>No data selling:</strong> We never sell your personal information to third parties.</li>
+          <li><strong>End-to-end encryption:</strong> Your messages are encrypted between you and your matches.</li>
+          <li><strong>Optional verification:</strong> ID and selfie verification are optional and stored securely.</li>
+          <li><strong>Privacy controls:</strong> Choose who sees your profile, stories, and contact info.</li>
+          <li><strong>Delete anytime:</strong> You can request complete account deletion at any time.</li>
+          <li><strong>Transparent cookies:</strong> We use minimal cookies for functionality, not tracking.</li>
+        </ul>
+        <p>For detailed privacy information, contact us at privacy@dateme.app</p>
+      `
+    },
+    terms: {
+      title: "Terms & Conditions",
+      content: `
+        <h3>Our Community Standards</h3>
+        <p>By using DateMe, you agree to:</p>
+        <ul>
+          <li><strong>Be respectful:</strong> Treat all members with dignity and kindness.</li>
+          <li><strong>Be honest:</strong> Use a real photo and accurate information.</li>
+          <li><strong>No harassment:</strong> Threatening, abusive, or discriminatory behavior will result in removal.</li>
+          <li><strong>No spam:</strong> Don't spam links, promotional content, or unsolicited messages.</li>
+          <li><strong>Report issues:</strong> Use our report feature for any violations.</li>
+          <li><strong>Payment terms:</strong> Premium features are activated immediately after payment. Refunds are not available after activation.</li>
+          <li><strong>Account suspension:</strong> We may suspend or delete accounts that violate these terms.</li>
+        </ul>
+        <p>Full terms available at terms@dateme.app</p>
+      `
+    },
+    safety: {
+      title: "Safety & Security",
+      content: `
+        <h3>How We Keep You Safe</h3>
+        <p>Your safety is our top priority. Here are our safety features:</p>
+        <ul>
+          <li><strong>Report & Block:</strong> Instantly block users or report inappropriate behavior.</li>
+          <li><strong>Anti-spam checks:</strong> Automated systems detect and remove bot accounts and scammers.</li>
+          <li><strong>Identity verification:</strong> Premium members can verify their identity for extra trust.</li>
+          <li><strong>Photo verification:</strong> Optional selfie verification to confirm profile authenticity.</li>
+          <li><strong>Consent-focused chat:</strong> Everyone must opt-in before messaging begins.</li>
+          <li><strong>Safety tips:</strong> In-app guides on safe dating practices.</li>
+          <li><strong>24/7 support:</strong> Our team responds to safety concerns immediately.</li>
+          <li><strong>Privacy controls:</strong> Hide your profile from public view if needed.</li>
+        </ul>
+        <p>For safety concerns, email safety@dateme.app</p>
+      `
+    },
+    support: {
+      title: "Support & Help",
+      content: `
+        <h3>How We Can Help</h3>
+        <p>Have questions or need assistance? We're here for you:</p>
+        <ul>
+          <li><strong>Email support:</strong> support@dateme.app (responses within 24 hours)</li>
+          <li><strong>FAQs:</strong> Check our help center for common questions.</li>
+          <li><strong>Profile issues:</strong> Can't log in? We'll help you recover your account.</li>
+          <li><strong>Payment help:</strong> Questions about billing? We've got answers.</li>
+          <li><strong>Feature requests:</strong> Suggest new features or improvements.</li>
+          <li><strong>Bug reports:</strong> Found a glitch? Tell us so we can fix it.</li>
+          <li><strong>Account deletion:</strong> Want to leave? We'll help you delete your account securely.</li>
+          <li><strong>Safety concerns:</strong> Report inappropriate behavior or suspicious accounts.</li>
+        </ul>
+        <p>Average response time: 2-4 hours. Available 24/7.</p>
+      `
+    }
+  };
+
+  function showFooterModal(type) {
+    const modal = document.getElementById('footerModal');
+    const title = document.getElementById('footerModalTitle');
+    const body = document.getElementById('footerModalBody');
+    
+    if (footerContent[type]) {
+      title.textContent = footerContent[type].title;
+      body.innerHTML = footerContent[type].content;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeFooterModal(event) {
+    if (event && event.target.id !== 'footerModal') return;
+    const modal = document.getElementById('footerModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  // Close modal on ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeFooterModal();
+    }
+  });
+</script>
+
 <script src="keep-alive.js"></script>
 </body>
 </html>

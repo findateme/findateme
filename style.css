@@ -1161,7 +1161,7 @@ body[data-theme="light"] .storyModal__panel{background: rgba(255,255,255,.92)}
   object-fit: cover;
   background: #000;
 }
-}
+
 .storyModal__lock{
   position:absolute;
   inset:0;
@@ -2894,7 +2894,41 @@ body[data-page="inbox"] .bubble.sticker{
   position:absolute;
   inset:0;
   background: rgba(0,0,0,.55);
+  /* Reduce heavy animations on small screens for better responsiveness */
+  * {
+    -webkit-animation-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    -webkit-animation-delay: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+  }
   backdrop-filter: blur(6px);
+
+/* Scroll-reveal helper classes: add `reveal` to elements you want to fade/slide in */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 420ms cubic-bezier(.22,.9,.35,1), transform 420ms cubic-bezier(.22,.9,.35,1);
+  will-change: opacity, transform;
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Small additional mobile-friendly defaults */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Reduce heavy box-shadows on smaller screens */
+@media (max-width: 1024px) {
+  :root {
+    --card-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  }
+}
 }
 .callNotice__panel{
   position:relative;
@@ -2963,8 +2997,10 @@ body[data-page="signup"] select.authInput optgroup{
 /* ===== MOBILE PERFORMANCE OPTIMIZATION ===== */
 @media (max-width: 768px) {
   /* Disable heavy blur effects on mobile */
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
   
   .topbar {
     backdrop-filter: none;
@@ -3166,4 +3202,107 @@ body[data-page="signup"] select.authInput optgroup{
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+}
+
+/* Payment Method Styles */
+.payment-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.payment-option-btn:hover {
+  background: var(--card2);
+  border-color: var(--brand1);
+  transform: translateX(4px);
+}
+
+.payment-option-btn:active {
+  background: rgba(255, 79, 216, 0.1);
+  border-color: var(--brand1);
+}
+
+.method-indicator {
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+.payment-icon-logo {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.payment-icon-inline {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.payment-section {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Graph-style layout for payment methods (left vertical timeline with nodes) */
+.payment-graph{
+  position:relative;
+  padding-left:88px;
+}
+.payment-graph::before{
+  content: "";
+  position:absolute;
+  left:48px;
+  top:16px;
+  bottom:16px;
+  width:3px;
+  background: linear-gradient(180deg, rgba(255,79,216,.12), rgba(124,77,255,.10));
+  border-radius:2px;
+  pointer-events:none;
+}
+.payment-option-btn.graph-node{
+  position:relative;
+  padding:14px 16px 14px 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.06));
+  border-radius:12px;
+}
+.payment-option-btn.graph-node::before{
+  content: "";
+  position:absolute;
+  left:48px;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #ff9fb0, #ff4d6d);
+  box-shadow: 0 6px 18px rgba(255,77,109,.12);
+  border:3px solid rgba(10,12,24,.95);
+}
+
+/* Slight offset for the icon so text aligns visually with graph */
+.payment-option-btn.graph-node .payment-icon-logo{ transform: translateX(6px); }
+
+@media (max-width: 680px){
+  .payment-graph{ padding-left:68px; }
+  .payment-graph::before{ left:38px; }
+  .payment-option-btn.graph-node::before{ left:38px; }
 }

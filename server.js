@@ -587,6 +587,26 @@ app.get("/keep_watson_only", async (_req, res) => {
   }
 });
 
+// ADMIN - Get all registered users
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT u.id, u.email, u.username, u.name,
+              p.city, p.country, p.gender, p.age, p.photo,
+              u.created_at
+       FROM users u
+       LEFT JOIN user_profiles p ON p.email = u.email
+       ORDER BY u.created_at DESC
+       LIMIT 1000`
+    );
+
+    res.json({ ok: true, users: rows });
+  } catch (err) {
+    console.error("admin users error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`DateMe server running on http://localhost:${PORT}`);
 });

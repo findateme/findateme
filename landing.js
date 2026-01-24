@@ -120,3 +120,28 @@ function renderLandingProfiles(){
   }
 }
 renderLandingProfiles();
+
+// Scroll-reveal: reveal elements with class `reveal` as they enter viewport.
+(function(){
+  if (typeof IntersectionObserver === 'undefined') return; // graceful fallback
+  const items = document.querySelectorAll('.reveal');
+  if (!items.length) return;
+
+  const obs = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.08,
+    rootMargin: '0px 0px -6% 0px'
+  });
+
+  items.forEach(el => {
+    // ensure hidden initial state (if CSS not yet applied)
+    if (!el.classList.contains('active')) el.classList.add('reveal');
+    obs.observe(el);
+  });
+})();
