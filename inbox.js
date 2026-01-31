@@ -435,7 +435,7 @@ function renderThreads(){
     const parsed = parseThreadKey(k);
     const fallbackName = parsed.type === "pair" ? (getOtherEmail(parsed.emails) || "User") : `User ${parsed.id}`;
     const name = p ? p.name : fallbackName;
-    const img = p?.img || "https://via.placeholder.com/80?text=User";
+    const img = p?.img || "";
     return `
       <div class="contact" data-thread="${k}" style="cursor:pointer">
         <img src="${img}" alt="${name}" />

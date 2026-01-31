@@ -781,9 +781,6 @@
       if (!data.email) return;
       
       try {
-        console.log("🔄 Syncing profile to server...");
-        console.log("📸 Photo data length:", data.photo ? data.photo.length : "No photo");
-        
         const res = await fetch(`${API_BASE}/api/profile`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -800,19 +797,15 @@
         
         const result = await res.json();
         if (result.ok) {
-          console.log("✅ Profile synced to server successfully");
-          console.log("✅ Photo saved to server:", data.photo ? "Yes" : "No");
+          console.log("✅ Synced to server");
           
           // Clear profile caches so others see updated photo
           localStorage.removeItem("dateme_profiles");
           localStorage.removeItem("dateme_inbox_profiles_cache");
-        } else {
-          console.warn("⚠️ Server returned error:", result);
         }
       } catch (err) {
         // Silently handle CORS/network errors - data is already saved locally
-        console.warn("⚠️ Server sync failed:", err.message);
-        console.log("💡 Data saved locally. Will sync when server is available.");
+        // Don't spam console - server might be restarting
         // Don't throw error - local save is successful
       }
     }

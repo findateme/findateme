@@ -254,9 +254,8 @@
   // ===== IMAGE LOADING ERROR HANDLER =====
   document.addEventListener('error', function(e) {
     if (e.target.tagName === 'IMG') {
-      console.warn('Image failed to load:', e.target.src);
-      // Optionally set a placeholder image
-      // e.target.src = 'placeholder.jpg';
+      // Silently handle image errors - just hide the image
+      e.target.style.display = 'none';
     }
   }, true);
 

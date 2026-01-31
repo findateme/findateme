@@ -934,7 +934,7 @@ function mergeCustomProfiles(list, gender){
     email: p.email || "",
     online: true,
     tags: Array.isArray(p.tags) && p.tags.length ? p.tags : ["New"],
-    img: p.img || "https://via.placeholder.com/80?text=User"
+    img: p.img || ""
   }));
   return mapped.concat(list);
 }
@@ -1294,7 +1294,7 @@ function cardHTML(p){
   const userEmail = String(p.email || "").toLowerCase();
   return `
     <article class="pcard" data-card="${p.id}">
-      <img src="${p.img}" alt="${p.name}" loading="eager" fetchpriority="high" data-user-email="${userEmail}" onerror="this.src='https://via.placeholder.com/400x500?text=No+Image'" />
+      <img src="${p.img}" alt="${p.name}" loading="eager" fetchpriority="high" data-user-email="${userEmail}" onerror="this.style.display='none'" style="${p.img ? '' : 'display:none'}" />
       <div class="pcard__body">
         <div class="pcard__name">
           <span>${p.name}, ${p.age}</span>
