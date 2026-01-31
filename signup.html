@@ -536,7 +536,7 @@
     function compressImage(dataUrl, cb){
       const img = new Image();
       img.onload = () => {
-        const size = 256;
+        const size = 512; // Increased from 256 for better quality
         const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
@@ -545,7 +545,8 @@
         const sx = (img.width - min) / 2;
         const sy = (img.height - min) / 2;
         ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-        const out = canvas.toDataURL("image/jpeg", 0.8);
+        const out = canvas.toDataURL("image/jpeg", 0.85); // Better quality
+        console.log("📸 Photo compressed:", out.length, "bytes");
         cb(out);
       };
       img.src = dataUrl;
@@ -555,6 +556,8 @@
       photoEl.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
+        
+        console.log("📸 Photo selected:", file.name, file.size, "bytes");
         
         // Validate file size (max 10MB)
         const maxSize = 10 * 1024 * 1024; // 10MB in bytes
@@ -645,6 +648,13 @@
       const profileDraft = readProfileStore();
       const age = Number(ageEl.value) || "";
       const photo = pendingPhoto || profileDraft.photo || "";
+      
+      console.log("📝 Registering user:", {
+        name: fullName,
+        email: email.toLowerCase(),
+        hasPhoto: !!photo,
+        photoLength: photo.length
+      });
 
       // Register with custom MySQL API
       try {
