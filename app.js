@@ -1,10 +1,39 @@
-// app.js (People page only) — Modal -> Inbox redirect, no side chat panel
 
 const $ = (id) => document.getElementById(id);
 
-// Mobile performance detection
 const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                   window.innerWidth <= 768;
+
+// Performance: In-memory cache for localStorage
+const memoryCache = {
+  profiles: null,
+  men: null,
+  women: null,
+  likes: null,
+  lastSeenMap: null
+};
+
+// Optimized localStorage getter with caching
+function getCached(key, cacheProp) {
+  if (memoryCache[cacheProp]) return memoryCache[cacheProp];
+  try {
+    const data = JSON.parse(localStorage.getItem(key) || "[]");
+    memoryCache[cacheProp] = data;
+    return data;
+  } catch(e) {
+    return [];
+  }
+}
+
+// Optimized localStorage setter with caching
+function setCached(key, data, cacheProp) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    if (cacheProp) memoryCache[cacheProp] = data;
+  } catch(e) {
+    console.error("Failed to save to localStorage:", e);
+  }
+}
 
 const state = {
   page: 0,
@@ -29,10 +58,9 @@ const GENDER_KEY = "dateme_gender";
 const API_BASE = window.API_BASE || "";
 const REMOTE_CACHE_KEY = "dateme_remote_profiles";
 
-// demo profiles (unique images via randomuser ids)
 const DEMO = [
-  { name:"Emily Johnson", age:27, country:"India", city:"Kolkata", online:false, tags:["Coffee","Movies","Poetry"], img:"assets/profile-01.jpg" },
-  { name:"Sophia Martinez", age:23, country:"India", city:"Mumbai", online:true, tags:["Dance","Travel","Food"], img:"assets/profile-02.jpg" },
+  { name:"Sarah Williams", age:25, country:"India", city:"Delhi", online:true, tags:["Photography","Travel","Books"], img:"assets/profile-01.jpg" },
+  { name:"Sophia Martinez", age:23, country:"India", city:"Mumbai", online:true, tags:["Dance","Travel","Food"], img:"https://randomuser.me/api/portraits/women/25.jpg" },
   { name:"Olivia Brown", age:22, country:"India", city:"Bengaluru", online:true, tags:["Yoga","Books","Music"], img:"assets/profile-03.jpg" },
 
   { name:"Ava Williams", age:22, country:"Nepal", city:"Kathmandu", online:true, tags:["Books","Art","Hiking"], img:"assets/profile-04.jpg" },
@@ -253,7 +281,6 @@ function loadStories(){
   const now = Date.now();
   const filtered = Array.isArray(list) ? list.filter(s => (s.expiresAt || 0) > now) : [];
   
-  // Only save back if we removed expired stories
   if (filtered.length !== list.length){
     localStorage.setItem(STORIES_KEY, JSON.stringify(filtered));
   }
@@ -307,6 +334,9 @@ function pickFallbackImage(seed, gender){
 function mapRemoteUser(u){
   const gender = normalizeGender(u.gender);
   const seed = u.email || u.username || u.name || u.id || "user";
+  
+  const isOnline = u.is_online === 1 || u.is_online === true;
+  
   return {
     id: `db-${u.id || hashString(seed)}`,
     name: u.name || u.username || "New User",
@@ -316,7 +346,8 @@ function mapRemoteUser(u){
     city: u.city || "",
     email: u.email || "",
     gender,
-    online: false,
+    online: isOnline,
+    lastSeen: u.last_seen || null,
     tags: ["New"],
     img: u.photo || pickFallbackImage(seed, gender)
   };
@@ -335,7 +366,10 @@ function normalizeRemoteProfiles(list){
 }
 
 function filterProfilesByGender(list, gender){
-  return list.filter(p => !p.gender || p.gender === gender);
+  return list.filter(p => {
+    const userGender = normalizeGender(p.gender);
+    return !userGender || userGender === gender;
+  });
 }
 
 async function loadRemoteUsers(){
@@ -346,12 +380,88 @@ async function loadRemoteUsers(){
     if (Array.isArray(data.users)){
       list = data.users;
       saveRemoteCache(list);
+      
+      updateProfilePhotosInState(list);
+      
       return list;
     }
   }catch(e){
     console.error("Error fetching remote users:", e);
   }
   return Array.isArray(list) ? list : [];
+}
+
+function updateProfilePhotosInState(serverUsers){
+  if (!Array.isArray(serverUsers)) return;
+  
+  state.all = state.all.map(profile => {
+    const serverUser = serverUsers.find(u => 
+      String(u.email || "").toLowerCase() === String(profile.email || "").toLowerCase()
+    );
+    
+    if (serverUser && serverUser.photo) {
+      return { ...profile, img: serverUser.photo };
+    }
+    return profile;
+  });
+  
+  localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
+}
+
+async function refreshProfilePhotosOnly(){
+  try {
+    const res = await fetch(`${API_BASE}/get_users.php`);
+    const data = await res.json();
+    
+    if (data.ok && Array.isArray(data.users)) {
+      updateProfilePhotosInState(data.users);
+      
+      data.users.forEach(user => {
+        const email = String(user.email || "").toLowerCase();
+        if (user.photo) {
+          document.querySelectorAll(`img[data-user-email="${email}"]`).forEach(img => {
+            img.src = user.photo;
+          });
+        }
+      });
+    }
+  } catch (err) {
+    console.log("Photo refresh skipped");
+  }
+}
+
+async function setCurrentUserOnline() {
+  const activeEmail = localStorage.getItem("dateme_active_user");
+  if (!activeEmail) return;
+  
+  const API_BASE = window.API_BASE || "";
+  if (!API_BASE) return;
+  
+  try {
+    await fetch(`${API_BASE}/api/update_online_status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: activeEmail.toLowerCase(),
+        is_online: true
+      })
+    });
+    
+    setInterval(() => {
+      const email = localStorage.getItem("dateme_active_user");
+      if (email) {
+        fetch(`${API_BASE}/api/update_online_status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.toLowerCase(),
+            is_online: true
+          })
+        }).catch(() => {});
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+  } catch (err) {
+  }
 }
 
 function stripCurrentUser(list){
@@ -363,40 +473,47 @@ function stripCurrentUser(list){
 }
 
 function restoreDefaultProfiles(){
-  // Initialize localStorage with default profiles
-  localStorage.setItem("dateme_profiles_women", JSON.stringify(WOMEN_LIST));
-  localStorage.setItem("dateme_profiles_men", JSON.stringify(MEN_LIST));
-  state.all = WOMEN_LIST;
+  const menListWithGender = MEN_LIST.map(p => ({ ...p, gender: p.gender || "men" }));
+  const womenListWithGender = WOMEN_LIST.map(p => ({ ...p, gender: p.gender || "women" }));
+  
+  localStorage.setItem("dateme_profiles_women", JSON.stringify(womenListWithGender));
+  localStorage.setItem("dateme_profiles_men", JSON.stringify(menListWithGender));
+  
+  // Combine both genders for display
+  state.all = [...menListWithGender, ...womenListWithGender];
   localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
 }
 
 async function syncRemoteProfiles(gender){
   const users = await loadRemoteUsers();
   if (!users.length) {
-    // If no remote users, restore from default profiles
-    const cacheKey = gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
-    let cached = [];
-    try {
-      cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    } catch(e) {
-      cached = [];
-    }
-    // If cache is empty, use defaults
-    if (!cached.length) {
+    // Use cached data instead of parsing localStorage each time
+    const cachedMen = getCached("dateme_profiles_men", "men");
+    const cachedWomen = getCached("dateme_profiles_women", "women");
+    
+    if (!cachedMen.length && !cachedWomen.length) {
       restoreDefaultProfiles();
-      setGender(gender);
     }
     return;
   }
   const allProfiles = normalizeRemoteProfiles(users);
   const menList = filterProfilesByGender(allProfiles, "men");
   const womenList = filterProfilesByGender(allProfiles, "women");
-  const genderList = gender === "men" ? menList : womenList;
-  state.all = stripCurrentUser(genderList);
-  localStorage.setItem("dateme_profiles_all", JSON.stringify(allProfiles));
-  localStorage.setItem("dateme_profiles_men", JSON.stringify(menList));
-  localStorage.setItem("dateme_profiles_women", JSON.stringify(womenList));
-  localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
+  
+  // Add gender field to profiles
+  const menListWithGender = menList.map(p => ({ ...p, gender: p.gender || "men" }));
+  const womenListWithGender = womenList.map(p => ({ ...p, gender: p.gender || "women" }));
+  
+  // Save both lists separately with caching
+  setCached("dateme_profiles_all", allProfiles, null);
+  setCached("dateme_profiles_men", menListWithGender, "men");
+  setCached("dateme_profiles_women", womenListWithGender, "women");
+  
+  // Load only the selected gender for display
+  const selectedList = gender === "men" ? menListWithGender : womenListWithGender;
+  state.all = stripCurrentUser(selectedList);
+  setCached("dateme_profiles", state.all, "profiles");
+  
   renderStories();
   applyFilters();
 }
@@ -407,24 +524,29 @@ function init(){
   showUserWelcome();
   showUpgradeCongrats();
   updateNotificationBadge();
+  updateInboxBadge();
+  
+  setCurrentUserOnline();
 
   const savedGender = localStorage.getItem(GENDER_KEY);
   if (savedGender === "men") state.gender = "men";
-  setGender(state.gender);
-
-  // ✅ Load cached profiles synchronously (fast)
+  
+  // Load only the selected gender profiles
   const cacheKey = state.gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
+  let selectedProfiles = [];
+  
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    if (Array.isArray(cached) && cached.length > 0) {
-      state.all = cached;
-    } else {
-      state.all = state.gender === "men" ? MEN_LIST : WOMEN_LIST;
-    }
+    selectedProfiles = Array.isArray(cached) && cached.length > 0 ? cached : (state.gender === "men" ? MEN_LIST : WOMEN_LIST);
   } catch(e) {
-    state.all = state.gender === "men" ? MEN_LIST : WOMEN_LIST;
+    selectedProfiles = state.gender === "men" ? MEN_LIST : WOMEN_LIST;
   }
-
+  
+  // Add gender field to profiles if not present
+  selectedProfiles = selectedProfiles.map(p => ({ ...p, gender: p.gender || state.gender }));
+  
+  // Set state.all to only selected gender
+  state.all = stripCurrentUser(selectedProfiles);
   localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
 
   initLikeCounts();
@@ -435,30 +557,48 @@ function init(){
 
   applyFilters();
   
-  // ⚡ Sync remote profiles in background (non-blocking)
-  setTimeout(() => {
-    syncRemoteProfiles(state.gender);
-  }, 500);
-  
-  // ❌ Auto-refresh disabled - was causing page refresh every 30 seconds
-  // Users can manually refresh if needed
-  // setInterval(() => {
-  //   syncRemoteProfiles(state.gender);
-  // }, 30000);
-
   const menToggle = $("menToggle");
-  if (menToggle){
+  if (menToggle) {
+    menToggle.textContent = state.gender === "men" ? "👩 Show Women" : "👨 Show Men";
+    
     menToggle.onclick = () => {
       const next = state.gender === "women" ? "men" : "women";
       setGender(next);
+      
+      // Load the selected gender profiles only
+      const cacheKey = next === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
+      let profiles = [];
+      try {
+        profiles = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+        if (!profiles.length) {
+          profiles = next === "men" ? MEN_LIST : WOMEN_LIST;
+        }
+      } catch(e) {
+        profiles = next === "men" ? MEN_LIST : WOMEN_LIST;
+      }
+      
+      // Add gender field
+      profiles = profiles.map(p => ({ ...p, gender: p.gender || next }));
+      state.all = stripCurrentUser(profiles);
+      localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
+      
+      menToggle.textContent = next === "men" ? "👩 Show Women" : "👨 Show Men";
+      
       initLikeCounts();
       initRandomOnlineStatus();
       applyFilters();
       syncRemoteProfiles(next);
     };
   }
+  
+  setTimeout(() => {
+    syncRemoteProfiles(state.gender);
+  }, 500);
+  
+  setInterval(() => {
+    refreshProfilePhotosOnly();
+  }, 30000);
 
-  // filters
   if ($("applyBtn")) $("applyBtn").onclick = applyFilters;
   if ($("resetBtn")) $("resetBtn").onclick = () => {
     if ($("q")) $("q").value = "";
@@ -471,11 +611,9 @@ function init(){
 
   if ($("loadMoreBtn")) $("loadMoreBtn").onclick = () => loadMore(false);
 
-  // modal close
   if ($("modalClose")) $("modalClose").onclick = closeModal;
   if ($("modalX")) $("modalX").onclick = closeModal;
 
-  // story modal (locked)
   if ($("storyModalClose")) $("storyModalClose").onclick = closeStoryModal;
   if ($("storyModalX")) $("storyModalX").onclick = closeStoryModal;
 
@@ -494,7 +632,6 @@ function init(){
         return;
       }
       
-      // Size limits
       const maxImageSize = 5 * 1024 * 1024; // 5MB for images
       const maxVideoSize = 50 * 1024 * 1024; // 50MB for videos
       const maxSize = isImage ? maxImageSize : maxVideoSize;
@@ -505,12 +642,10 @@ function init(){
         return;
       }
       
-      // For images, compress before storing
       if (isImage){
         const canvas = document.createElement("canvas");
         const img = new Image();
         img.onload = () => {
-          // Limit dimensions to 800x800 max
           let width = img.width;
           let height = img.height;
           if (width > 800 || height > 800){
@@ -526,14 +661,12 @@ function init(){
           saveStory(file, compressedDataUrl, isVideo);
         };
         img.onerror = () => {
-          // If image fails to process, use original
           const reader = new FileReader();
           reader.onload = () => saveStory(file, reader.result, isVideo);
           reader.readAsDataURL(file);
         };
         img.src = URL.createObjectURL(file);
       } else {
-        // For videos, just store directly
         const reader = new FileReader();
         reader.onload = () => saveStory(file, reader.result, isVideo);
         reader.readAsDataURL(file);
@@ -541,12 +674,10 @@ function init(){
     });
   }
   
-  // Helper function to save story
   function saveStory(file, dataUrl, isVideo){
     const profile = readActiveProfile();
     const email = getActiveEmail() || String(profile.email || "").trim().toLowerCase();
     
-    // Get current user ID
     const currentUser = (() => {
       try {
         const u = localStorage.getItem("dateme_current_user");
@@ -578,7 +709,6 @@ function init(){
     if (storyInput) storyInput.value = "";
   }
 
-  // theme toggle
   const themeBtn = $("themeBtn");
   if (themeBtn){
     themeBtn.onclick = () => {
@@ -744,7 +874,8 @@ function syncUserAvatar(){
   if (!avatar || !img) return;
   const data = readActiveProfile();
   if (data.photo){
-    img.src = data.photo;
+    // Add timestamp to prevent caching old image
+    img.src = data.photo.includes('data:') ? data.photo : data.photo + '?t=' + Date.now();
     avatar.classList.add("has-img");
   }else{
     img.removeAttribute("src");
@@ -761,27 +892,24 @@ function setGender(gender){
   state.gender = gender;
   localStorage.setItem(GENDER_KEY, gender);
   const cacheKey = gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
-  let cached = [];
-  try{
-    cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-  }catch(e){
-    cached = [];
-  }
+  
+  // Use memory cache for faster loading
+  const cached = getCached(cacheKey, gender === "men" ? "men" : "women");
+  
   const cleaned = Array.isArray(cached)
     ? cached.filter(p => String(p.email || "").trim())
     : [];
   
-  // If cache is empty, use default profiles
   if (cleaned.length === 0) {
     const defaultProfiles = gender === "men" ? MEN_LIST : WOMEN_LIST;
-    state.all = stripCurrentUser(defaultProfiles);
+    state.all = stripCurrentUser(defaultProfiles.map(p => ({ ...p, gender: p.gender || gender })));
   } else {
-    state.all = stripCurrentUser(cleaned);
+    state.all = stripCurrentUser(cleaned.map(p => ({ ...p, gender: p.gender || gender })));
   }
   
-  localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
+  setCached("dateme_profiles", state.all, "profiles");
   const menToggle = $("menToggle");
-  if (menToggle) menToggle.textContent = gender === "men" ? "For Women" : "For Men";
+  if (menToggle) menToggle.textContent = gender === "men" ? "👩 Show Women" : "👨 Show Men";
   renderStories();
   setRandomOnline();
   initNearLine();
@@ -815,9 +943,47 @@ function renderStories(){
   const stories = $("stories");
   if (!stories) return;
   
+  loadStoriesFromBackend().then(() => {
+    displayStoriesUI();
+  }).catch(err => {
+    console.error("Failed to load stories:", err);
+    displayStoriesUI(); 
+  });
+}
+
+async function loadStoriesFromBackend(){
+  try {
+    const res = await fetch(`${API_BASE}/get_stories.php`);
+    const json = await res.json();
+    if (json.ok && Array.isArray(json.stories)) {
+      const transformedStories = json.stories.map(s => ({
+        id: `story_${s.id}`,
+        storyId: s.id, 
+        name: s.username || "User",
+        img: s.photo || "",
+        media: s.story_image,
+        type: s.story_image.startsWith("data:video") ? "video" : "image",
+        uploadedBy: s.email,
+        expiresAt: new Date(s.created_at).getTime() + STORY_TTL_MS,
+        reactions: {},
+        comments: []
+      }));
+      
+      
+      saveStories(transformedStories);
+    }
+  } catch (err) {
+    console.error("Error loading stories from backend:", err);
+  }
+}
+
+function displayStoriesUI(){
+  const stories = $("stories");
+  if (!stories) return;
+  
   let list = [];
   try {
-    // Load only first 50 stories to avoid DOM overload
+    
     const allStories = JSON.parse(localStorage.getItem(STORIES_KEY) || "[]");
     const now = Date.now();
     list = Array.isArray(allStories) 
@@ -827,7 +993,7 @@ function renderStories(){
     list = [];
   }
   
-  // Get current user
+  
   const currentUser = (() => {
     try {
       const u = localStorage.getItem("dateme_current_user");
@@ -842,21 +1008,25 @@ function renderStories(){
     </div>
   `;
   
-  // Filter out current user's own story and show only other users' uploaded stories
+  
   const otherUsersStories = list.filter(s => {
-    // Show story if it's not from current user
-    return !currentUser || s.uploadedBy !== currentUser.id;
+    
+    return !currentUser || s.uploadedBy !== currentUser.email;
   });
   
-  // Limit to first 30 stories for performance
+  
   const customStories = otherUsersStories.slice(0, 30).map(s => `
     <div class="story" data-story-type="custom" data-story-id="${s.id}">
-      <div class="story__ring"><img src="${s.media || s.img}" alt="${s.name}" loading="lazy" decoding="async"/></div>
+      <div class="story__ring"><img src="${s.img || s.media}" alt="${s.name}" loading="lazy" decoding="async"/></div>
       <div class="story__name">${s.name}</div>
     </div>
   `);
   
   stories.innerHTML = [addStory, ...customStories].join("");
+  
+  
+  const fullList = loadStories();
+  
   stories.querySelectorAll(".story").forEach(el => {
     if (el.getAttribute("data-add-story") === "1"){
       el.onclick = () => {
@@ -869,14 +1039,16 @@ function renderStories(){
     if (type === "custom"){
       el.onclick = () => {
         const id = el.getAttribute("data-story-id");
-        const item = list.find(s => s.id === id);
+        const item = fullList.find(s => s.id === id);
         if (item) openStoryModal({ 
           name: item.name, 
           media: item.media || item.img,
           type: item.type || "image",
           uploadedBy: item.uploadedBy,
-          storyId: item.id,
-          reactions: item.reactions || {}
+          storyId: item.storyId || item.id, 
+          localId: item.id, 
+          reactions: item.reactions || {},
+          comments: item.comments || []
         });
       };
       return;
@@ -950,8 +1122,7 @@ function updateLastSeen(prevIds, nextIds){
 }
 
 function initLikeCounts(){
-  // Initialize empty like map - no auto-likes
-  // Like structure: { "userId-profileId-imageIndex": true }
+  
   const map = safeParse(localStorage.getItem(LIKE_KEY)) || {};
   state.likes = map;
 }
@@ -971,7 +1142,7 @@ function applyFilters(){
   let arr = state.all.filter(p => {
     const uname = (p.username || "").toLowerCase();
     const name = (p.name || "").toLowerCase();
-    // Search in both username and name
+    
     const matchQ = !q || uname.includes(q) || name.includes(q);
     const matchAge = p.age >= minAge && p.age <= maxAge;
     const matchOnline = online === "all" ? true : p.online === true;
@@ -980,6 +1151,41 @@ function applyFilters(){
 
   if (sort === "ageAsc") arr.sort((a,b)=>a.age-b.age);
   if (sort === "ageDesc") arr.sort((a,b)=>b.age-a.age);
+
+  // Apply profile limit based on user plan with gender-based limits
+  const hasUpgrade = localStorage.getItem("dateme_upgrade_verified") === "true";
+  let profileLimitPerGender = 10; // free: 10 profiles per gender
+  if (hasUpgrade) {
+    const userPlan = localStorage.getItem("dateme_selected_plan") || "basic";
+    if (userPlan === "basic") {
+      profileLimitPerGender = 50;
+    } else if (userPlan === "premium") {
+      profileLimitPerGender = 100;
+    }
+  }
+  
+  // Separate profiles by gender
+  const maleProfiles = arr.filter(p => normalizeGender(p.gender) === "men");
+  const femaleProfiles = arr.filter(p => normalizeGender(p.gender) === "women");
+  const otherProfiles = arr.filter(p => {
+    const g = normalizeGender(p.gender);
+    return !g || (g !== "men" && g !== "women");
+  });
+  
+  // Apply gender-specific limits
+  const limitedMales = maleProfiles.slice(0, profileLimitPerGender);
+  const limitedFemales = femaleProfiles.slice(0, profileLimitPerGender);
+  const limitedOthers = otherProfiles.slice(0, profileLimitPerGender);
+  
+  // Combine limited profiles
+  arr = [...limitedMales, ...limitedFemales, ...limitedOthers];
+  
+  const totalAvailable = maleProfiles.length + femaleProfiles.length + otherProfiles.length;
+  
+  // Store info for upgrade prompt
+  state.totalAvailable = totalAvailable;
+  state.profileLimit = profileLimitPerGender * 2; // Total shown (male + female)
+  state.currentPlan = hasUpgrade ? localStorage.getItem("dateme_selected_plan") : "free";
 
   state.filtered = arr;
   state.page = 0;
@@ -1018,7 +1224,12 @@ function initNearLine(){
 
 function renderFirstPage(){
   const grid = $("grid");
-  if (grid) grid.innerHTML = "";
+  if (grid) {
+    // Remove initial loader
+    const loader = document.getElementById("gridLoader");
+    if (loader) loader.remove();
+    grid.innerHTML = "";
+  }
   loadMore(true);
 }
 
@@ -1038,7 +1249,7 @@ function loadMore(reset=false){
 
     state.page += 1;
 
-    // bind open modal
+    
     chunk.forEach(p => {
       const el = document.querySelector(`[data-card="${p.id}"]`);
       if (el) el.onclick = () => openModal(p);
@@ -1048,11 +1259,29 @@ function loadMore(reset=false){
 
     const btn = $("loadMoreBtn");
     if (btn) btn.style.display = (end >= state.filtered.length) ? "none" : "inline-block";
-  }, reset ? 150 : 350);
+    
+    // Show upgrade prompt if user reached their plan limit
+    if (end >= state.filtered.length && state.totalAvailable > state.profileLimit) {
+      const remaining = state.totalAvailable - state.profileLimit;
+      const upgradeHTML = `
+        <div class="upgrade-prompt" style="grid-column: 1/-1; text-align: center; padding: 30px 20px; background: rgba(255,79,216,.1); border: 2px solid rgba(255,79,216,.3); border-radius: 16px; margin-top: 20px;">
+          <div style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">🔒 ${remaining} More Profiles Available</div>
+          <div style="color: var(--muted); margin-bottom: 16px;">
+            ${state.currentPlan === 'free' ? 'Upgrade to Basic ($14) to see 50 profiles or Premium ($30) to see 100 profiles' : 
+              state.currentPlan === 'basic' ? 'Upgrade to Premium ($30) to see 100 profiles' : ''}
+          </div>
+          <a href="profile-upgrade.html" class="btn primary" style="display: inline-block; padding: 12px 24px; text-decoration: none;">
+            Upgrade Now
+          </a>
+        </div>
+      `;
+      grid.insertAdjacentHTML("beforeend", upgradeHTML);
+    }
+  }, 0);
 }
 
 function cardHTML(p){
-  // Count actual likes for this profile (any picture)
+  
   const likeKeyPrefix = profileKey(p.id) + "-";
   const likes = Object.keys(state.likes)
     .filter(k => k.startsWith(likeKeyPrefix))
@@ -1062,9 +1291,10 @@ function cardHTML(p){
   const showNear = state.nearReady && state.nearIds.includes(p.id);
   const km = 10 + randInt(0, 5);
   const nearLine = showNear ? `<div class="pcard__near">📍 Near: ${state.nearCity} (${km} km)</div>` : "";
+  const userEmail = String(p.email || "").toLowerCase();
   return `
     <article class="pcard" data-card="${p.id}">
-      <img src="${p.img}" alt="${p.name}" loading="lazy" />
+      <img src="${p.img}" alt="${p.name}" loading="eager" fetchpriority="high" data-user-email="${userEmail}" onerror="this.src='https://via.placeholder.com/400x500?text=No+Image'" />
       <div class="pcard__body">
         <div class="pcard__name">
           <span>${p.name}, ${p.age}</span>
@@ -1080,14 +1310,18 @@ function cardHTML(p){
         <div class="pcard__tags">
           ${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}
         </div>
+        <div class="pcard__actions" style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="btn" style="flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600;" onclick="event.stopPropagation(); window.location.href='inbox.html?chat=${encodeURIComponent(userEmail)}'">💬 Chat</button>
+          <button class="btn primary" style="flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600;" onclick="event.stopPropagation(); window.location.href='profile-view.html?id=${encodeURIComponent(p.id)}'">👤 View</button>
+        </div>
       </div>
     </article>
   `;
 }
 
 function openModal(p){
-  // go directly to profile view
-  location.href = `profile-view.html?gender=${encodeURIComponent(state.gender)}&id=${encodeURIComponent(p.id)}`;
+  
+  location.href = `profile-view.html?id=${encodeURIComponent(p.id)}`;
   return;
 
   if ($("mImg")) $("mImg").src = p.img;
@@ -1096,25 +1330,25 @@ function openModal(p){
   if ($("mChips")) $("mChips").innerHTML = p.tags.map(x => `<span class="chip">${x}</span>`).join("");
   if ($("mBadge")) $("mBadge").classList.toggle("show", !!p.online);
 
-  // ✅ Modal chat button → inbox redirect (thread create, no welcome msg)
+  
   const chatBtn = $("chatBtn");
   if (chatBtn){
     chatBtn.onclick = () => {
-      // keep profiles updated
+      
       localStorage.setItem("dateme_profiles", JSON.stringify(state.all));
 
       const store = safeParse(localStorage.getItem("dateme_store")) || {};
       store.chats = store.chats || {};
       const key = String(p.id);
 
-      if (!store.chats[key]) store.chats[key] = []; // create empty thread
+      if (!store.chats[key]) store.chats[key] = []; 
       localStorage.setItem("dateme_store", JSON.stringify(store));
 
       location.href = `inbox.html?id=${encodeURIComponent(key)}`;
     };
   }
 
-  // like button (pop + animation)
+  
   const likeBtn = $("likeBtn");
   if (likeBtn){
     likeBtn.onclick = (e) => {
@@ -1157,22 +1391,27 @@ function openStoryModal(p){
   const lock = document.querySelector(".storyModal__lock");
   const info = document.querySelector(".storyModal__info .muted");
   const reactBtn = $("storyReactBtn");
+  const commentBtn = $("storyCommentBtn");
   const deleteBtn = $("storyDeleteBtn");
   
-  // Get current user
-  const currentUser = (() => {
+  
+  const currentUserEmail = String(localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+  const currentUserProfile = (() => {
     try {
-      const u = localStorage.getItem("dateme_current_user");
-      return u ? JSON.parse(u) : null;
-    } catch(e) { return null; }
+      if (currentUserEmail) {
+        return JSON.parse(localStorage.getItem(`dateme_profile_${currentUserEmail}`) || "{}");
+      }
+      return JSON.parse(localStorage.getItem("dateme_profile") || "{}");
+    } catch(e) { return {}; }
   })();
   
   const unlocked = hasUpgrade();
+  const isOwner = currentUserEmail && p?.uploadedBy === currentUserEmail;
   
-  // Set name
+ 
   if (nameEl) nameEl.textContent = p ? `${p.name}'s Story` : "Story";
   
-  // Handle media display
+  
   if (p?.type === "video" && videoEl) {
     if (imgEl) imgEl.style.display = "none";
     videoEl.style.display = "block";
@@ -1180,7 +1419,7 @@ function openStoryModal(p){
     videoEl.controls = false;
     videoEl.muted = true;
     
-    // Setup 30 second timer for video
+    
     if (timerEl) {
       timerEl.style.display = "block";
       let remaining = 30;
@@ -1204,20 +1443,17 @@ function openStoryModal(p){
     if (timerEl) timerEl.style.display = "none";
   }
   
-  // Show/hide lock based on upgrade status
+  
   if (lock) lock.style.display = unlocked ? "none" : "flex";
   if (info) info.textContent = unlocked ? "Enjoy the story." : "Stories are premium-only. Upgrade to view.";
   
-  // Show delete button only if current user is owner
+  
   if (deleteBtn) {
-    if (currentUser && p?.uploadedBy === currentUser.id) {
-      deleteBtn.style.display = "block";
-      deleteBtn.onclick = () => {
+    if (isOwner) {
+      deleteBtn.style.display = "inline-block";
+      deleteBtn.onclick = async () => {
         if (confirm("Delete this story?")) {
-          const list = loadStories();
-          const updated = list.filter(s => s.id !== p.storyId);
-          saveStories(updated);
-          renderStories();
+          await deleteStoryFromBackend(p.storyId, currentUserEmail);
           closeStoryModal();
         }
       };
@@ -1226,35 +1462,206 @@ function openStoryModal(p){
     }
   }
   
-  // Show react button only if user is upgraded AND not owner
+  
   if (reactBtn) {
-    if (unlocked && currentUser && p?.uploadedBy !== currentUser.id) {
-      reactBtn.style.display = "block";
-      const userReaction = p?.reactions?.[currentUser.id];
-      reactBtn.textContent = userReaction ? `${userReaction} Reacted` : "👍 React";
-      
-      reactBtn.onclick = () => {
-        const list = loadStories();
-        const story = list.find(s => s.id === p.storyId);
-        if (story) {
-          if (!story.reactions) story.reactions = {};
-          if (story.reactions[currentUser.id]) {
-            delete story.reactions[currentUser.id];
-          } else {
-            story.reactions[currentUser.id] = "👍";
-          }
-          saveStories(list);
-          reactBtn.textContent = story.reactions[currentUser.id] ? "👍 Reacted" : "👍 React";
-        }
-      };
+    if (!isOwner && unlocked && currentUserEmail) {
+      reactBtn.style.display = "inline-block";
+      loadAndDisplayReactions(p.storyId, currentUserEmail);
     } else {
       reactBtn.style.display = "none";
+    }
+  }
+  
+   
+  if (commentBtn) {
+    if (!isOwner && unlocked && currentUserEmail) {
+      commentBtn.style.display = "inline-block";
+      commentBtn.onclick = () => toggleCommentInput();
+      loadAndDisplayComments(p.storyId, currentUserEmail, currentUserProfile);
+    } else {
+      commentBtn.style.display = "none";
     }
   }
   
   const modal = $("storyModal");
   if (modal) modal.classList.add("show");
   document.body.style.overflow = "hidden";
+}
+
+async function deleteStoryFromBackend(storyId, email){
+  try {
+    // Extract numeric ID from story_123 format
+    const numericId = typeof storyId === 'string' && storyId.startsWith('story_') 
+      ? parseInt(storyId.replace('story_', ''))
+      : storyId;
+    
+    await fetch(`${API_BASE}/delete_story.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ story_id: numericId, email })
+    });
+    
+    
+    await loadStoriesFromBackend();
+    renderStories();
+  } catch (err) {
+    console.error("Error deleting story:", err);
+    alert("Failed to delete story. Please try again.");
+  }
+}
+
+async function loadAndDisplayReactions(storyId, currentUserEmail){
+  const reactBtn = $("storyReactBtn");
+  const reactionsSection = $("storyReactionsSection");
+  const reactionsList = $("storyReactionsList");
+  const reactionCount = $("storyReactionCount");
+  
+  if (!reactionsSection || !reactionsList || !reactionCount) return;
+  
+  try {
+    // Extract numeric ID
+    const numericId = typeof storyId === 'string' && storyId.startsWith('story_') 
+      ? parseInt(storyId.replace('story_', ''))
+      : storyId;
+    
+    const res = await fetch(`${API_BASE}/get_story_reactions.php?story_id=${numericId}`);
+    const data = await res.json();
+    
+    if (data.ok) {
+      const userHasReacted = data.reactions.some(r => r.user_email === currentUserEmail);
+      
+      // Update button
+      if (reactBtn) {
+        reactBtn.textContent = userHasReacted ? "❤️ Reacted" : "👍 React";
+        reactBtn.onclick = () => toggleReaction(numericId, currentUserEmail);
+      }
+      
+      // Show reactions section if there are reactions
+      if (data.count > 0) {
+        reactionsSection.style.display = "block";
+        reactionCount.textContent = data.count;
+        reactionsList.innerHTML = data.reactions.map(r => 
+          `<span style="font-size:20px;" title="${r.user_email}">${r.reaction}</span>`
+        ).join('');
+      } else {
+        reactionsSection.style.display = "none";
+      }
+    }
+  } catch (err) {
+    console.error("Error loading reactions:", err);
+  }
+}
+
+async function toggleReaction(storyId, userEmail){
+  try {
+    const res = await fetch(`${API_BASE}/toggle_story_reaction.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ story_id: storyId, user_email: userEmail, reaction: "❤️" })
+    });
+    
+    const data = await res.json();
+    if (data.ok) {
+      // Reload reactions
+      loadAndDisplayReactions(storyId, userEmail);
+    }
+  } catch (err) {
+    console.error("Error toggling reaction:", err);
+  }
+}
+
+async function loadAndDisplayComments(storyId, currentUserEmail, userProfile){
+  const commentsSection = $("storyCommentsSection");
+  const commentsList = $("storyCommentsList");
+  const commentCount = $("storyCommentCount");
+  
+  if (!commentsSection || !commentsList || !commentCount) return;
+  
+  try {
+    // Extract numeric ID
+    const numericId = typeof storyId === 'string' && storyId.startsWith('story_') 
+      ? parseInt(storyId.replace('story_', ''))
+      : storyId;
+    
+    const res = await fetch(`${API_BASE}/get_story_comments.php?story_id=${numericId}`);
+    const data = await res.json();
+    
+    if (data.ok) {
+      commentsSection.style.display = "block";
+      commentCount.textContent = data.count;
+      
+      if (data.count > 0) {
+        commentsList.innerHTML = data.comments.map(c => {
+          const timeStr = new Date(c.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          return `
+            <div style="display:flex; gap:8px; padding:8px; background:var(--card); border-radius:8px;">
+              <img src="${c.user_photo || 'assets/default-avatar.jpg'}" alt="${c.username}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600; margin-bottom:4px;">${c.username || 'User'}</div>
+                <div style="font-size:13px; color:var(--muted);">${c.comment}</div>
+                <div style="font-size:11px; color:var(--muted2); margin-top:4px;">${timeStr}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        commentsList.innerHTML = '<p style="font-size:13px; color:var(--muted2);">No comments yet. Be the first!</p>';
+      }
+      
+      // Setup comment input
+      const commentInputArea = $("storyCommentInputArea");
+      const commentInput = $("storyCommentInput");
+      const commentSendBtn = $("storyCommentSendBtn");
+      
+      if (commentSendBtn) {
+        commentSendBtn.onclick = () => sendComment(numericId, currentUserEmail, userProfile);
+      }
+    }
+  } catch (err) {
+    console.error("Error loading comments:", err);
+  }
+}
+
+function toggleCommentInput(){
+  const commentInputArea = $("storyCommentInputArea");
+  if (commentInputArea) {
+    const isVisible = commentInputArea.style.display === "block";
+    commentInputArea.style.display = isVisible ? "none" : "block";
+    if (!isVisible) {
+      $("storyCommentInput")?.focus();
+    }
+  }
+}
+
+async function sendComment(storyId, userEmail, userProfile){
+  const commentInput = $("storyCommentInput");
+  if (!commentInput) return;
+  
+  const comment = commentInput.value.trim();
+  if (!comment) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/add_story_comment.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        story_id: storyId,
+        user_email: userEmail,
+        username: userProfile.name || "User",
+        user_photo: userProfile.img || "",
+        comment: comment
+      })
+    });
+    
+    const data = await res.json();
+    if (data.ok) {
+      commentInput.value = "";
+      // Reload comments
+      loadAndDisplayComments(storyId, userEmail, userProfile);
+    }
+  } catch (err) {
+    console.error("Error sending comment:", err);
+  }
 }
 
 function closeStoryModal(){
@@ -1330,5 +1737,50 @@ function updateNotificationBadge(){
     badge.classList.remove("show");
   }
 }
+
+// Update inbox message count badge
+async function updateInboxBadge(){
+  const badge = $("inboxBadge");
+  if (!badge) return;
+  
+  const email = String(localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+  if (!email) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/get_unread_count.php?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    const count = data.count || 0;
+    
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.style.display = "inline-block";
+    } else {
+      badge.style.display = "none";
+    }
+  } catch (e) {
+    // Silently fail
+  }
+}
+
+// Update inbox badge every 30 seconds
+setInterval(() => {
+  updateInboxBadge();
+}, 30000);
+
+// Set user offline when leaving the page
+window.addEventListener("beforeunload", async () => {
+  const activeEmail = localStorage.getItem("dateme_active_user");
+  if (activeEmail) {
+    const API_BASE = window.API_BASE || "";
+    if (API_BASE) {
+      // Use sendBeacon for reliable delivery on page unload
+      const blob = new Blob([JSON.stringify({
+        email: activeEmail.toLowerCase(),
+        is_online: false
+      })], { type: 'application/json' });
+      navigator.sendBeacon(`${API_BASE}/api/update_online_status`, blob);
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", init);

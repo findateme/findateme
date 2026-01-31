@@ -2,16 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Sign up</title>
 
+  <link rel="stylesheet" href="browser-compatibility.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
 
+  <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body data-page="signup">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <a class="authBack" href="index.html" aria-label="Back to landing">←</a>
   <main class="authWrap">
     <div class="card-shell">
@@ -43,7 +53,7 @@
 
       <form id="signupForm" class="authForm">
         <div>
-          <div class="authLabel">Profile photo</div>
+          <div class="authLabel">Profile photo <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Max 2MB)</span></div>
           <label class="authPhotoBox" id="suPhotoBox">
             <span class="authPhotoText">Add photo</span>
             <img id="suPhotoPreview" class="authPhotoPreview" alt="" />
@@ -347,7 +357,7 @@
         return;
       }
       const custom = {
-        id: `u-${Date.now()}`,
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: profile.name,
         username: profile.username || "",
         age: Number(profile.age) || 22,
@@ -364,7 +374,8 @@
       list.unshift(custom);
       localStorage.setItem("dateme_custom_profiles", JSON.stringify(list));
 
-      const genderKey = (custom.gender === "men") ? "dateme_profiles_men" : "dateme_profiles_women";
+      // Add to gender-specific list
+      const genderKey = (custom.gender === "men" || custom.gender === "male" || custom.gender === "m") ? "dateme_profiles_men" : "dateme_profiles_women";
       let genderList = [];
       try{
         genderList = JSON.parse(localStorage.getItem(genderKey) || "[]");
@@ -375,10 +386,23 @@
         genderList.unshift(custom);
         localStorage.setItem(genderKey, JSON.stringify(genderList));
       }
-      localStorage.setItem("dateme_profiles", JSON.stringify(genderList));
+      
+      // Add to combined profiles list for home page
+      let allProfiles = [];
+      try {
+        allProfiles = JSON.parse(localStorage.getItem("dateme_profiles") || "[]");
+      } catch(e) {
+        allProfiles = [];
+      }
+      if (!allProfiles.some(p => String(p.email || "").toLowerCase() === email)) {
+        allProfiles.unshift(custom);
+        localStorage.setItem("dateme_profiles", JSON.stringify(allProfiles));
+      }
       
       // Store current user
       localStorage.setItem("dateme_current_user", JSON.stringify(custom));
+      
+      console.log('✅ New user added to home page:', custom.name);
     }
 
     function addNotification(userEmail){
@@ -531,6 +555,15 @@
       photoEl.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
+        
+        // Validate file size (max 2MB)
+        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > maxSize) {
+          setMsg("⚠️ Image too large! Maximum size is 2MB.", "err");
+          e.target.value = ""; // Reset input
+          return;
+        }
+        
         const reader = new FileReader();
         reader.onload = () => {
           compressImage(reader.result, (result) => {
@@ -656,16 +689,46 @@
       // Store password for local fallback: both global (legacy) and per-email key
       localStorage.setItem("dateme_local_pass", pass);
       try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
-      const finalDraft = readProfileStore();
-      finalDraft.email = email.toLowerCase();
-      finalDraft.username = username.toLowerCase();
-      localStorage.setItem(getProfileKey(email), JSON.stringify(finalDraft));
+      
+      // ✅ Initialize message counter for new user (free plan = 0 messages sent)
+      // Use email-specific key for proper persistence per user
+      const msgCountKey = `dateme_free_msg_count_${email.toLowerCase()}`;
+      localStorage.setItem(msgCountKey, "0");
+      localStorage.setItem("dateme_free_msg_count", "0");
+      localStorage.removeItem("dateme_selected_plan"); // No plan yet
+      localStorage.removeItem("dateme_upgrade_verified"); // Not upgraded
+      
+      // ✅ Save complete profile data with email-based key for persistence
+      const finalDraft = {
+        name: fullName,
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+        age: Number(age) || 0,
+        birth: getDobString(),
+        city: (cityEl.value || "").trim(),
+        country: (countryEl.value || "").trim(),
+        gender: (genderEl.value || "").trim(),
+        phone: (phoneEl.value || "").trim(),
+        phoneCode: (phoneCodeEl?.value || "").trim(),
+        photo: photo,
+        address: "",
+        state: "",
+        zip: ""
+      };
+      
+      // Save to all storage locations for complete persistence
+      const profileKey = getProfileKey(email);
+      localStorage.setItem(profileKey, JSON.stringify(finalDraft));
       localStorage.setItem("dateme_profile", JSON.stringify(finalDraft));
       localStorage.setItem("dateme_current_user", JSON.stringify(finalDraft));
 
-      setMsg("Account created ✅ Redirecting...", "ok");
+      // ✅ Add new user profile to home page immediately
+      addCustomProfile();
+
+      // Hide success message and redirect directly
+      setMsg("", "muted");
       addNotification(email);
-      setTimeout(showSignupWelcome, 400);
+      setTimeout(showSignupWelcome, 200);
     });
   </script>
   <script src="keep-alive.js"></script>

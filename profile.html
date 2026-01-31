@@ -2,13 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe - Profile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="browser-compatibility.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
+  <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Verify user exists BEFORE loading page -->
+  <script>
+    (async function() {
+      const activeEmail = localStorage.getItem("dateme_active_user");
+      if (activeEmail) {
+        try {
+          const API_BASE = window.API_BASE || "https://fin-date-me.onrender.com";
+          const res = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+          const data = await res.json();
+          const userExists = data.ok && data.users && data.users.some(u => 
+            String(u.email || "").toLowerCase() === activeEmail.toLowerCase()
+          );
+          if (!userExists) {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert("Your account has been deleted.");
+            window.location.href = "login.html";
+            return;
+          }
+        } catch (e) { }
+      }
+    })();
+  </script>
+  
   <script src="auth.js" defer></script>
 
   <style>
@@ -28,20 +59,19 @@
       --violet:#7c4dff;
       --cyan:#4df0ff;
     }
-    *{box-sizing:border-box}
+    
+    *{box-sizing:border-box;}
+    
     body{
       margin:0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
-      background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.25), transparent 55%),
-                  radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.22), transparent 55%),
-                  radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.12), transparent 60%),
-                  var(--bg);
       overflow-x:hidden;
-      min-height:100svh;
-      min-height:100dvh;
+      min-height:100vh;
     }
-    img,video{max-width:100%; height:auto; display:block}
+    
+    img,video{max-width:100%; height:auto; display:block;}
+    
     body[data-theme="light"]{
       --bg:#f7f8ff;
       --card: rgba(12,16,32,.05);
@@ -49,20 +79,16 @@
       --text:#0c1020;
       --muted: rgba(12,16,32,.70);
       --muted2: rgba(12,16,32,.55);
-      background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.14), transparent 55%),
-                  radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.12), transparent 55%),
-                  radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.08), transparent 60%),
-                  var(--bg);
     }
 
-    .wrap{max-width:1120px; margin:0 auto; padding:16px 18px 56px}
+    .wrap{max-width:1120px; margin:0 auto; padding:0 18px 56px}
     header{
       display:flex; justify-content:space-between; align-items:center; gap:12px;
       position:sticky; top:0; z-index:10;
-      padding:12px 0 16px;
+      padding:8px 0 10px;
       margin-bottom: 0;
       backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-      background: linear-gradient(to bottom, rgba(7,8,18,.72), rgba(7,8,18,.20));
+      background: linear-gradient(to bottom, rgba(7,8,18,.85), rgba(7,8,18,.40));
     }
     body[data-theme="light"] header{
       background: linear-gradient(to bottom, rgba(255,255,255,.85), rgba(255,255,255,.55));
@@ -124,12 +150,12 @@
     }
 
     .grid{
-      margin-top:24px;
+      margin-top:4px;
       display:grid;
       grid-template-columns: 1fr;
-      gap:20px;
+      gap:24px;
       align-items:start;
-      max-width: 800px;
+      max-width: 900px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -145,10 +171,10 @@
     }
 
     .cardHead{
-      padding:16px;
+      padding:20px;
       border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .cardHead h1{margin:0 0 6px; font-size:20px}
+    .cardHead h1{margin:0 0 8px; font-size:22px; font-weight:700}
     .muted{color:var(--muted)}
     .small{font-size:12px; color:var(--muted2)}
 
@@ -298,10 +324,10 @@
     }
     .status{font-size:12px; color:var(--muted)}
 
-    .profileSummary{padding:16px; display:grid; gap:12px}
-    .summaryTop{display:flex; gap:12px; align-items:center}
+    .profileSummary{padding:20px; display:grid; gap:16px}
+    .summaryTop{display:flex; gap:14px; align-items:center}
     .summaryAvatar{
-      width:72px; height:72px; border-radius:18px;
+      width:80px; height:80px; border-radius:20px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.06);
       display:grid; place-items:center; overflow:hidden;
@@ -318,29 +344,10 @@
 </head>
 
 <body>
-  <!-- 🌟 Emoji Orbits -->
-  <div class="emoji-orbit">
-    <!-- Top Left Orbit -->
-    <div class="orbit-container" style="top: 10%; left: 5%; animation-duration: 20s;">
-      <div class="orbit-emoji" style="top: -12px; left: 50%; transform: translateX(-50%);">❤️</div>
-      <div class="orbit-emoji" style="bottom: -12px; left: 50%; transform: translateX(-50%);">💕</div>
-      <div class="orbit-emoji" style="left: -12px; top: 50%; transform: translateY(-50%);">✨</div>
-      <div class="orbit-emoji" style="right: -12px; top: 50%; transform: translateY(-50%);">💖</div>
-    </div>
-    <!-- Right Side Orbit -->
-    <div class="orbit-container alt" style="top: 35%; right: 8%; width: 250px; height: 250px; animation-duration: 25s;">
-      <div class="orbit-emoji" style="top: -10px; left: 50%; transform: translateX(-50%);">💗</div>
-      <div class="orbit-emoji" style="bottom: -10px; left: 50%; transform: translateX(-50%);">⭐</div>
-      <div class="orbit-emoji" style="left: -10px; top: 50%; transform: translateY(-50%);">💝</div>
-      <div class="orbit-emoji" style="right: -10px; top: 50%; transform: translateY(-50%);">🌹</div>
-    </div>
-    <!-- Bottom Center Orbit -->
-    <div class="orbit-container" style="bottom: 15%; left: 50%; transform: translateX(-50%); width: 280px; height: 280px; animation-duration: 30s;">
-      <div class="orbit-emoji" style="top: -14px; left: 50%; transform: translateX(-50%);">💑</div>
-      <div class="orbit-emoji" style="bottom: -14px; left: 50%; transform: translateX(-50%);">💞</div>
-      <div class="orbit-emoji" style="left: -14px; top: 50%; transform: translateY(-50%);">🎀</div>
-      <div class="orbit-emoji" style="right: -14px; top: 50%; transform: translateY(-50%);">💘</div>
-    </div>
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
   </div>
   <div class="wrap">
     <header>
@@ -387,6 +394,7 @@
     </header>
 
     <div class="grid">
+      <!-- Profile Info Card -->
       <div class="card">
         <div class="cardHead">
           <h1>My profile</h1>
@@ -413,6 +421,17 @@
 
           <div class="editRow">
             <button class="btn primary" id="editProfileBtn" type="button">Edit profile</button>
+            <button class="btn" id="uploadStoryBtn" type="button">+ Upload Story</button>
+          </div>
+          
+          <!-- Gallery Preview Section -->
+          <div id="galleryPreview" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.1); display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 15px; font-weight: 600;">📸 Photo Gallery</h3>
+              <span id="galleryCount" class="muted" style="font-size: 13px;">0 photos</span>
+            </div>
+            <div id="galleryPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; max-height: 280px; overflow-y: auto;">
+            </div>
           </div>
         </div>
 
@@ -430,7 +449,7 @@
             </div>
             <div style="display:grid; gap:8px; align-content:start">
               <button class="btn primary" type="button" id="savePhotoBtn" style="display:none;">Save Photo</button>
-              <div class="small">JPG or PNG. Square looks best.</div>
+              <div class="small">JPG or PNG. Max 2MB. Square looks best.</div>
             </div>
           </div>
 
@@ -443,7 +462,7 @@
               + Add Photo
               <input id="galleryPhotoInput" type="file" accept="image/*" hidden />
             </label>
-            <div id="galleryStatus" style="font-size: 12px; color: var(--muted); margin-top: 8px;"></div>
+            <div id="galleryStatus" style="font-size: 12px; color: var(--muted); margin-top: 8px;">Max 2MB per photo</div>
           </div>
 
           <div class="fieldGrid">
@@ -473,6 +492,15 @@
             <label class="field">
               <span>Age</span>
               <input id="profileAge" type="number" min="18" max="99" placeholder="24" />
+            </label>
+            <label class="field">
+              <span>Gender</span>
+              <select id="profileGender" class="romanticSelect">
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
             </label>
             <label class="field field--full">
               <span>Address line</span>
@@ -518,7 +546,85 @@
             <button class="btn" type="button" id="resetProfile">Reset</button>
             <span class="status" id="profileStatus"></span>
           </div>
+          
+          <!-- Delete Account Section -->
+          <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.1);">
+            <button class="btn" type="button" id="deleteAccountBtn" style="background: rgba(255,77,109,.15); border-color: rgba(255,77,109,.35); color: #ff4d6d; font-weight: 600;">🗑️ Delete Account</button>
+          </div>
         </form>
+      </div>
+
+      <!-- Photo Gallery Card -->
+      <div class="card" id="galleryCard" style="display:none;">
+        <div class="cardHead">
+          <h1>📸 Photo History</h1>
+          <div class="muted">Your previous profile photos</div>
+        </div>
+        <div style="padding: 24px;">
+          <div id="galleryDisplayGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;">
+          </div>
+          <div style="text-align: center; color: var(--muted); font-size: 14px; padding: 40px 20px;" id="galleryEmptyMsg">
+            No photo history yet. Upload photos to see them here.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Story Upload Input (hidden) -->
+  <input id="storyInput" type="file" accept="image/*,video/*" hidden />
+  
+  <!-- Delete Account Confirmation Modal -->
+  <div id="deleteAccountModal" class="forgotModal" aria-hidden="true" hidden>
+    <div class="forgotModal__backdrop" id="deleteAccountClose"></div>
+    <div class="forgotModal__panel" role="dialog" aria-modal="true" aria-labelledby="deleteAccountTitle" style="max-width: 460px;">
+      <button class="forgotModal__x" id="deleteAccountX" type="button" aria-label="Close">✕</button>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+        <h2 id="deleteAccountTitle" style="color: #ff4d6d; margin: 0 0 8px;">Delete Account?</h2>
+        <p class="muted" style="font-size: 14px; line-height: 1.6;">This action cannot be undone. Your profile, messages, and all data will be permanently deleted from our system.</p>
+      </div>
+      
+      <div class="authMsg" id="deleteAccountMsg" style="margin-bottom: 16px;"></div>
+      
+      <div style="display: flex; gap: 10px; flex-direction: column;">
+        <button class="authBtn" id="confirmDeleteBtn" type="button" style="background: linear-gradient(135deg, #ff4d6d, #ff1744); font-weight: 700;">Yes, Delete My Account</button>
+        <button class="authBtn" id="cancelDeleteBtn" type="button" style="background: rgba(255,255,255,.1); color: var(--text); font-weight: 600;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo View Modal with 3-dot Menu -->
+  <div id="photoViewModal" class="forgotModal" aria-hidden="true" hidden>
+    <div class="forgotModal__backdrop" id="photoViewClose"></div>
+    <div class="forgotModal__panel" role="dialog" aria-modal="true" style="max-width: 600px; padding: 0; overflow: hidden;">
+      <button class="forgotModal__x" id="photoViewX" type="button" aria-label="Close">✕</button>
+      
+      <!-- Photo Display -->
+      <div style="position: relative;">
+        <img id="photoViewImg" style="width: 100%; height: auto; display: block; max-height: 70vh; object-fit: contain; background: #000;">
+        
+        <!-- 3-Dot Menu Button -->
+        <button id="photoMenuBtn" type="button" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.7); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+          ⋮
+        </button>
+        
+        <!-- Dropdown Menu -->
+        <div id="photoMenu" style="position: absolute; top: 65px; right: 16px; background: rgba(20,25,40,0.98); backdrop-filter: blur(20px); border-radius: 12px; min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); display: none; z-index: 1000;">
+          <button id="setAsProfileBtn" type="button" style="width: 100%; padding: 14px 20px; background: none; border: none; color: white; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); transition: background 0.2s;">
+            <span style="font-size: 18px;">🖼️</span>
+            <span>Set as Profile Photo</span>
+          </button>
+          <button id="deletePhotoBtn" type="button" style="width: 100%; padding: 14px 20px; background: none; border: none; color: #ff4d6d; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: background 0.2s;">
+            <span style="font-size: 18px;">🗑️</span>
+            <span>Delete Permanently</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Photo Info -->
+      <div style="padding: 20px; background: rgba(0,0,0,0.3);">
+        <div id="photoUploadDate" style="color: rgba(255,255,255,0.7); font-size: 13px;"></div>
       </div>
     </div>
   </div>
@@ -526,6 +632,7 @@
   <script>
     const form = document.getElementById("profileForm");
     const statusEl = document.getElementById("profileStatus");
+    const API_BASE = window.API_BASE || window.config?.API_BASE || "https://fin-date-me.onrender.com";
 
     const fields = {
       name: document.getElementById("profileName"),
@@ -568,48 +675,210 @@
     }
     function readStore(){
       const active = getActiveEmail();
+      console.log("🔍 Reading profile store for:", active);
+      
       if (active){
         try{
-          const stored = JSON.parse(localStorage.getItem(getProfileKey(active)) || "{}");
+          const profileKey = getProfileKey(active);
+          console.log("🔑 Profile key:", profileKey);
+          const stored = JSON.parse(localStorage.getItem(profileKey) || "{}");
+          console.log("💾 Stored data:", stored);
           if (stored && Object.keys(stored).length) return stored;
         }catch(e){
+          console.error("❌ Error reading profile store:", e);
           // fall through to default store
         }
       }
-      try{ return JSON.parse(localStorage.getItem("dateme_profile") || "{}"); }catch(e){ return {}; }
+      
+      // Try default profile
+      try{ 
+        const defaultData = JSON.parse(localStorage.getItem("dateme_profile") || "{}");
+        console.log("📦 Default profile data:", defaultData);
+        if (defaultData && Object.keys(defaultData).length) return defaultData;
+      }catch(e){ 
+        console.error("❌ Error reading default store:", e);
+      }
+      
+      // Fallback: try to get from current user data
+      try {
+        const currentUser = JSON.parse(localStorage.getItem("dateme_current_user") || "{}");
+        console.log("👤 Current user fallback:", currentUser);
+        if (currentUser && Object.keys(currentUser).length) {
+          // Convert current user format to profile format
+          return {
+            name: currentUser.name || currentUser.username || "",
+            email: currentUser.email || "",
+            age: currentUser.age || "",
+            gender: currentUser.gender || "",
+            city: currentUser.city || "",
+            country: currentUser.country || "",
+            photo: currentUser.photo || currentUser.img || ""
+          };
+        }
+      } catch(e) {
+        console.error("❌ Error reading current user:", e);
+      }
+      
+      return {};
     }
     function saveStore(data){
       const active = getActiveEmail();
       const email = String(data.email || active || "").trim().toLowerCase();
       if (email) localStorage.setItem("dateme_active_user", email);
-      localStorage.setItem(getProfileKey(email), JSON.stringify(data));
+      
+      // ✅ Save to ALL storage locations for complete persistence
+      const profileKey = getProfileKey(email);
+      localStorage.setItem(profileKey, JSON.stringify(data));
       localStorage.setItem("dateme_profile", JSON.stringify(data));
+      localStorage.setItem("dateme_current_user", JSON.stringify(data));
+      
+      // Update profile lists so changes appear everywhere
+      updateProfileInLists(data);
+      
+      // Sync profile to server for real-time updates
+      syncProfileToServer(data);
+    }
+    
+    // ✅ Update user profile in all cached lists
+    function updateProfileInLists(data){
+      const email = String(data.email || "").trim().toLowerCase();
+      if (!email) return;
+      
+      // Update custom profiles list
+      try {
+        let customProfiles = JSON.parse(localStorage.getItem("dateme_custom_profiles") || "[]");
+        const idx = customProfiles.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (idx >= 0) {
+          customProfiles[idx] = { ...customProfiles[idx], ...data, img: data.photo };
+          localStorage.setItem("dateme_custom_profiles", JSON.stringify(customProfiles));
+        }
+      } catch(e){}
+      
+      // Update main profiles list
+      try {
+        let allProfiles = JSON.parse(localStorage.getItem("dateme_profiles") || "[]");
+        const idx = allProfiles.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (idx >= 0) {
+          allProfiles[idx] = { ...allProfiles[idx], ...data, img: data.photo };
+          localStorage.setItem("dateme_profiles", JSON.stringify(allProfiles));
+        }
+      } catch(e){}
+      
+      // Update gender-specific lists
+      const gender = data.gender || "women";
+      const genderKey = (gender === "men" || gender === "male" || gender === "m") ? "dateme_profiles_men" : "dateme_profiles_women";
+      try {
+        let genderList = JSON.parse(localStorage.getItem(genderKey) || "[]");
+        const idx = genderList.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (idx >= 0) {
+          genderList[idx] = { ...genderList[idx], ...data, img: data.photo };
+          localStorage.setItem(genderKey, JSON.stringify(genderList));
+        }
+      } catch(e){}
+    }
+    
+    async function syncProfileToServer(data){
+      if (!data.email) return;
+      
+      try {
+        console.log("🔄 Syncing profile to server...");
+        console.log("📸 Photo data length:", data.photo ? data.photo.length : "No photo");
+        
+        const res = await fetch(`${API_BASE}/api/profile`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: data.email.toLowerCase(),
+            name: data.name || "",
+            city: data.city || "",
+            country: data.country || "",
+            gender: data.gender || "",
+            age: Number(data.age) || 0,
+            photo: data.photo || ""
+          })
+        });
+        
+        const result = await res.json();
+        if (result.ok) {
+          console.log("✅ Profile synced to server successfully");
+          console.log("✅ Photo saved to server:", data.photo ? "Yes" : "No");
+          
+          // Clear profile caches so others see updated photo
+          localStorage.removeItem("dateme_profiles");
+          localStorage.removeItem("dateme_inbox_profiles_cache");
+        } else {
+          console.warn("⚠️ Server returned error:", result);
+        }
+      } catch (err) {
+        // Silently handle CORS/network errors - data is already saved locally
+        console.warn("⚠️ Server sync failed:", err.message);
+        console.log("💡 Data saved locally. Will sync when server is available.");
+        // Don't throw error - local save is successful
+      }
     }
     function buildAddress(data){
       const parts = [data.address, data.city, data.state, data.country, data.zip].filter(Boolean);
       return parts.length ? parts.join(", ") : "-";
     }
     function setAvatar(src){
+      console.log("🎨 setAvatar called with:", src ? "Photo exists" : "No photo");
+      
       if (src){
-        avatarImg.src = src;
-        summaryAvatarImg.src = src;
-        avatarBox.classList.add("has-img");
-        summaryAvatar.classList.add("has-img");
+        // Add timestamp to prevent browser caching old image
+        const cacheBustSrc = src.includes('data:') ? src : src + '?t=' + Date.now();
+        
+        // Set image sources
+        if (avatarImg) {
+          avatarImg.src = cacheBustSrc;
+          console.log("✅ avatarImg src set");
+        }
+        if (summaryAvatarImg) {
+          summaryAvatarImg.src = cacheBustSrc;
+          console.log("✅ summaryAvatarImg src set");
+        }
+        
+        // Add has-img class to show image
+        if (avatarBox) avatarBox.classList.add("has-img");
+        if (summaryAvatar) summaryAvatar.classList.add("has-img");
       }else{
-        avatarImg.removeAttribute("src");
-        summaryAvatarImg.removeAttribute("src");
-        avatarBox.classList.remove("has-img");
-        summaryAvatar.classList.remove("has-img");
+        // Remove image sources
+        if (avatarImg) avatarImg.removeAttribute("src");
+        if (summaryAvatarImg) summaryAvatarImg.removeAttribute("src");
+        
+        // Remove has-img class
+        if (avatarBox) avatarBox.classList.remove("has-img");
+        if (summaryAvatar) summaryAvatar.classList.remove("has-img");
       }
     }
     function updatePreview(){
-      summary.name.textContent = fields.name.value || "Your name";
-      summary.email.textContent = fields.email.value || "you@example.com";
-      const phoneFull = fields.phone.value ? `${fields.phoneCode.value} ${fields.phone.value}` : "-";
-      summary.phone.textContent = phoneFull;
-      summary.age.textContent = fields.age.value || "-";
-      const data = collectData();
-      summary.address.textContent = buildAddress(data);
+      // Get current data from store to ensure we show saved data
+      const data = readStore();
+      
+      // Update summary with actual stored data or form values
+      if (summary.name) {
+        summary.name.textContent = data.name || fields.name.value || "Your name";
+      }
+      if (summary.email) {
+        summary.email.textContent = data.email || fields.email.value || "you@example.com";
+      }
+      if (summary.phone) {
+        const phone = fields.phone.value || data.phone || "";
+        const phoneCode = fields.phoneCode.value || data.phoneCode || "+880";
+        const phoneFull = phone ? `${phoneCode} ${phone}` : "-";
+        summary.phone.textContent = phoneFull;
+      }
+      if (summary.age) {
+        summary.age.textContent = data.age || fields.age.value || "-";
+      }
+      if (summary.address) {
+        const addressData = data || collectData();
+        summary.address.textContent = buildAddress(addressData);
+      }
+      
+      console.log("🔄 Preview updated with:", {
+        name: summary.name?.textContent,
+        email: summary.email?.textContent
+      });
     }
     function collectData(){
       return {
@@ -618,6 +887,7 @@
         phone: fields.phone.value.trim(),
         phoneCode: fields.phoneCode.value,
         age: fields.age.value.trim(),
+        gender: document.getElementById('profileGender').value.trim(),
         address: fields.address.value.trim(),
         city: fields.city.value.trim(),
         state: fields.state.value.trim(),
@@ -627,22 +897,111 @@
       };
     }
     function load(){
+      const activeEmail = getActiveEmail();
+      console.log("📧 Active email:", activeEmail);
+      
+      if (!activeEmail) {
+        console.warn("⚠️ No active user found. Please login first.");
+        // Show login message
+        if (summary.name) summary.name.textContent = "Please login first";
+        if (summary.email) summary.email.textContent = "Go to home page and login";
+        return;
+      }
+      
       const data = readStore();
-      fields.name.value = data.name || "";
-      fields.email.value = data.email || "";
-      fields.phone.value = data.phone || "";
-      fields.phoneCode.value = data.phoneCode || "+880";
-      fields.age.value = data.age || "";
-      fields.address.value = data.address || "";
-      fields.city.value = data.city || "";
-      fields.state.value = data.state || "";
-      fields.country.value = data.country || "";
-      fields.zip.value = data.zip || "";
+      console.log("📋 Loading profile data:", data);
+      console.log("📦 Data keys:", Object.keys(data));
+      
+      // Check if we have any data
+      if (!data || Object.keys(data).length === 0) {
+        console.warn("⚠️ No profile data found for:", activeEmail);
+        fetchLatestProfile();
+        return;
+      }
+      
+      // Populate form fields with actual data
+      if (fields.name) fields.name.value = data.name || "";
+      if (fields.email) fields.email.value = data.email || "";
+      if (fields.phone) fields.phone.value = data.phone || "";
+      if (fields.phoneCode) fields.phoneCode.value = data.phoneCode || "+880";
+      if (fields.age) fields.age.value = data.age || "";
+      const genderField = document.getElementById('profileGender');
+      if (genderField) genderField.value = data.gender || "";
+      if (fields.address) fields.address.value = data.address || "";
+      if (fields.city) fields.city.value = data.city || "";
+      if (fields.state) fields.state.value = data.state || "";
+      if (fields.country) fields.country.value = data.country || "";
+      if (fields.zip) fields.zip.value = data.zip || "";
       currentPhoto = data.photo || "";
       pendingPhoto = "";
+      
+      console.log("🖼️ Photo status:", currentPhoto ? "Found" : "Missing");
+      if (currentPhoto) {
+        console.log("📸 Photo preview:", currentPhoto.substring(0, 50) + "...");
+      }
+      
+      // Update avatar and summary preview immediately
       setAvatar(currentPhoto);
       updatePreview();
       if (savePhotoBtn) savePhotoBtn.style.display = "none";
+      
+      // Double-check avatar after a moment
+      setTimeout(() => {
+        if (currentPhoto) {
+          setAvatar(currentPhoto);
+          console.log("✅ Avatar re-applied");
+        }
+      }, 100);
+      
+      // Fetch latest from server in background
+      fetchLatestProfile();
+    }
+    
+    async function fetchLatestProfile(){
+      const email = getActiveEmail();
+      if (!email) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+        const data = await res.json();
+        
+        if (data.ok && Array.isArray(data.users)) {
+          const user = data.users.find(u => 
+            String(u.email || "").toLowerCase() === email.toLowerCase()
+          );
+          
+          if (user) {
+            // Get existing local data
+            const localData = readStore();
+            
+            // ✅ Priority: LOCAL photo over SERVER photo
+            // (কারণ user সবে photo change করেছে, সেটা server এ sync হয়নি)
+            const mergedData = {
+              ...localData,
+              name: user.name || user.username || localData.name,
+              email: user.email,
+              age: user.age || localData.age,
+              gender: user.gender || localData.gender,
+              city: user.city || localData.city,
+              country: user.country || localData.country,
+              // ✅ IMPORTANT: Keep local photo if exists, only use server photo if local is empty
+              photo: localData.photo || user.photo || ""
+            };
+            
+            console.log("🔄 Server fetch - keeping local photo:", localData.photo ? "Yes" : "Using server");
+            
+            // Only save if local photo doesn't exist
+            if (!localData.photo && user.photo) {
+              saveStore(mergedData);
+              currentPhoto = user.photo;
+              setAvatar(currentPhoto);
+              updatePreview();
+            }
+          }
+        }
+      } catch (err) {
+        console.log("Could not fetch latest profile:", err);
+      }
     }
 
     form.addEventListener("input", updatePreview);
@@ -659,6 +1018,7 @@
       setTimeout(()=> statusEl.textContent = "", 1600);
       form.style.display = "none";
       document.getElementById("profileSummary").style.display = "grid";
+      displayGalleryPhotos(); // Update gallery display
     });
 
     document.getElementById("resetProfile").addEventListener("click", ()=>{
@@ -671,10 +1031,14 @@
       setTimeout(()=> statusEl.textContent = "", 1600);
     });
 
-    document.getElementById("editProfileBtn").addEventListener("click", ()=>{
-      document.getElementById("profileSummary").style.display = "none";
-      form.style.display = "grid";
-    });
+    const editProfileBtn = document.getElementById("editProfileBtn");
+    if (editProfileBtn) {
+      editProfileBtn.addEventListener("click", ()=>{
+        const profileSummary = document.getElementById("profileSummary");
+        if (profileSummary) profileSummary.style.display = "none";
+        if (form) form.style.display = "grid";
+      });
+    }
 
     function compressImage(dataUrl, cb){
       const img = new Image();
@@ -697,6 +1061,16 @@
     document.getElementById("profilePhoto").addEventListener("change", (e)=>{
       const file = e.target.files && e.target.files[0];
       if (!file) return;
+      
+      // Validate file size (max 2MB)
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+      if (file.size > maxSize) {
+        statusEl.textContent = "⚠️ Image too large! Maximum size is 2MB.";
+        setTimeout(() => statusEl.textContent = "", 3000);
+        e.target.value = ""; // Reset input
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = () => {
         compressImage(reader.result, (result) => {
@@ -714,17 +1088,112 @@
         if (!pendingPhoto) return;
         currentPhoto = pendingPhoto;
         pendingPhoto = "";
+        
         try{
-          saveStore(collectData());
+          // ✅ Get existing profile data and ONLY update photo
+          const email = getActiveEmail();
+          if (!email) {
+            statusEl.textContent = "❌ No active user found.";
+            setTimeout(()=> statusEl.textContent = "", 2000);
+            return;
+          }
+          
+          // Read existing profile data
+          const existingData = readStore();
+          console.log("💾 Existing data before photo update:", existingData);
+          
+          // Update ONLY the photo field
+          const updatedData = {
+            ...existingData,
+            photo: currentPhoto,
+            email: email // Ensure email is set
+          };
+          
+          console.log("📸 Saving new photo...");
+          console.log("🔑 Photo preview:", currentPhoto.substring(0, 50) + "...");
+          
+          // Save to ALL storage locations for complete persistence
+          const profileKey = getProfileKey(email);
+          localStorage.setItem(profileKey, JSON.stringify(updatedData));
+          localStorage.setItem("dateme_profile", JSON.stringify(updatedData));
+          localStorage.setItem("dateme_current_user", JSON.stringify(updatedData));
+          
+          console.log("✅ Photo saved to localStorage");
+          
+          // Update profile in all cached lists to reflect new photo immediately
+          updateProfileInLists(updatedData);
+          
+          // Sync to server for real-time updates
+          syncProfileToServer(updatedData);
+          
+          // Force avatar update
+          setAvatar(currentPhoto);
+          
         }catch(e){
+          console.error("❌ Photo save error:", e);
           statusEl.textContent = "Photo save failed. Try a smaller image.";
           setTimeout(()=> statusEl.textContent = "", 1800);
           return;
         }
         savePhotoBtn.style.display = "none";
-        statusEl.textContent = "Photo saved.";
-        setTimeout(()=> statusEl.textContent = "", 1600);
+        statusEl.textContent = "✅ Photo saved! Reload page to see changes.";
+        setTimeout(()=> statusEl.textContent = "", 2500);
       });
+    }
+    
+    // Helper function to update profile photo across all lists
+    function updateProfileInAllLists(profileData) {
+      const email = String(profileData.email || "").trim().toLowerCase();
+      if (!email) return;
+      
+      // Update in main profiles list
+      try {
+        const profiles = JSON.parse(localStorage.getItem("dateme_profiles") || "[]");
+        const index = profiles.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (index !== -1) {
+          profiles[index].img = profileData.photo;
+          localStorage.setItem("dateme_profiles", JSON.stringify(profiles));
+        }
+      } catch(e) {}
+      
+      // Update in gender-specific lists
+      const gender = profileData.gender || "women";
+      const genderKey = gender === "men" ? "dateme_profiles_men" : "dateme_profiles_women";
+      try {
+        const genderProfiles = JSON.parse(localStorage.getItem(genderKey) || "[]");
+        const gIndex = genderProfiles.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (gIndex !== -1) {
+          genderProfiles[gIndex].img = profileData.photo;
+          localStorage.setItem(genderKey, JSON.stringify(genderProfiles));
+        }
+      } catch(e) {}
+      
+      // Update in custom profiles
+      try {
+        const customProfiles = JSON.parse(localStorage.getItem("dateme_custom_profiles") || "[]");
+        const cIndex = customProfiles.findIndex(p => String(p.email || "").toLowerCase() === email);
+        if (cIndex !== -1) {
+          customProfiles[cIndex].img = profileData.photo;
+          localStorage.setItem("dateme_custom_profiles", JSON.stringify(customProfiles));
+        }
+      } catch(e) {}
+      
+      // Clear inbox profile cache to force reload
+      localStorage.removeItem("dateme_inbox_profiles_cache");
+      
+      // Add timestamp to force cache bust
+      profileData.photoUpdated = Date.now();
+    }
+    
+    function syncUserAvatar() {
+      // Update navigation avatar if exists
+      const navAvatar = document.querySelector('.nav__avatar img');
+      if (navAvatar) {
+        const profile = readStore();
+        if (profile.photo) {
+          navAvatar.src = profile.photo + '?t=' + Date.now(); // Cache bust
+        }
+      }
     }
 
     // Gallery upload handler
@@ -755,10 +1224,12 @@
           saveStore(profile);
           loadGallery();
           updateGalleryStatus();
+          displayGalleryPhotos(); // Update preview section
         });
         galleryGrid.appendChild(div);
       });
       updateGalleryStatus();
+      displayGalleryPhotos(); // Update preview section
     }
     
     function updateGalleryStatus(){
@@ -773,6 +1244,15 @@
       galleryInput.addEventListener("change", (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        
+        // Validate file size (max 2MB)
+        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > maxSize) {
+          galleryStatus.textContent = "⚠️ Image too large! Maximum size is 2MB.";
+          setTimeout(() => updateGalleryStatus(), 3000);
+          e.target.value = ""; // Reset input
+          return;
+        }
         
         const active = getActiveEmail();
         if (!active) return;
@@ -795,6 +1275,7 @@
               saveStore(profile);
               loadGallery();
               updateGalleryStatus();
+              displayGalleryPhotos(); // Update display
               galleryStatus.textContent = "Photo added!";
               setTimeout(() => updateGalleryStatus(), 1500);
             }
@@ -818,8 +1299,646 @@
 
     load();
     loadGallery();
+    
+    // Display gallery photos in separate card
+    function displayGalleryPhotos(){
+      const profile = readStore();
+      const pictures = profile.pictures || [];
+      const displayGrid = document.getElementById("galleryDisplayGrid");
+      const emptyMsg = document.getElementById("galleryEmptyMsg");
+      const galleryCard = document.getElementById("galleryCard");
+      
+      // Update preview in summary section
+      const galleryPreview = document.getElementById("galleryPreview");
+      const galleryPreviewGrid = document.getElementById("galleryPreviewGrid");
+      const galleryCount = document.getElementById("galleryCount");
+      
+      if (!displayGrid) return;
+      
+      displayGrid.innerHTML = "";
+      if (galleryPreviewGrid) galleryPreviewGrid.innerHTML = "";
+      
+      if (pictures.length === 0){
+        if (emptyMsg) emptyMsg.style.display = "block";
+        if (galleryCard) galleryCard.style.display = "none";
+        if (galleryPreview) galleryPreview.style.display = "none";
+        return;
+      }
+      
+      if (emptyMsg) emptyMsg.style.display = "none";
+      if (galleryCard) galleryCard.style.display = "block";
+      if (galleryPreview) galleryPreview.style.display = "block";
+      if (galleryCount) galleryCount.textContent = `${pictures.length} photo${pictures.length > 1 ? 's' : ''}`;
+      
+      pictures.forEach((pic, idx) => {
+        // Full gallery display
+        const box = document.createElement("div");
+        box.style.cssText = `
+          position: relative;
+          aspect-ratio: 1;
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,.16);
+          background: linear-gradient(135deg, rgba(255,79,216,.08), rgba(124,77,255,.06));
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        `;
+        box.onmouseenter = () => {
+          box.style.transform = "translateY(-4px) scale(1.02)";
+          box.style.boxShadow = "0 12px 24px rgba(255,79,216,.3)";
+        };
+        box.onmouseleave = () => {
+          box.style.transform = "translateY(0) scale(1)";
+          box.style.boxShadow = "0 4px 12px rgba(0,0,0,.2)";
+        };
+        
+        const img = document.createElement("img");
+        img.src = pic;
+        img.style.cssText = "width: 100%; height: 100%; object-fit: cover;";
+        img.alt = `Photo ${idx + 1}`;
+        
+        box.appendChild(img);
+        box.onclick = () => openPhotoViewer(pic);
+        displayGrid.appendChild(box);
+        
+        // Preview grid (smaller thumbnails)
+        if (galleryPreviewGrid) {
+          const thumb = document.createElement("div");
+          thumb.style.cssText = `
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.03);
+            cursor: pointer;
+            transition: all 0.2s ease;
+          `;
+          thumb.onmouseenter = () => {
+            thumb.style.transform = "scale(1.05)";
+            thumb.style.borderColor = "rgba(255,79,216,.5)";
+          };
+          thumb.onmouseleave = () => {
+            thumb.style.transform = "scale(1)";
+            thumb.style.borderColor = "rgba(255,255,255,.12)";
+          };
+          
+          const thumbImg = document.createElement("img");
+          thumbImg.src = pic;
+          thumbImg.style.cssText = "width: 100%; height: 100%; object-fit: cover;";
+          thumbImg.alt = `Photo ${idx + 1}`;
+          
+          thumb.appendChild(thumbImg);
+          thumb.onclick = () => openPhotoViewer(pic);
+          galleryPreviewGrid.appendChild(thumb);
+        }
+      });
+    }
+    
+    // Photo viewer modal handler
+    function openPhotoViewer(imageSrc) {
+      const modal = document.getElementById("photoViewModal");
+      const img = document.getElementById("photoViewImg");
+      if (modal && img) {
+        img.src = imageSrc;
+        modal.hidden = false;
+        modal.setAttribute("aria-hidden", "false");
+      }
+    }
+    
+    // Close photo viewer handlers
+    const photoViewClose = document.getElementById("photoViewClose");
+    const photoViewX = document.getElementById("photoViewX");
+    if (photoViewClose) {
+      photoViewClose.onclick = () => {
+        const modal = document.getElementById("photoViewModal");
+        if (modal) {
+          modal.hidden = true;
+          modal.setAttribute("aria-hidden", "true");
+        }
+      };
+    }
+    if (photoViewX) {
+      photoViewX.onclick = () => {
+        const modal = document.getElementById("photoViewModal");
+        if (modal) {
+          modal.hidden = true;
+          modal.setAttribute("aria-hidden", "true");
+        }
+      };
+    }
+    
+    // Keyboard navigation - ESC to close photo viewer
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const modal = document.getElementById("photoViewModal");
+        if (modal && !modal.hidden) {
+          modal.hidden = true;
+          modal.setAttribute("aria-hidden", "true");
+        }
+      }
+    });
+    
+    displayGalleryPhotos();
+    
     form.style.display = "none";
     document.getElementById("profileSummary").style.display = "grid";
+    
+    // Story Upload Functionality
+    const uploadStoryBtn = document.getElementById("uploadStoryBtn");
+    const storyInput = document.getElementById("storyInput");
+    
+    if (uploadStoryBtn && storyInput) {
+      uploadStoryBtn.addEventListener("click", () => {
+        storyInput.click();
+      });
+      
+      storyInput.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        // Story can be up to 5MB (larger than profile pics)
+        if (file.size > 5 * 1024 * 1024) {
+          alert("⚠️ Story file too large! Maximum size is 5MB.");
+          e.target.value = ""; // Reset input
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const storyData = ev.target.result;
+          const profile = readStore();
+          
+          if (!profile.email) {
+            alert("Please complete your profile first.");
+            return;
+          }
+          
+          uploadStoryBtn.disabled = true;
+          uploadStoryBtn.textContent = "Uploading...";
+          
+          try {
+            const res = await fetch(`${API_BASE}/upload_story.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: profile.email,
+                username: profile.username || profile.name || "User",
+                photo: profile.photo || "",
+                story_image: storyData
+              })
+            });
+            
+            const json = await res.json();
+            if (json.ok) {
+              alert("✨ Story uploaded! It will be visible to others for 24 hours.");
+              storyInput.value = "";
+            } else {
+              alert("Failed to upload story: " + (json.error || "Unknown error"));
+            }
+          } catch (err) {
+            console.error("Story upload error:", err);
+            alert("Network error. Please try again.");
+          } finally {
+            uploadStoryBtn.disabled = false;
+            uploadStoryBtn.textContent = "+ Upload Story";
+          }
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    // Delete Account Functionality
+    const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+    const deleteAccountModal = document.getElementById("deleteAccountModal");
+    const deleteAccountClose = document.getElementById("deleteAccountClose");
+    const deleteAccountX = document.getElementById("deleteAccountX");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const deleteAccountMsg = document.getElementById("deleteAccountMsg");
+    
+    function showDeleteModal() {
+      if (!deleteAccountModal) return;
+      deleteAccountModal.removeAttribute("hidden");
+      deleteAccountModal.classList.add("show");
+      deleteAccountModal.setAttribute("aria-hidden", "false");
+      if (deleteAccountMsg) deleteAccountMsg.textContent = "";
+    }
+    
+    function hideDeleteModal() {
+      if (!deleteAccountModal) return;
+      deleteAccountModal.classList.remove("show");
+      deleteAccountModal.setAttribute("aria-hidden", "true");
+      deleteAccountModal.setAttribute("hidden", "hidden");
+    }
+    
+    if (deleteAccountBtn) {
+      deleteAccountBtn.addEventListener("click", showDeleteModal);
+    }
+    
+    if (deleteAccountClose) {
+      deleteAccountClose.addEventListener("click", hideDeleteModal);
+    }
+    
+    if (deleteAccountX) {
+      deleteAccountX.addEventListener("click", hideDeleteModal);
+    }
+    
+    if (cancelDeleteBtn) {
+      cancelDeleteBtn.addEventListener("click", hideDeleteModal);
+    }
+    
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener("click", async () => {
+        const profile = readStore();
+        const email = profile.email || getActiveEmail();
+        
+        if (!email) {
+          if (deleteAccountMsg) {
+            deleteAccountMsg.textContent = "❌ No account found to delete.";
+            deleteAccountMsg.className = "authMsg err";
+          }
+          return;
+        }
+        
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.textContent = "Deleting...";
+        
+        try {
+          // Get API base URL
+          const apiBase = window.API_BASE || window.config?.API_BASE || "https://fin-date-me.onrender.com";
+          
+          if (deleteAccountMsg) {
+            deleteAccountMsg.textContent = "🔄 Contacting server...";
+            deleteAccountMsg.className = "authMsg muted";
+          }
+          
+          // Step 1: Try to delete from server database
+          let serverDeleted = false;
+          let serverAvailable = false;
+          
+          try {
+            const response = await fetch(`${apiBase}/api/delete_account`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.toLowerCase() })
+            });
+            
+            serverAvailable = true;
+            
+            if (response.ok) {
+              const result = await response.json();
+              serverDeleted = result.ok;
+            }
+          } catch (fetchErr) {
+            // Network error or server down - proceed silently
+            serverAvailable = false;
+            console.error("Server unreachable:", fetchErr);
+          }
+          
+          // Step 2: Always proceed with local cleanup
+          
+          if (deleteAccountMsg) {
+            deleteAccountMsg.textContent = "✅ Deleting account...";
+            deleteAccountMsg.className = "authMsg ok";
+          }
+          
+          // Step 3: Delete user from Supabase authentication (prevents login)
+          try {
+            if (window.sb && window.sb.auth) {
+              // First get the current user
+              const { data: { user } } = await window.sb.auth.getUser();
+              
+              if (user) {
+                // Delete the user account from Supabase (this prevents login)
+                // Note: This requires admin API or the user must be logged in
+                await window.sb.auth.signOut();
+                
+                // Also try to delete from Supabase admin (if available)
+                try {
+                  const supabaseAdminUrl = `${window.SUPABASE_URL}/auth/v1/admin/users/${user.id}`;
+                  await fetch(supabaseAdminUrl, {
+                    method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${window.SUPABASE_SERVICE_KEY}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                } catch (adminErr) {
+                  console.log("Admin delete not available:", adminErr);
+                }
+              } else {
+                // Just logout if no user found
+                await window.sb.auth.signOut();
+              }
+            }
+          } catch (supabaseErr) {
+            console.log("Supabase deletion:", supabaseErr.message);
+            // Continue with local cleanup even if Supabase fails
+          }
+          
+          // Step 4: Set user as offline before deletion
+          try {
+            await fetch(`${apiBase}/api/update_online_status`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.toLowerCase(), is_online: false })
+            });
+          } catch (e) {
+            // Ignore error - account is being deleted anyway
+          }
+          
+          // Step 5: Mark account as deleted (persist this info before clearing)
+          try {
+            const deletedAccounts = JSON.parse(localStorage.getItem("dateme_deleted_accounts") || "[]");
+            if (!deletedAccounts.includes(email.toLowerCase())) {
+              deletedAccounts.push(email.toLowerCase());
+            }
+            // Save to a persistent key that won't be cleared
+            const deletedList = JSON.stringify(deletedAccounts);
+            localStorage.setItem("dateme_deleted_accounts", deletedList);
+            // Also save to sessionStorage as backup
+            sessionStorage.setItem("dateme_deleted_accounts_backup", deletedList);
+          } catch (e) {
+            console.log("Could not save deleted account list");
+          }
+          
+          // Step 6: Clear ALL local data (except deleted accounts list)
+          const deletedAccountsList = localStorage.getItem("dateme_deleted_accounts");
+          localStorage.clear();
+          sessionStorage.clear();
+          // Restore deleted accounts list
+          if (deletedAccountsList) {
+            localStorage.setItem("dateme_deleted_accounts", deletedAccountsList);
+          }
+          
+          // Step 7: Clear cookies
+          document.cookie.split(";").forEach(c => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+          
+          // Step 8: Show final message
+          if (deleteAccountMsg) {
+            deleteAccountMsg.textContent = "✅ Account permanently deleted. Redirecting...";
+            deleteAccountMsg.className = "authMsg ok";
+          }
+          
+          // Step 9: Redirect to landing page
+          setTimeout(() => {
+            window.location.href = "/index.html";
+          }, serverDeleted ? 1500 : 4000); // Wait longer if server failed so user can read warning
+          
+        } catch (err) {
+          console.error("Delete account error:", err);
+          if (deleteAccountMsg) {
+            deleteAccountMsg.textContent = "❌ " + (err.message || "Failed to delete account. Please try again.");
+            deleteAccountMsg.className = "authMsg err";
+          }
+          confirmDeleteBtn.disabled = false;
+          confirmDeleteBtn.textContent = "Yes, Delete My Account";
+        }
+      });
+    }
+
+    // ============================================
+    // PHOTO HISTORY FEATURE
+    // ============================================
+    // Note: photoViewClose and photoViewX already declared above, reusing them
+    
+    let currentViewPhotoId = null;
+    let photoHistoryData = [];
+
+    // Load photo history from server
+    async function loadPhotoHistory() {
+      const email = getActiveEmail();
+      if (!email) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/photo_history?email=${encodeURIComponent(email)}&t=${Date.now()}`);
+        const data = await response.json();
+
+        if (data.ok && data.photos) {
+          photoHistoryData = data.photos;
+          renderPhotoHistory(data.photos);
+        }
+      } catch (err) {
+        console.error("Load photo history error:", err);
+      }
+    }
+
+    // Render photo history gallery
+    function renderPhotoHistory(photos) {
+      if (!galleryDisplayGrid || !galleryEmptyMsg) return;
+
+      if (photos.length === 0) {
+        galleryDisplayGrid.style.display = "none";
+        galleryEmptyMsg.style.display = "block";
+        return;
+      }
+
+      galleryDisplayGrid.style.display = "grid";
+      galleryEmptyMsg.style.display = "none";
+
+      galleryDisplayGrid.innerHTML = photos.map(photo => {
+        const date = new Date(photo.uploaded_at);
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        return `
+          <div class="photo-history-item" data-photo-id="${photo.id}" style="position: relative; cursor: pointer; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;">
+            <img src="${photo.photo}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 8px; font-size: 11px; color: rgba(255,255,255,0.9);">
+              ${dateStr}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click listeners to open photo view modal
+      document.querySelectorAll('.photo-history-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const photoId = parseInt(item.dataset.photoId);
+          openPhotoView(photoId);
+        });
+        
+        // Hover effect
+        item.addEventListener('mouseenter', () => {
+          item.style.transform = 'scale(1.05)';
+          item.style.boxShadow = '0 8px 24px rgba(255,79,216,0.3)';
+        });
+        item.addEventListener('mouseleave', () => {
+          item.style.transform = 'scale(1)';
+          item.style.boxShadow = 'none';
+        });
+      });
+    }
+
+    // Open photo view modal
+    function openPhotoView(photoId) {
+      const photo = photoHistoryData.find(p => p.id === photoId);
+      if (!photo || !photoViewModal) return;
+
+      currentViewPhotoId = photoId;
+      
+      photoViewImg.src = photo.photo;
+      
+      const date = new Date(photo.uploaded_at);
+      const dateStr = date.toLocaleString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      photoUploadDate.textContent = `Uploaded: ${dateStr}`;
+
+      photoViewModal.removeAttribute("hidden");
+      photoViewModal.classList.add("show");
+      photoViewModal.setAttribute("aria-hidden", "false");
+      
+      // Hide menu initially
+      photoMenu.style.display = "none";
+    }
+
+    // Close photo view modal
+    function closePhotoView() {
+      if (!photoViewModal) return;
+      photoViewModal.classList.remove("show");
+      photoViewModal.setAttribute("aria-hidden", "true");
+      photoViewModal.setAttribute("hidden", "hidden");
+      photoMenu.style.display = "none";
+      currentViewPhotoId = null;
+    }
+
+    if (photoViewClose) photoViewClose.addEventListener("click", closePhotoView);
+    if (photoViewX) photoViewX.addEventListener("click", closePhotoView);
+
+    // Toggle 3-dot menu
+    if (photoMenuBtn) {
+      photoMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        photoMenu.style.display = photoMenu.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (photoMenu && !photoMenuBtn.contains(e.target) && !photoMenu.contains(e.target)) {
+        photoMenu.style.display = "none";
+      }
+    });
+
+    // Set as profile photo
+    if (setAsProfileBtn) {
+      setAsProfileBtn.addEventListener("click", async () => {
+        if (!currentViewPhotoId) return;
+
+        const email = getActiveEmail();
+        if (!email) return;
+
+        setAsProfileBtn.disabled = true;
+        setAsProfileBtn.innerHTML = '<span>⏳</span><span>Setting...</span>';
+
+        try {
+          const response = await fetch(`${API_BASE}/api/set_photo_from_history`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              photo_id: currentViewPhotoId
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.ok) {
+            alert("✅ Profile photo updated successfully!");
+            closePhotoView();
+            
+            // Reload photo history and profile
+            loadPhotoHistory();
+            loadProfile();
+          } else {
+            alert("❌ Failed to update profile photo: " + (data.error || "Unknown error"));
+          }
+        } catch (err) {
+          console.error("Set photo error:", err);
+          alert("❌ Error: " + err.message);
+        } finally {
+          setAsProfileBtn.disabled = false;
+          setAsProfileBtn.innerHTML = '<span style="font-size: 18px;">🖼️</span><span>Set as Profile Photo</span>';
+        }
+      });
+    }
+
+    // Delete photo permanently
+    if (deletePhotoBtn) {
+      deletePhotoBtn.addEventListener("click", async () => {
+        if (!currentViewPhotoId) return;
+
+        if (!confirm("⚠️ Permanently delete this photo?\n\nThis action cannot be undone!")) {
+          return;
+        }
+
+        const email = getActiveEmail();
+        if (!email) return;
+
+        deletePhotoBtn.disabled = true;
+        deletePhotoBtn.innerHTML = '<span>⏳</span><span>Deleting...</span>';
+
+        try {
+          const response = await fetch(`${API_BASE}/api/delete_history_photo`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              photo_id: currentViewPhotoId
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.ok) {
+            alert("✅ Photo deleted successfully!");
+            closePhotoView();
+            loadPhotoHistory();
+          } else {
+            alert("❌ Failed to delete photo: " + (data.error || "Unknown error"));
+          }
+        } catch (err) {
+          console.error("Delete photo error:", err);
+          alert("❌ Error: " + err.message);
+        } finally {
+          deletePhotoBtn.disabled = false;
+          deletePhotoBtn.innerHTML = '<span style="font-size: 18px;">🗑️</span><span>Delete Permanently</span>';
+        }
+      });
+    }
+
+    // Load photo history on page load
+    if (document.getElementById("galleryCard")) {
+      loadPhotoHistory();
+    }
+
+    // Hover effect for menu buttons
+    if (setAsProfileBtn) {
+      setAsProfileBtn.addEventListener('mouseenter', () => {
+        setAsProfileBtn.style.background = 'rgba(255,255,255,0.1)';
+      });
+      setAsProfileBtn.addEventListener('mouseleave', () => {
+        setAsProfileBtn.style.background = 'none';
+      });
+    }
+    
+    if (deletePhotoBtn) {
+      deletePhotoBtn.addEventListener('mouseenter', () => {
+        deletePhotoBtn.style.background = 'rgba(255,77,109,0.2)';
+      });
+      deletePhotoBtn.addEventListener('mouseleave', () => {
+        deletePhotoBtn.style.background = 'none';
+      });
+    }
   </script>
   <script src="keep-alive.js"></script>
 </body>

@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Profile Upgrade</title>
 
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
   <script src="config.js"></script>
   <style>
     .upgradeLogo .logoMark{
@@ -17,10 +20,45 @@
       font-size:32px;
       text-shadow: 0 6px 20px rgba(255,79,216,.25);
     }
+    
+    /* Pricing table responsive */
+    @media (max-width: 768px) {
+      table {
+        font-size: 13px;
+      }
+      table th, table td {
+        padding: 12px 8px !important;
+      }
+      .h1 {
+        font-size: 24px !important;
+      }
+      /* Pricing cards stack on mobile */
+      div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    
+    /* Plan selection buttons */
+    @media (max-width: 600px) {
+      div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+    
+    /* Premium payment option hover effects */
+    .payment-option-btn:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 48px rgba(0,0,0,.3);
+    }
   </style>
 </head>
 
 <body>
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <!-- 🌟 Emoji Orbits -->
   <div class="emoji-orbit">
     <!-- Top Left Orbit -->
@@ -48,7 +86,7 @@
   <header class="topbar">
     <div class="topbar__inner">
       <div class="topbar__left">
-      <a class="logo upgradeLogo" href="signup.html" aria-label="Back to Signup">
+      <a class="logo upgradeLogo" href="home.html" aria-label="DateMe">
         <svg class="logoMark" viewBox="0 0 120 120" role="img" aria-hidden="true">
           <path
             d="M60 104
@@ -84,10 +122,7 @@
         </svg>
         <span class="logoType"><b>Date</b>Me</span>
       </a>
-      <div class="topbar__right">
-        <a class="pill ghost" href="signup.html">Back to Signup</a>
       </div>
-    </div>
 
       <div class="topbar__right">
         <a class="pill ghost" href="home.html">Back</a>
@@ -109,67 +144,199 @@
           <span class="orbit__heart h8">💝</span>
         </div>
         <div class="cardbox">
-        <div class="cardbox small" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
-          <div style="font-weight:800;">Limited-time offer</div>
-          <div class="mono" id="countdownClock" style="font-weight:800;">300:00:00</div>
-        </div>
-        <h1 class="h1" style="margin-bottom:6px;">Profile Upgrade — $14</h1>
+        <h1 class="h1" style="margin-bottom:32px; text-align:center;">Choose Your Plan</h1>
         
-        <!-- Payment Method Selection -->
-        <div id="paymentMethods" class="payment-graph" style="margin-bottom:20px;">
-          <div style="font-weight:800; margin-bottom:12px;">Select Payment Method</div>
+        <!-- Pricing Cards -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
           
-          <!-- Local Payment -->
-          <div class="payment-option-btn graph-node" data-method="local" onclick="showLocalPaymentOptions()">
-            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <rect width="200" height="200" fill="#10B981" rx="16"/>
-              <circle cx="60" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
-              <circle cx="140" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
-              <rect x="40" y="130" width="120" height="40" fill="none" stroke="white" stroke-width="6" rx="4"/>
-            </svg>
-            <div style="flex:1;">
-              <div style="font-weight:700;">Local Payment</div>
-              <div class="muted" style="font-size:12px;">Pay locally in Bangladesh</div>
+          <!-- Basic Plan Card -->
+          <div style="background:var(--card); border:2px solid rgba(255,255,255,.12); border-radius:16px; padding:24px; position:relative; transition:all 0.3s ease;">
+            <div style="text-align:center; margin-bottom:20px;">
+              <div style="font-size:24px; font-weight:800; margin-bottom:8px;">Basic Plan</div>
+              <div style="font-size:36px; font-weight:900; color:#ff4fd8; margin-bottom:4px;">$14</div>
+              <div style="font-size:14px; color:var(--muted);">per month</div>
             </div>
-            <span class="method-indicator">›</span>
+            
+            <div style="margin-bottom:24px;">
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">50 profiles unlocked</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">500 messages</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">Voice Call</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">Standard Daily Matches</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">Normal Profile Visibility</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px;">Basic AI Suggestions</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#EF4444;">✗</span>
+                <span style="font-size:14px; opacity:0.5;">Video Call</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#EF4444;">✗</span>
+                <span style="font-size:14px; opacity:0.5;">Rewind Last Swipe</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#EF4444;">✗</span>
+                <span style="font-size:14px; opacity:0.5;">See Who Liked You</span>
+              </div>
+              <div style="padding:12px 0; display:flex; align-items:center; gap:8px;">
+                <span style="color:#EF4444;">✗</span>
+                <span style="font-size:14px; opacity:0.5;">Verification Badge</span>
+              </div>
+            </div>
+            
+            <button class="btn" type="button" id="basicPlanBtn" onclick="selectPlan('basic', 14)" style="width:100%; padding:18px 24px; font-size:17px; font-weight:700; margin-top:20px; transition:all 0.3s ease; border-radius:32px; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.15); box-shadow:0 4px 12px rgba(0,0,0,.2); cursor:pointer;">
+              Choose Basic Plan
+            </button>
           </div>
-
-          <!-- International Payment -->
-          <div class="payment-option-btn graph-node" data-method="international" onclick="showInternationalPaymentOptions()">
-            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <rect width="200" height="200" fill="#3B82F6" rx="16"/>
-              <circle cx="100" cy="100" r="70" fill="none" stroke="white" stroke-width="6"/>
-              <line x1="100" y1="30" x2="100" y2="170" stroke="white" stroke-width="6"/>
-              <ellipse cx="100" cy="60" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
-              <ellipse cx="100" cy="100" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
-              <ellipse cx="100" cy="140" rx="50" ry="15" fill="none" stroke="white" stroke-width="4"/>
-            </svg>
-            <div style="flex:1;">
-              <div style="font-weight:700;">International Payment</div>
-              <div class="muted" style="font-size:12px;">Global payment methods</div>
+          
+          <!-- Premium Plan Card -->
+          <div style="background:linear-gradient(135deg, rgba(255,79,216,.15), rgba(124,77,255,.15)); border:2px solid #ff4fd8; border-radius:16px; padding:24px; position:relative; transition:all 0.3s ease; box-shadow:0 8px 32px rgba(255,79,216,.2);">
+            <div style="position:absolute; top:-12px; right:20px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); padding:4px 12px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase;">
+              Most Popular
             </div>
-            <span class="method-indicator">›</span>
+            
+            <div style="text-align:center; margin-bottom:20px;">
+              <div style="font-size:24px; font-weight:800; margin-bottom:8px;">Premium Plan</div>
+              <div style="font-size:36px; font-weight:900; color:#ff4fd8; margin-bottom:4px;">$30</div>
+              <div style="font-size:14px; color:var(--muted);">per month</div>
+            </div>
+            
+            <div style="margin-bottom:24px;">
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">100 profiles unlocked</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">1,000 messages</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Voice + Video Call</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Priority Daily Matches</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">High Profile Visibility</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Advanced AI Suggestions</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Unlimited Likes</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Rewind Last Swipe</span>
+              </div>
+              <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">See Who Liked You</span>
+              </div>
+              <div style="padding:12px 0; display:flex; align-items:center; gap:8px;">
+                <span style="color:#10B981;">✓</span>
+                <span style="font-size:14px; font-weight:600;">Verification Badge</span>
+              </div>
+            </div>
+            
+            <button class="btn primary" type="button" id="premiumPlanBtn" onclick="selectPlan('premium', 30)" style="width:100%; padding:18px 24px; font-size:17px; font-weight:700; margin-top:20px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); border:none; transition:all 0.3s ease; border-radius:32px; box-shadow:0 6px 20px rgba(255,79,216,.4); cursor:pointer;">
+              Choose Premium Plan
+            </button>
           </div>
-
-          <!-- Crypto Payment -->
-          <div class="payment-option-btn graph-node" data-method="crypto" onclick="showCryptoPaymentOptions()">
-            <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <rect width="200" height="200" fill="#F59E0B" rx="16"/>
-              <circle cx="100" cy="100" r="60" fill="none" stroke="white" stroke-width="6"/>
-              <path d="M 70 100 L 100 70 L 130 100 L 100 130 Z" fill="none" stroke="white" stroke-width="6"/>
-              <circle cx="100" cy="100" r="15" fill="white"/>
-            </svg>
-            <div style="flex:1;">
-              <div style="font-weight:700;">Crypto Payment</div>
-              <div class="muted" style="font-size:12px;">Pay with cryptocurrency</div>
+          
+        </div>
+        
+        <!-- Payment Method Selection (Shows after plan selection) -->
+        <div id="paymentMethodsSection" style="display:none; margin-top:32px;">
+          <h2 style="text-align:center; font-size:22px; font-weight:800; margin-bottom:8px;">Choose Payment Method</h2>
+          <p style="text-align:center; color:var(--muted); margin-bottom:24px;" id="selectedPlanText"></p>
+          
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+            
+            <!-- Local Payment Option (Hidden for now) -->
+            <div class="payment-option-btn graph-node" onclick="showLocalPaymentOptions()" style="display:none; padding:20px; background:rgba(16,185,129,.08); border:2px solid rgba(16,185,129,.3); border-radius:12px; cursor:pointer; transition:all 0.3s; text-align:center;">
+              <svg style="width:48px; height:48px; margin:0 auto 12px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="200" fill="#10B981" rx="16"/>
+                <circle cx="60" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
+                <circle cx="140" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
+                <rect x="40" y="130" width="120" height="40" fill="none" stroke="white" stroke-width="6" rx="4"/>
+              </svg>
+              <div style="font-weight:700; font-size:16px; margin-bottom:4px;">Local Payment</div>
+              <div style="font-size:13px; color:var(--muted);">bKash, Nagad</div>
             </div>
-            <span class="method-indicator">›</span>
+            
+            <!-- International Payment Option -->
+            <div class="payment-option-btn graph-node" onclick="showInternationalPaymentOptions()" style="padding:32px 24px; background:linear-gradient(135deg, rgba(0,102,255,.12), rgba(59,130,246,.08)); border:2px solid rgba(0,102,255,.4); border-radius:16px; cursor:pointer; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; box-shadow:0 8px 32px rgba(0,102,255,.15); position:relative; overflow:hidden;">
+              <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, transparent, rgba(255,255,255,.03)); pointer-events:none;"></div>
+              <svg style="width:64px; height:64px; margin:0 auto 16px; filter:drop-shadow(0 4px 12px rgba(0,102,255,.3));" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="paypalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#0070E0;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#003087;stop-opacity:1" />
+                  </linearGradient>
+                </defs>
+                <rect width="200" height="200" fill="url(#paypalGrad)" rx="24"/>
+                <g transform="translate(100,100)">
+                  <circle r="65" fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
+                  <path d="M -25 -30 L -25 30 M -25 -30 Q -5 -30 -5 -10 Q -5 10 -25 10" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/>
+                  <path d="M 5 -30 L 5 30 M 5 -30 Q 25 -30 25 -10 Q 25 10 5 10" fill="none" stroke="#FFD700" stroke-width="10" stroke-linecap="round"/>
+                </g>
+              </svg>
+              <div style="font-weight:800; font-size:18px; margin-bottom:6px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.3);">International Payment</div>
+              <div style="font-size:14px; color:rgba(255,255,255,.8); font-weight:600;">PayPal</div>
+              <div style="margin-top:12px; padding:6px 16px; background:rgba(0,102,255,.2); border-radius:20px; display:inline-block; font-size:12px; font-weight:700; color:#60A5FA;">Worldwide</div>
+            </div>
+            
+            <!-- Crypto Payment Option -->
+            <div class="payment-option-btn graph-node" onclick="showCryptoPaymentOptions()" style="padding:32px 24px; background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(251,191,36,.08)); border:2px solid rgba(245,158,11,.5); border-radius:16px; cursor:pointer; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; box-shadow:0 8px 32px rgba(245,158,11,.2); position:relative; overflow:hidden;">
+              <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, transparent, rgba(255,255,255,.03)); pointer-events:none;"></div>
+              <svg style="width:64px; height:64px; margin:0 auto 16px; filter:drop-shadow(0 4px 12px rgba(245,158,11,.4));" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="cryptoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#FBBF24;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+                  </linearGradient>
+                </defs>
+                <rect width="200" height="200" fill="url(#cryptoGrad)" rx="24"/>
+                <g transform="translate(100,100)">
+                  <circle r="70" fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
+                  <circle r="50" fill="none" stroke="white" stroke-width="6" opacity="0.6"/>
+                  <path d="M 0 -45 L 45 0 L 0 45 L -45 0 Z" fill="white" opacity="0.9"/>
+                  <text x="0" y="15" font-size="48" font-weight="900" fill="#F59E0B" text-anchor="middle" font-family="Arial">₮</text>
+                </g>
+              </svg>
+              <div style="font-weight:800; font-size:18px; margin-bottom:6px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.3);">Crypto Payment</div>
+              <div style="font-size:14px; color:rgba(255,255,255,.8); font-weight:600;">USDT</div>
+              <div style="margin-top:12px; padding:6px 16px; background:rgba(245,158,11,.25); border-radius:20px; display:inline-block; font-size:12px; font-weight:700; color:#FCD34D;">Blockchain</div>
+            </div>
+            
           </div>
         </div>
 
-        <!-- Local Payment Options -->
-        <div id="localPaymentOptions" style="display:none; margin-bottom:20px;">
-          <div style="font-weight:800; margin-bottom:12px;">Local Payment Methods</div>
+        <!-- Local Payment Options (Initially Hidden) -->
+        <div id="localPaymentOptions" style="display:none; margin-top:32px; padding:24px; background:rgba(16,185,129,.05); border:2px solid rgba(16,185,129,.2); border-radius:16px;">
+          <div style="font-weight:800; margin-bottom:16px; font-size:18px; color:#10B981;">💳 Local Payment Methods</div>
           
           <div class="payment-option-btn graph-node" data-method="bkash" onclick="selectPaymentMethod('bkash')">
             <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -192,7 +359,7 @@
             <span class="method-indicator">›</span>
           </div>
 
-          <div class="payment-option-btn graph-node" data-method="cash" onclick="selectPaymentMethod('cash')">
+          <div class="payment-option-btn graph-node" data-method="nagad" onclick="selectPaymentMethod('nagad')">
             <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
               <rect width="200" height="200" fill="#DC143C" rx="16"/>
               <!-- Nagad circular spiral design -->
@@ -205,15 +372,15 @@
               <div style="font-weight:700;">Nagad</div>
               <div class="muted" style="font-size:12px;">Send money fast</div>
             </div>
-            <span class="method-indicator">›</span></span>
+            <span class="method-indicator">›</span>
           </div>
 
-          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back to Plans</button>
         </div>
 
-        <!-- International Payment Options -->
-        <div id="internationalPaymentOptions" style="display:none; margin-bottom:20px;">
-          <div style="font-weight:800; margin-bottom:12px;">International Payment Methods</div>
+        <!-- International Payment Options (Initially Hidden) -->
+        <div id="internationalPaymentOptions" style="display:none; margin-top:32px; padding:24px; background:rgba(59,130,246,.05); border:2px solid rgba(59,130,246,.2); border-radius:16px;">
+          <div style="font-weight:800; margin-bottom:16px; font-size:18px; color:#3B82F6;">🌍 International Payment Methods</div>
           
           <div class="payment-option-btn graph-node" data-method="paypal" onclick="selectPaymentMethod('paypal')">
             <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -238,12 +405,12 @@
             <span class="method-indicator">›</span>
           </div>
 
-          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back to Plans</button>
         </div>
 
-        <!-- Crypto Payment Options -->
-        <div id="cryptoPaymentOptions" style="display:none; margin-bottom:20px;">
-          <div style="font-weight:800; margin-bottom:12px;">Crypto Payment Methods</div>
+        <!-- Crypto Payment Options (Initially Hidden) -->
+        <div id="cryptoPaymentOptions" style="display:none; margin-top:32px; padding:24px; background:rgba(245,158,11,.05); border:2px solid rgba(245,158,11,.2); border-radius:16px;">
+          <div style="font-weight:800; margin-bottom:16px; font-size:18px; color:#F59E0B;">🪙 Crypto Payment Methods</div>
           
           <div class="payment-option-btn graph-node" data-method="binance" onclick="selectPaymentMethod('binance')">
             <svg class="payment-icon-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -260,7 +427,7 @@
             <span class="method-indicator">›</span>
           </div>
 
-          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back</button>
+          <button class="btn" type="button" onclick="goBackToMainPayment()" style="margin-top:10px; width:100%;">← Back to Plans</button>
         </div>
 
         <!-- bKash Payment Section -->
@@ -273,11 +440,11 @@
             </svg>
             bKash Payment
           </div>
-          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send payment to the number below</div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send Money to bKash number and paste transaction ID<br><strong id="bkash-amount"></strong></div>
           <div class="cardbox small paymentRow">
             <div class="paymentRow__content">
               <div style="font-weight:700;">bKash Account</div>
-              <div class="mono paymentRow__addr" id="bkash-number">01700000000</div>
+              <div class="mono paymentRow__addr" id="bkash-number">01831763646</div>
             </div>
             <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('bkash')">Copy</button>
           </div>
@@ -287,7 +454,7 @@
         </div>
 
         <!-- Nagad Payment Section -->
-        <div class="payment-section" id="cash-section" style="display:none;">
+        <div class="payment-section" id="nagad-section" style="display:none;">
           <div style="font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center;">
             <svg class="payment-icon-inline" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
               <rect width="200" height="200" fill="#DC143C" rx="16"/>
@@ -298,11 +465,11 @@
             </svg>
             Nagad Payment
           </div>
-          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send money to Nagad number and paste transaction ID</div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">Send Money to Nagad number and paste transaction ID<br><strong id="nagad-amount"></strong></div>
           <div class="cardbox small paymentRow">
             <div class="paymentRow__content">
               <div style="font-weight:700;">Nagad Number</div>
-              <div class="mono paymentRow__addr" id="nagad-number">01700000000</div>
+              <div class="mono paymentRow__addr" id="nagad-number">01872777486</div>
             </div>
             <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('nagad')">Copy</button>
           </div>
@@ -321,15 +488,29 @@
             </svg>
             PayPal Payment
           </div>
-          <div class="muted" style="font-size:13px; margin-bottom:12px;">নিরাপদ আন্তর্জাতিক পেমেন্ট</div>
+          <div class="muted" style="font-size:13px; margin-bottom:12px;">Secure International Payment<br><strong id="paypal-amount"></strong></div>
+          
+          <div style="background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.3); border-radius:8px; padding:12px; margin-bottom:12px;">
+            <div style="font-weight:700; font-size:13px; margin-bottom:8px;">📋 Payment Instructions:</div>
+            <ol style="margin:0; padding-left:20px; font-size:12px; line-height:1.8;">
+              <li>Click "Open PayPal Login" button</li>
+              <li>Login to your PayPal account</li>
+              <li>Click on "Send & Request" → "Send Money"</li>
+              <li>Enter recipient email: <strong>rafayatfarhan@gmail.com</strong></li>
+              <li>Enter amount: <strong id="paypal-amount-instruction"></strong></li>
+              <li>Complete payment</li>
+              <li>Copy Transaction ID and paste below</li>
+            </ol>
+          </div>
+          
           <div class="cardbox small paymentRow">
             <div class="paymentRow__content">
-              <div style="font-weight:700;">PayPal Email</div>
-              <div class="mono paymentRow__addr" id="paypal-email">admin@dateme.app</div>
+              <div style="font-weight:700;">Recipient Email</div>
+              <div class="mono paymentRow__addr" id="paypal-email">@Rafayat3188</div>
             </div>
             <button class="btn paymentRow__btn" type="button" onclick="copyPaymentInfo('paypal')">Copy</button>
           </div>
-          <button class="btn primary" type="button" onclick="openPayPal()" style="margin-top:12px; width:100%;">Open PayPal</button>
+          <button class="btn primary" type="button" onclick="openPayPal()" style="margin-top:12px; width:100%;">Open PayPal Login</button>
           <input class="input" type="text" placeholder="Enter Transaction ID after payment" id="paypal-txid" style="margin-top:10px;">
           <button class="btn" type="button" onclick="confirmPayment('paypal')" style="margin-top:8px; width:100%;">Confirm Payment</button>
           <button class="btn ghost" type="button" onclick="closePaymentSection()" style="margin-top:8px; width:100%;">← Back</button>
@@ -347,7 +528,7 @@
             </svg>
             USDT (Binance)
           </div>
-          <div class="muted" style="font-size:13px;">Send $14 USDT via TRC20 or BEP20 network.</div>
+          <div class="muted" style="font-size:13px;"><strong id="binance-amount"></strong> via TRC20 or BEP20 network.</div>
           <div style="height:10px;"></div>
 
           <div class="cardbox small paymentRow">
@@ -397,30 +578,96 @@
   </main>
 
   <script>
+    let selectedPlan = null;
+    let selectedAmount = 0;
+    
+    // Select a plan and show payment method options
+    function selectPlan(planName, amount) {
+      selectedPlan = planName;
+      selectedAmount = amount;
+      
+      // Store plan selection
+      localStorage.setItem("dateme_selected_plan", planName);
+      
+      // Visual feedback - highlight selected button
+      const basicBtn = document.getElementById('basicPlanBtn');
+      const premiumBtn = document.getElementById('premiumPlanBtn');
+      
+      if (basicBtn && premiumBtn) {
+        if (planName === 'basic') {
+          basicBtn.innerHTML = '✓ Selected: Basic Plan';
+          basicBtn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+          basicBtn.style.transform = 'scale(1.02)';
+          basicBtn.style.boxShadow = '0 8px 24px rgba(16,185,129,.5)';
+          premiumBtn.innerHTML = 'Choose Premium Plan';
+          premiumBtn.style.background = 'linear-gradient(135deg, #ff4fd8, #7c4dff)';
+          premiumBtn.style.transform = 'scale(1)';
+          premiumBtn.style.boxShadow = '0 6px 20px rgba(255,79,216,.4)';
+        } else {
+          premiumBtn.innerHTML = '✓ Selected: Premium Plan';
+          premiumBtn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+          premiumBtn.style.transform = 'scale(1.02)';
+          premiumBtn.style.boxShadow = '0 8px 24px rgba(16,185,129,.5)';
+          basicBtn.innerHTML = 'Choose Basic Plan';
+          basicBtn.style.background = 'rgba(255,255,255,.08)';
+          basicBtn.style.transform = 'scale(1)';
+          basicBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,.2)';
+        }
+      }
+      
+      // Update and show payment method section
+      const paymentSection = document.getElementById('paymentMethodsSection');
+      const selectedPlanText = document.getElementById('selectedPlanText');
+      
+      if (paymentSection) {
+        if (selectedPlanText) {
+          if (planName === 'basic') {
+            selectedPlanText.textContent = 'You selected: Basic Plan - $14/month';
+          } else {
+            selectedPlanText.textContent = 'You selected: Premium Plan - $30/month';
+          }
+        }
+        
+        paymentSection.style.display = 'block';
+        
+        // Scroll to payment methods
+        setTimeout(() => {
+          paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      } else {
+        console.error('Payment section not found!');
+        alert('Payment options loading... Please try again.');
+      }
+    }
+    
     // Show Local Payment Options
     function showLocalPaymentOptions() {
-      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('paymentMethodsSection').style.display = 'none';
       document.getElementById('localPaymentOptions').style.display = 'block';
+      document.getElementById('localPaymentOptions').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Show International Payment Options
     function showInternationalPaymentOptions() {
-      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('paymentMethodsSection').style.display = 'none';
       document.getElementById('internationalPaymentOptions').style.display = 'block';
+      document.getElementById('internationalPaymentOptions').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Show Crypto Payment Options
     function showCryptoPaymentOptions() {
-      document.getElementById('paymentMethods').style.display = 'none';
+      document.getElementById('paymentMethodsSection').style.display = 'none';
       document.getElementById('cryptoPaymentOptions').style.display = 'block';
+      document.getElementById('cryptoPaymentOptions').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // Go Back to Main Payment Menu
+    // Go Back to Payment Method Selection
     function goBackToMainPayment() {
       document.getElementById('localPaymentOptions').style.display = 'none';
       document.getElementById('internationalPaymentOptions').style.display = 'none';
       document.getElementById('cryptoPaymentOptions').style.display = 'none';
-      document.getElementById('paymentMethods').style.display = 'block';
+      document.getElementById('paymentMethodsSection').style.display = 'block';
+      document.getElementById('paymentMethodsSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Select a specific payment method
@@ -431,9 +678,42 @@
         document.getElementById('localPaymentOptions').style.display = 'none';
         document.getElementById('internationalPaymentOptions').style.display = 'none';
         document.getElementById('cryptoPaymentOptions').style.display = 'none';
-        document.getElementById('paymentMethods').style.display = 'none';
+        
+        // Set dynamic amounts based on selected plan
+        if (method === 'bkash' || method === 'nagad') {
+          const amountTK = selectedPlan === 'basic' ? '1750 TK' : '3750 TK';
+          const amountElement = document.getElementById(method + '-amount');
+          if (amountElement) {
+            amountElement.textContent = 'Amount: ' + amountTK;
+          }
+        } else if (method === 'paypal') {
+          const amountUSD = selectedPlan === 'basic' ? '$14' : '$30';
+          const amountElement = document.getElementById('paypal-amount');
+          const amountInstruction = document.getElementById('paypal-amount-instruction');
+          if (amountElement) {
+            amountElement.textContent = 'Amount: ' + amountUSD;
+          }
+          if (amountInstruction) {
+            amountInstruction.textContent = amountUSD;
+          }
+        } else if (method === 'binance') {
+          const amountUSD = selectedPlan === 'basic' ? '$14' : '$30';
+          const amountElement = document.getElementById('binance-amount');
+          if (amountElement) {
+            amountElement.textContent = 'Send ' + amountUSD + ' USDT';
+          }
+        }
+        
         section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    }
+    
+    // Close payment section and go back
+    function closePaymentSection() {
+      document.querySelectorAll('.payment-section').forEach(s => s.style.display = 'none');
+      document.getElementById('localPaymentOptions').style.display = 'block';
+      document.getElementById('localPaymentOptions').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Close Payment Section (for individual payment forms)
@@ -459,6 +739,8 @@
       let text = '';
       if (method === 'bkash') {
         text = document.getElementById('bkash-number').textContent;
+      } else if (method === 'nagad') {
+        text = document.getElementById('nagad-number').textContent;
       } else if (method === 'paypal') {
         text = document.getElementById('paypal-email').textContent;
       }
@@ -470,13 +752,24 @@
     }
 
     function openPayPal() {
-      const email = document.getElementById('paypal-email').textContent;
-      window.open('https://www.paypal.me/dateme/8', '_blank');
+      if (!selectedPlan || selectedAmount === 0) {
+        alert('Please select a plan first!');
+        return;
+      }
+      
+      // Redirect to PayPal login page
+      // User will login and manually send money to rafayat3188@gmail.com
+      window.open('https://www.paypal.com/signin', '_blank');
     }
 
     function confirmPayment(method) {
       let message = '';
       let txid = '';
+      
+      if (!selectedPlan || selectedAmount === 0) {
+        alert('Please select a plan first!');
+        return;
+      }
       
       if (method === 'bkash') {
         txid = document.getElementById('bkash-txid').value.trim();
@@ -484,27 +777,27 @@
           alert('Please enter the bKash transaction ID');
           return;
         }
-        message = `bKash payment confirmed! Transaction: ${txid}`;
-      } else if (method === 'cash') {
-        const location = document.getElementById('cash-location').value.trim();
-        const phone = document.getElementById('cash-phone').value.trim();
-        if (!location || !phone) {
-          alert('Please enter your location and phone number');
+        message = `bKash payment confirmed! Transaction: ${txid}\nPlan: ${selectedPlan} ($${selectedAmount})`;
+      } else if (method === 'nagad') {
+        txid = document.getElementById('nagad-txid').value.trim();
+        if (!txid) {
+          alert('Please enter the Nagad transaction ID');
           return;
         }
-        message = `Cash payment scheduled! We'll contact you at ${phone}`;
-        txid = `CASH_${Date.now()}`;
+        message = `Nagad payment confirmed! Transaction: ${txid}\nPlan: ${selectedPlan} ($${selectedAmount})`;
       } else if (method === 'paypal') {
         txid = document.getElementById('paypal-txid').value.trim();
         if (!txid) {
           alert('Please enter the PayPal transaction ID');
           return;
         }
-        message = `PayPal payment confirmed! Transaction: ${txid}`;
+        message = `PayPal payment confirmed! Transaction: ${txid}\nPlan: ${selectedPlan} ($${selectedAmount})`;
       }
 
       localStorage.setItem('dateme_payment_method', method);
       localStorage.setItem('dateme_payment_txid', txid);
+      localStorage.setItem('dateme_selected_plan', selectedPlan);
+      localStorage.setItem('dateme_selected_amount', selectedAmount);
       localStorage.setItem('dateme_upgrade_verified', 'true');
       localStorage.setItem('dateme_upgrade_just_activated', 'true');
       

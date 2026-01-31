@@ -2,12 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Profile</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
 </head>
 
 <body data-page="profile-view">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <!-- 🌟 Emoji Orbits -->
   <div class="emoji-orbit">
     <!-- Top Left Orbit -->
@@ -83,7 +91,7 @@
     <section class="content" style="max-width:980px; margin:0 auto;">
       <div class="cardbox profileHero">
         <div class="profileHero__media">
-          <img id="pvHeroImg" alt="" />
+          <img id="pvHeroImg" alt="" loading="eager" fetchpriority="high" onerror="this.src='https://via.placeholder.com/400x500?text=No+Image'" />
         </div>
         <div class="profileHero__info">
           <h1 id="pvName">Profile</h1>
@@ -121,10 +129,18 @@
     </section>
   </main>
 
+  <!-- Gallery Viewer Modal -->
+  <div id="galleryViewerModal" class="forgotModal" aria-hidden="true" hidden style="z-index: 10000;">
+    <div class="forgotModal__backdrop" onclick="closeGalleryViewer()"></div>
+    <div class="forgotModal__panel" role="dialog" aria-modal="true" style="max-width: 90vw; max-height: 90vh; padding: 0; overflow: hidden; background: rgba(0,0,0,0.95); border: 1px solid rgba(255,255,255,0.1);">
+      <button class="forgotModal__x" onclick="closeGalleryViewer()" type="button" aria-label="Close" style="z-index: 10;">✕</button>
+      <img id="galleryViewerImg" style="width: 100%; height: auto; display: block; max-height: 90vh; object-fit: contain;" alt="Gallery photo">
+    </div>
+  </div>
+
   <script>
     const params = new URLSearchParams(location.search);
     const id = params.get("id");
-    const gender = params.get("gender") || "women";
 
     // Get current user info
     const currentUser = (() => {
@@ -139,15 +155,30 @@
       catch(e){ return []; }
     }
 
-    const profilesKey = `dateme_profiles_${gender}`;
+    // Find profile from combined list (all genders)
     const p = (() => {
       try{
-        const list = JSON.parse(localStorage.getItem(profilesKey) || "[]");
-        return list.find(x => String(x.id) === String(id)) || null;
+        // Try from gender-specific lists first
+        const menList = JSON.parse(localStorage.getItem("dateme_profiles_men") || "[]");
+        const womenList = JSON.parse(localStorage.getItem("dateme_profiles_women") || "[]");
+        
+        let profile = menList.find(x => String(x.id) === String(id)) || 
+                      womenList.find(x => String(x.id) === String(id));
+        
+        // If not found, try from dateme_profiles (current view)
+        if (!profile) {
+          const list = JSON.parse(localStorage.getItem("dateme_profiles") || "[]");
+          profile = list.find(x => String(x.id) === String(id));
+        }
+        
+        return profile || null;
       }catch(e){
-        return getProfiles().find(x => String(x.id) === String(id)) || null;
+        return null;
       }
     })();
+    
+    // Determine gender from profile data
+    const gender = p && p.gender ? p.gender : "women";
     const likeMap = (() => {
       try{ return JSON.parse(localStorage.getItem("dateme_like_counts") || "{}"); }
       catch(e){ return {}; }
@@ -182,7 +213,10 @@
 
     if (p){
       const hero = document.getElementById("pvHeroImg");
-      if (hero) hero.src = p.img;
+      if (hero) {
+        // Add cache busting for updated profile photos
+        hero.src = p.img && p.img.includes('data:') ? p.img : p.img + '?t=' + Date.now();
+      }
       document.getElementById("pvName").textContent = `${p.name}, ${p.age}`;
       document.getElementById("pvMeta").textContent = `${p.city}, ${p.country}`;
       const status = document.getElementById("pvStatus");
@@ -210,9 +244,9 @@
       const gallery = document.getElementById("pvGallery");
       if (gallery){
         const pictures = Array.isArray(p.pictures) && p.pictures.length > 0 ? p.pictures : [];
-        const items = pictures.slice(0, 10).map(pic => `
-          <div class="profileThumb">
-            <img src="${pic}" alt="Gallery photo" />
+        const items = pictures.slice(0, 10).map((pic, idx) => `
+          <div class="profileThumb" onclick="openGalleryViewer('${pic.replace(/'/g, "\\'")}')">
+            <img src="${pic}" alt="Gallery photo ${idx + 1}" loading="eager" fetchpriority="high" onerror="this.style.display='none'" />
           </div>
         `);
         gallery.innerHTML = items.length > 0 ? items.join("") : `
@@ -222,6 +256,34 @@
         `;
       }
     }
+    
+    // Gallery viewer function
+    function openGalleryViewer(imageSrc) {
+      const modal = document.getElementById("galleryViewerModal");
+      const img = document.getElementById("galleryViewerImg");
+      if (modal && img) {
+        img.src = imageSrc;
+        modal.hidden = false;
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+      }
+    }
+    
+    function closeGalleryViewer() {
+      const modal = document.getElementById("galleryViewerModal");
+      if (modal) {
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      }
+    }
+    
+    // Keyboard navigation - ESC to close
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeGalleryViewer();
+      }
+    });
 
     function showLikePop(){
       let pop = document.querySelector(".likePop");

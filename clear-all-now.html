@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clearing All Data...</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    
+    .box {
+      background: rgba(255,255,255,.1);
+      backdrop-filter: blur(10px);
+      padding: 60px 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    
+    .count {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffd700;
+      margin: 20px 0;
+    }
+    
+    .done {
+      color: #4ade80;
+      font-size: 24px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🗑️</h1>
+    <p>Deleting all DateMe accounts...</p>
+    <div class="count" id="count">0</div>
+    <p id="status">Processing...</p>
+    <p class="done" id="done" style="display:none;">✅ All Done!</p>
+  </div>
+
+  <script>
+    // Auto-run on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        deleteEverything();
+      }, 500);
+    });
+
+    function deleteEverything() {
+      console.log('🗑️ Starting complete data wipe...');
+      
+      // Get all localStorage keys
+      const allKeys = Object.keys(localStorage);
+      console.log(`Total keys in localStorage: ${allKeys.length}`);
+      
+      // Find DateMe keys
+      const datemeKeys = allKeys.filter(key => 
+        key.startsWith('dateme_') || 
+        key.includes('supabase') || 
+        key.includes('auth') ||
+        key.includes('sb-')
+      );
+      
+      document.getElementById('count').textContent = datemeKeys.length;
+      console.log(`DateMe/Auth keys found: ${datemeKeys.length}`);
+      
+      // Delete each key
+      let deleted = 0;
+      datemeKeys.forEach(key => {
+        localStorage.removeItem(key);
+        deleted++;
+        console.log(`✅ Deleted: ${key}`);
+      });
+      
+      // Clear session storage
+      sessionStorage.clear();
+      console.log('✅ Session storage cleared');
+      
+      // Clear all cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      console.log('✅ Cookies cleared');
+      
+      // Show completion
+      document.getElementById('status').textContent = `Deleted ${deleted} items`;
+      document.getElementById('done').style.display = 'block';
+      
+      console.log('✅✅✅ ALL DATA DELETED! ✅✅✅');
+      console.log(`Total items deleted: ${deleted}`);
+      
+      // Redirect to landing page
+      setTimeout(() => {
+        console.log('Redirecting to homepage...');
+        window.location.href = 'index.html';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

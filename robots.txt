@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin_home.html
+Disallow: /admin_users.html
+Disallow: /admin_accounts.html
+Disallow: /admin_inbox.html
+Disallow: /admin-conversations.html
+
+Sitemap: https://findateme.com/sitemap.xml

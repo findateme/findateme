@@ -2,16 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Login</title>
 
+  <link rel="stylesheet" href="browser-compatibility.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
 
+  <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body data-page="login">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <a class="authBack" href="index.html" aria-label="Back to landing">←</a>
   <main class="authWrap">
     <div class="card-shell">
@@ -311,6 +321,25 @@
       const clean = String(email || "").trim().toLowerCase();
       return clean ? `dateme_profile_${clean}` : "dateme_profile";
     }
+    
+    // Update online status on server
+    async function updateOnlineStatus(email, isOnline) {
+      const API_BASE = window.API_BASE || "";
+      if (!API_BASE || !email) return;
+      
+      try {
+        await fetch(`${API_BASE}/api/update_online_status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.toLowerCase(),
+            is_online: isOnline
+          })
+        });
+      } catch (err) {
+        console.log("Could not update online status");
+      }
+    }
 
     // ✅ Migrate old user data to new format if needed (backward compatibility)
     function migrateOldProfileFormat(email) {
@@ -371,11 +400,22 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const email = (emailEl.value || "").trim();
+      const email = (emailEl.value || "").trim().toLowerCase();
       const pass  = passEl.value || "";
 
       setMsg("", "muted");
-      setLoading(true);
+      
+      if (!email || !pass) {
+        setMsg("Please enter both email and password.", "err");
+        return;
+      }
+            // Check if this account was deleted
+      const deletedAccounts = JSON.parse(localStorage.getItem("dateme_deleted_accounts") || "[]");
+      if (deletedAccounts.includes(email)) {
+        setMsg("❌ This account has been deleted. Please create a new account.", "err");
+        return;
+      }
+            setLoading(true);
 
       const API_BASE = window.API_BASE || "";
 
@@ -385,32 +425,74 @@
           const response = await fetch(`${API_BASE}/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email.toLowerCase(), password: pass })
+            body: JSON.stringify({ email: email, password: pass })
           });
           
           const result = await response.json();
-          if (result.ok) {
-            // ✅ API login successful - main flow
-            localStorage.setItem("dateme_active_user", email.toLowerCase());
+          if (result.ok && result.user) {
+            // ✅ API login successful - restore complete user data
+            localStorage.setItem("dateme_active_user", email);
             localStorage.setItem("dateme_local_pass", pass);
             localStorage.setItem("dateme_local_session", "true");
-            try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
+            // Store email-specific password for data isolation
+            try { localStorage.setItem(`dateme_local_pass_${email}`, pass); } catch(e){}
             
-            // Store user profile from API response
-            if (result.user) {
-              const userData = result.user;
-              userData.email = email.toLowerCase();
-              localStorage.setItem(getProfileKey(email), JSON.stringify(userData));
-              localStorage.setItem("dateme_profile", JSON.stringify(userData));
-              localStorage.setItem("dateme_current_user", JSON.stringify(userData));
-              recordDeviceLogin(email, userData);
+            // Store complete user profile from API response
+            const userData = result.user;
+            userData.email = email;
+            
+            // Ensure gender field is set (default to women if missing)
+            if (!userData.gender) {
+              userData.gender = "women";
             }
+            
+            // ✅ IMPORTANT: Preserve LOCAL photo if it exists (user may have just changed it)
+            const existingProfile = JSON.parse(localStorage.getItem(`dateme_profile_${email}`) || "{}");
+            
+            // If local photo exists and is different from server, KEEP local photo (it's newer)
+            if (existingProfile.photo && existingProfile.photo !== userData.photo) {
+              console.log("📸 Keeping LOCAL photo (newer than server)");
+              userData.photo = existingProfile.photo;
+            } else {
+              console.log("📸 Using server photo:", userData.photo ? "Photo exists" : "No photo");
+            }
+            
+            // Save to ALL storage locations with preserved photo
+            const profileKey = `dateme_profile_${email}`;
+            localStorage.setItem(profileKey, JSON.stringify(userData));
+            localStorage.setItem("dateme_profile", JSON.stringify(userData));
+            localStorage.setItem("dateme_current_user", JSON.stringify(userData));
+            
+            // Clear any old profile caches to force refresh
+            localStorage.removeItem("dateme_profiles");
+            localStorage.removeItem("dateme_profiles_men");
+            localStorage.removeItem("dateme_profiles_women");
+            
+            // ✅ Restore message count for this specific user
+            try {
+              const msgCountKey = `dateme_free_msg_count_${email}`;
+              const userMsgCount = localStorage.getItem(msgCountKey);
+              if (userMsgCount !== null) {
+                // User has existing message count, restore it
+                localStorage.setItem("dateme_free_msg_count", userMsgCount);
+              } else if (userData.message_count !== undefined) {
+                // First time login or new device - get from API
+                const count = Number(userData.message_count) || 0;
+                localStorage.setItem(msgCountKey, String(count));
+                localStorage.setItem("dateme_free_msg_count", String(count));
+              }
+            } catch(e){}
+            
+            // Record device login for tracking
+            recordDeviceLogin(email, userData);
+            
+            // Set user as online
+            updateOnlineStatus(email, true);
 
-            setMsg("Login successful ✅", "ok");
             setLoading(false);
 
             const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();
-            if (email.toLowerCase() === adminEmail){
+            if (email === adminEmail){
               localStorage.setItem("dateme_signup_welcome", "Toki");
               localStorage.setItem("dateme_welcome_message", "Welcome Boss They All Are Waiting For Your Response");
               localStorage.removeItem("dateme_admin_welcome");
@@ -418,15 +500,21 @@
               return;
             }
             
-            // Direct redirect, no async redirect function
+            // Direct redirect to home
             setTimeout(() => {
               location.href = "home.html";
             }, 500);
             return;
+          } else {
+            // API returned error
+            setMsg(result.error || "❌ Invalid email or password.", "err");
+            setLoading(false);
+            return;
           }
         } catch (apiErr) {
-          console.error("API login error:", apiErr.message);
-          // Continue to Supabase fallback
+          console.error("API login error:", apiErr);
+          // Continue to Supabase fallback only if API is down
+          setMsg("Connection error. Trying alternate login...", "warn");
         }
       }
 
@@ -439,13 +527,39 @@
         return;
       }
 
-      // ✅ Supabase success: Store password for local fallback
+      // ✅ Supabase success: Now verify user exists in database
+      if (API_BASE) {
+        try {
+          // Use get_users.php as fallback since verify_user endpoint might not be deployed
+          const verifyResponse = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+          const verifyData = await verifyResponse.json();
+          
+          if (verifyData.ok && verifyData.users) {
+            const userExists = verifyData.users.some(u => 
+              String(u.email || "").toLowerCase() === email.toLowerCase()
+            );
+            
+            if (!userExists) {
+              // User deleted from database but exists in Supabase
+              await sb.auth.signOut();
+              setMsg("❌ Account has been deleted. Please sign up again if you'd like to use DateMe.", "err");
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (verifyErr) {
+          console.log("Could not verify user in database:", verifyErr);
+          // Continue if verification fails (network issue)
+        }
+      }
+      
+      // Store credentials for local fallback
       localStorage.setItem("dateme_active_user", email.toLowerCase());
       localStorage.setItem("dateme_local_pass", pass);
       try { localStorage.setItem(`dateme_local_pass_${email.toLowerCase()}`, pass); } catch(e){}
       localStorage.setItem("dateme_local_session", "true");
 
-      setMsg("Login successful ✅ (Supabase)", "ok");
+      // setMsg("Login successful ✅ (Supabase)", "ok");
       setLoading(false);
       
       const adminEmail = String(window.DATEME_ADMIN_EMAIL || "toki11799@gmail.com").toLowerCase();

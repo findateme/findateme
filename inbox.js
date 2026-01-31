@@ -33,6 +33,45 @@ function getUserKey(){
   return "guest";
 }
 
+async function refreshUserProfiles(){
+  try {
+    // Add timestamp to prevent caching
+    const res = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+    const data = await res.json();
+    
+    if (data.ok && Array.isArray(data.users)) {
+      // Update cached profiles with latest photos and online status
+      const profiles = {};
+      data.users.forEach(user => {
+        const email = String(user.email || "").toLowerCase();
+        if (email) {
+          profiles[email] = {
+            name: user.name || user.username || "User",
+            img: user.photo || "",
+            email: email,
+            city: user.city || "",
+            country: user.country || "",
+            gender: user.gender || "",
+            age: user.age || 0,
+            online: user.is_online === 1 || user.is_online === true,
+            lastSeen: user.last_seen || null
+          };
+        }
+      });
+      
+      // Save to localStorage for inbox to use
+      localStorage.setItem("dateme_inbox_profiles_cache", JSON.stringify(profiles));
+      
+      // Also clear old profile caches to force refresh
+      localStorage.removeItem("dateme_profiles");
+      localStorage.removeItem("dateme_profiles_men");
+      localStorage.removeItem("dateme_profiles_women");
+    }
+  } catch (err) {
+    console.error("Failed to refresh user profiles:", err);
+  }
+}
+
 function nowTime(){
   const d = new Date();
   const hh = String(d.getHours()).padStart(2,"0");
@@ -64,23 +103,61 @@ function saveStore(store){
 
 let store = loadStore();
 let activeId = null;
-const FREE_MSG_LIMIT = 3;
+const FREE_MSG_LIMIT = 2; // Free users can only send 2 messages
+const BASIC_MSG_LIMIT = 500; // Basic plan ($14)
+const PREMIUM_MSG_LIMIT = 1000; // Premium plan ($30)
+
+function getUserPlan(){
+  const plan = localStorage.getItem("dateme_selected_plan") || "free";
+  return plan;
+}
 
 function hasUpgrade(){
   return localStorage.getItem("dateme_upgrade_verified") === "true";
 }
 
 function getFreeMsgCount(){
+  // Use email-specific key for message count persistence per user
+  const email = getCurrentEmail();
+  if (email) {
+    const key = `dateme_free_msg_count_${email}`;
+    return Number(localStorage.getItem(key) || "0");
+  }
   return Number(localStorage.getItem("dateme_free_msg_count") || "0");
 }
 
 function incrementFreeMsg(){
-  localStorage.setItem("dateme_free_msg_count", String(getFreeMsgCount() + 1));
+  const current = getFreeMsgCount();
+  const email = getCurrentEmail();
+  
+  // Save to both email-specific and global key
+  if (email) {
+    const key = `dateme_free_msg_count_${email}`;
+    localStorage.setItem(key, String(current + 1));
+  }
+  localStorage.setItem("dateme_free_msg_count", String(current + 1));
+}
+
+function getMessageLimit(){
+  if (!hasUpgrade()) return FREE_MSG_LIMIT;
+  
+  const plan = getUserPlan();
+  if (plan === "basic") return BASIC_MSG_LIMIT;
+  if (plan === "premium") return PREMIUM_MSG_LIMIT;
+  
+  return FREE_MSG_LIMIT;
 }
 
 function canSendMessage(){
-  if (hasUpgrade()) return true;
-  return getFreeMsgCount() < FREE_MSG_LIMIT;
+  const limit = getMessageLimit();
+  const count = getFreeMsgCount();
+  return count < limit;
+}
+
+function getRemainingMessages(){
+  const limit = getMessageLimit();
+  const count = getFreeMsgCount();
+  return Math.max(0, limit - count);
 }
 
 function formatChatTime(ts){
@@ -94,6 +171,10 @@ function formatChatTime(ts){
 async function refreshMessagesFromServer(){
   const me = getCurrentEmail();
   if (!me) return;
+  
+  // Also refresh user profiles to get updated photos
+  await refreshUserProfiles();
+  
   try{
     const res = await fetch(`${API_BASE}/get_messages.php?email=${encodeURIComponent(me)}`);
     const data = await res.json();
@@ -154,6 +235,34 @@ function showMsgLimitNotice(){
   if (modal){
     modal.classList.add("show");
     modal.setAttribute("aria-hidden","false");
+  }
+}
+
+function updateMessageCounter(){
+  const counter = document.getElementById("msgCounter");
+  const counterText = document.getElementById("msgCounterText");
+  
+  if (!counter || !counterText) return;
+  
+  const remaining = getRemainingMessages();
+  const limit = getMessageLimit();
+  const plan = getUserPlan();
+  
+  if (!hasUpgrade() && remaining <= 5) {
+    // Show warning for free users
+    counter.style.display = "block";
+    if (remaining === 0) {
+      counterText.innerHTML = `⚠️ No messages left. <a href="profile-upgrade.html" style="color:#ff4fd8; text-decoration:underline;">Upgrade now</a>`;
+    } else {
+      counterText.textContent = `⚠️ ${remaining} free message${remaining === 1 ? '' : 's'} remaining`;
+    }
+  } else if (hasUpgrade() && remaining <= 50) {
+    // Show warning when running low
+    counter.style.display = "block";
+    const planName = plan === "basic" ? "Basic" : plan === "premium" ? "Premium" : "";
+    counterText.textContent = `${remaining} / ${limit} messages remaining (${planName} Plan)`;
+  } else {
+    counter.style.display = "none";
   }
 }
 
@@ -255,12 +364,34 @@ function getOtherEmail(emails){
 
 function getProfileByKey(threadKey){
   const parsed = parseThreadKey(threadKey);
+  
+  // Try to get from server-synced cache with latest photos
+  let cachedProfiles = {};
+  try {
+    cachedProfiles = JSON.parse(localStorage.getItem("dateme_inbox_profiles_cache") || "{}");
+  } catch(e) {
+    cachedProfiles = {};
+  }
+  
   if (parsed.type === "pair"){
     const other = getOtherEmail(parsed.emails);
+    
+    // Check server cache first for latest photo
+    if (other && cachedProfiles[other.toLowerCase()]) {
+      return cachedProfiles[other.toLowerCase()];
+    }
+    
     return getProfileByEmail(other);
   }
   const arr = getProfilesByGender(parsed.gender);
-  return arr.find(x => String(x.id) === String(parsed.id)) || null;
+  const profile = arr.find(x => String(x.id) === String(parsed.id)) || null;
+  
+  // Merge with server cache for latest photo if available
+  if (profile && profile.email && cachedProfiles[profile.email.toLowerCase()]) {
+    return { ...profile, img: cachedProfiles[profile.email.toLowerCase()].img };
+  }
+  
+  return profile;
 }
 
 function getThreadKeyForProfile(profile){
@@ -346,7 +477,21 @@ function renderChat(){
   }
 
   const p = getProfileByKey(activeId);
-  $("chatTitle").textContent = p ? `${p.name}` : `Chat`;
+  
+  // Check if account has been deleted
+  if (!p || !p.email) {
+    $("chatTitle").textContent = "Deleted Account";
+    $("chatSub").textContent = "This user has deleted their account";
+    body.innerHTML = `<div class="muted" style="color: #ff4444;">⚠️ This account is no longer available</div>`;
+    const wrap = $("chatAvatarWrap");
+    const img = $("chatAvatar");
+    if (img) img.removeAttribute("src");
+    if (wrap) wrap.classList.remove("has-img");
+    closeProfileCard();
+    return;
+  }
+  
+  $("chatTitle").textContent = p ? `${p.name}, ${p.age}` : `Chat`;
   const lastSeenMap = (() => {
     try{ return JSON.parse(localStorage.getItem("dateme_last_seen_map") || "{}"); }
     catch(e){ return {}; }
@@ -364,7 +509,11 @@ function renderChat(){
   }
   const wrap = $("chatAvatarWrap");
   const img = $("chatAvatar");
-  if (img) img.src = p?.img || "";
+  if (img) {
+    const imgSrc = p?.img || "";
+    // Add cache busting for updated profile photos
+    img.src = imgSrc && imgSrc.includes('data:') ? imgSrc : imgSrc + '?t=' + Date.now();
+  }
   if (wrap) wrap.classList.toggle("has-img", !!p?.img);
   setProfileCard(p, activeId);
 
@@ -374,12 +523,30 @@ function renderChat(){
     return;
   }
 
-  body.innerHTML = msgs.map(m => `
-    <div class="bubble ${m.from === "me" ? "me" : "them"} ${m.sticker ? "sticker" : ""}">
-      ${escapeHTML(m.text)}
-      <span class="time">${m.ts}</span>
-    </div>
-  `).join("");
+  body.innerHTML = msgs.map((m, idx) => {
+    // Show delivery status for sent messages
+    let statusIcon = '';
+    if (m.from === 'me') {
+      // Check if message is last one (just sent)
+      const isLastMsg = idx === msgs.length - 1;
+      // Show ✓ for sent, ✓✓ for delivered (after 2 seconds)
+      const deliveryTime = m.at || 0;
+      const timeSinceSent = Date.now() - deliveryTime;
+      
+      if (timeSinceSent < 2000) {
+        statusIcon = ' <span class="delivery-status sent">✓</span>';
+      } else {
+        statusIcon = ' <span class="delivery-status delivered">✓✓</span>';
+      }
+    }
+    
+    return `
+      <div class="bubble ${m.from === "me" ? "me" : "them"} ${m.sticker ? "sticker" : ""}">
+        ${escapeHTML(m.text)}
+        <span class="time">${m.ts}${statusIcon}</span>
+      </div>
+    `;
+  }).join("");
 
   body.scrollTop = body.scrollHeight;
 }
@@ -463,8 +630,30 @@ function openThread(threadKey){
   store.read = store.read || {};
   store.read[activeId] = Date.now();
   saveStore(store);
+  
+  // Mark messages from this sender as read
+  markMessagesAsRead(profile);
+  
   renderChat();
   $("chatInput").focus();
+}
+
+async function markMessagesAsRead(profile){
+  const me = getCurrentEmail();
+  if (!me || !profile?.email) return;
+  
+  try {
+    await fetch(`${API_BASE}/mark_messages_read.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: me,
+        sender: profile.email
+      })
+    });
+  } catch (e) {
+    // Silently fail
+  }
 }
 
 function sendMsg(){
@@ -487,7 +676,7 @@ function sendMsg(){
   store.read[String(activeId)] = Date.now();
 
   saveStore(store);
-  if (!hasUpgrade()) incrementFreeMsg();
+  incrementFreeMsg(); // Count message for all users
   const profile = getProfileByKey(activeId);
   const toEmail = getThreadRecipientEmail(activeId);
   sendMessageToServer(toEmail, text, profile);
@@ -495,6 +684,7 @@ function sendMsg(){
   input.value = "";
   renderThreads();
   renderChat();
+  updateMessageCounter(); // Update counter after sending
 }
 
 function formatLastSeen(ts){
@@ -524,12 +714,13 @@ function sendSticker(sticker){
   store.read = store.read || {};
   store.read[String(activeId)] = Date.now();
   saveStore(store);
-  if (!hasUpgrade()) incrementFreeMsg();
+  incrementFreeMsg(); // Count message for all users
   const profile = getProfileByKey(activeId);
   const toEmail = getThreadRecipientEmail(activeId);
   sendMessageToServer(toEmail, text, profile);
   renderThreads();
   renderChat();
+  updateMessageCounter(); // Update counter after sending sticker
 }
 
 function clearChat(){
@@ -678,6 +869,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await refreshMessagesFromServer();
   renderThreads();
+  updateMessageCounter(); // Initial counter update
   if (getCurrentEmail()){
     setInterval(async () => {
       await refreshMessagesFromServer();

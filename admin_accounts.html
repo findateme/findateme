@@ -3,16 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Admin Accounts</title>
 
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
   <script src="config.js"></script>
 
   <style>
-    body[data-page="admin-accounts"] {
-      background: linear-gradient(135deg, #0b0f1e 0%, #1a1f3a 100%);
-    }
-
     .adminContainer {
       max-width: 1200px;
       margin: 0 auto;
@@ -266,6 +265,11 @@
 </head>
 
 <body data-page="admin-accounts">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <div class="adminContainer">
     <div class="adminHeader">
       <h1>Registered Accounts</h1>
@@ -398,7 +402,6 @@
       return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
-    // Search functionality
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", (e) => {
       const query = e.target.value.toLowerCase().trim();
@@ -415,7 +418,6 @@
       updateStats();
     });
 
-    // Load users on page load
     loadUsers();
   </script>
 </body>

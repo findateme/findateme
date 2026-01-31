@@ -2,18 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — People</title>
 
+  <link rel="stylesheet" href="browser-compatibility.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
 
+  <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- CRITICAL: Verify user exists BEFORE loading anything else -->
+  <script>
+    (async function() {
+      try {
+        // Get email from localStorage
+        const activeEmail = localStorage.getItem("dateme_active_user");
+        const localSession = localStorage.getItem("dateme_local_session") === "true";
+        
+        if (!activeEmail && !localSession) {
+          // No session - redirect to login
+          window.location.href = "login.html";
+          return;
+        }
+        
+        if (activeEmail) {
+          // Verify user exists in database
+          const API_BASE = window.API_BASE || "https://fin-date-me.onrender.com";
+          const response = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+          const data = await response.json();
+          
+          const userExists = data.ok && data.users && data.users.some(u => 
+            String(u.email || "").toLowerCase() === activeEmail.toLowerCase()
+          );
+          
+          if (!userExists) {
+            // Account deleted - clear everything and redirect
+            console.log("❌ Account has been deleted");
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Try to sign out from Supabase if available
+            if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+              const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+              await sb.auth.signOut();
+            }
+            
+            alert("Your account has been deleted. Please sign up again to use DateMe.");
+            window.location.href = "login.html";
+            return;
+          }
+        }
+      } catch (err) {
+        console.log("Could not verify user:", err.message);
+        // Allow page to load on network error
+      }
+    })();
+  </script>
+  
   <script src="auth.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 
 <body data-page="people">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
    
 <div class="hearts">
   <span class="heart" style="left:4%;  animation-duration:34s;"></span>
@@ -158,7 +217,13 @@
         </div>
       </div>
 
-      <div class="grid" id="grid"></div>
+      <div class="grid" id="grid">
+        <!-- Initial loading state -->
+        <div class="grid-loader" id="gridLoader" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+          <div style="display: inline-block; width: 48px; height: 48px; border: 4px solid rgba(255,79,216,0.2); border-top-color: #ff4fd8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+          <div style="margin-top: 16px; color: var(--muted);">Loading profiles...</div>
+        </div>
+      </div>
 
       <div class="loadWrap">
         <button class="btn primary" id="loadMoreBtn" type="button">Load more</button>
@@ -192,6 +257,7 @@
       <a class="sideMenu__row" href="inbox.html">
         <span class="sideMenu__icon">💬</span>
         <span>Inbox</span>
+        <span class="sideMenu__badge" id="inboxBadge" style="display:none;">0</span>
         <span class="sideMenu__chev">›</span>
       </a>
       <a class="sideMenu__row" href="profile.html">
@@ -204,9 +270,14 @@
         <span>About Us</span>
         <span class="sideMenu__chev">›</span>
       </button>
+      
+      <!-- Upgrade Button (Moved up) -->
+      <a class="sideMenu__item upgrade" href="profile-upgrade.html" style="margin-top:16px;">
+        ✨ Upgrade your profile
+      </a>
+      
       <div class="sideMenu__footer">
         <button class="sideMenu__item logout" id="logoutBtn" type="button">Logout</button>
-        <a class="sideMenu__item upgrade" href="profile-upgrade.html">Pay $8 to upgrade your profile</a>
       </div>
     </div>
   </div>
@@ -288,8 +359,32 @@
         <div class="storyModal__info">
           <h3 id="storyModalName">Story</h3>
           <p class="muted">Stories are premium-only. Upgrade to view.</p>
+          
+          <!-- Story Reactions -->
+          <div id="storyReactionsSection" style="display:none; margin-top:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:14px; font-weight:600;">Reactions</span>
+              <span id="storyReactionCount" style="font-size:12px; color:var(--muted2);">0</span>
+            </div>
+            <div id="storyReactionsList" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px;"></div>
+          </div>
+          
+          <!-- Story Comments -->
+          <div id="storyCommentsSection" style="display:none; margin-top:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+              <span style="font-size:14px; font-weight:600;">Comments</span>
+              <span id="storyCommentCount" style="font-size:12px; color:var(--muted2);">0</span>
+            </div>
+            <div id="storyCommentsList" style="max-height:200px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;"></div>
+            <div id="storyCommentInputArea" style="display:none;">
+              <input type="text" id="storyCommentInput" placeholder="Write a comment..." style="width:100%; padding:10px; border:1px solid var(--stroke); border-radius:8px; background:var(--card); color:var(--text); font-size:14px;" />
+              <button id="storyCommentSendBtn" class="btn primary" type="button" style="margin-top:8px; width:100%;">Send</button>
+            </div>
+          </div>
+          
           <div id="storyModalActions" style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
             <button id="storyReactBtn" class="btn" type="button" style="display:none;">👍 React</button>
+            <button id="storyCommentBtn" class="btn" type="button" style="display:none;">💬 Comment</button>
             <button id="storyDeleteBtn" class="btn" type="button" style="display:none;">🗑 Delete</button>
           </div>
         </div>

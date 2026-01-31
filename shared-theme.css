@@ -1,0 +1,127 @@
+/* Shared Theme - Landing Page Style for All Pages */
+:root {
+  --bg: #0b0f1e;
+  --card: rgba(255,255,255,.06);
+  --card2: rgba(255,255,255,.08);
+  --stroke: rgba(255,255,255,.16);
+  --text: rgba(255,255,255,.94);
+  --muted: rgba(255,255,255,.70);
+  --muted2: rgba(255,255,255,.55);
+  --shadow: 0 22px 90px rgba(0,0,0,.55);
+  --blur: blur(18px);
+  --r: 18px;
+  --r2: 28px;
+  --a: 160ms ease;
+  --pink: #ff4fd8;
+  --gold: #ffd59a;
+  --violet: #7c4dff;
+  --cyan: #4df0ff;
+  --ok: #72ffb8;
+  --bad: #ff6b8b;
+}
+
+/* Fast, smooth page transitions - no slow scroll */
+html {
+  scroll-behavior: auto !important; /* Instant scroll, no smooth animation */
+}
+
+html, body {
+  height: 100%;
+  background-color: var(--bg);
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  /* Exact landing page background */
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.26), transparent 55%),
+              radial-gradient(1000px 500px at 90% 20%, rgba(255,79,216,.22), transparent 55%),
+              radial-gradient(900px 600px at 50% 90%, rgba(77,240,255,.12), transparent 60%),
+              linear-gradient(180deg, #0a0d1a 0%, #0b0f1e 45%, #0a0d18 100%);
+  overflow-x: hidden;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* Floating Heart Orbs - Same as Landing Page */
+.bg-float {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .65;
+  filter: saturate(1.1);
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  background:
+    radial-gradient(closest-side, rgba(255,79,216,.28), transparent 65%),
+    radial-gradient(closest-side, rgba(124,77,255,.24), transparent 70%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 55%);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 40px 120px rgba(0,0,0,.5);
+  animation: float 18s ease-in-out infinite;
+  transform-style: preserve-3d;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z' fill='white' transform='translate(-24,0)'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M60 104 C60 104, 18 76, 18 42 C18 22, 34 10, 50 10 C67 10, 79 23, 84 33 C89 23, 101 10, 118 10 C134 10, 150 22, 150 42 C150 76, 60 104, 60 104 Z' fill='white' transform='translate(-24,0)'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  background: radial-gradient(closest-side, rgba(255,255,255,.22), transparent 62%);
+  opacity: .7;
+  filter: blur(1px);
+  -webkit-mask: inherit;
+  mask: inherit;
+}
+
+/* Orb Positions - Same as Landing */
+.orb.one {
+  left: -70px;
+  top: 80px;
+  animation-duration: 22s;
+}
+
+.orb.two {
+  right: -90px;
+  top: 140px;
+  width: 260px;
+  height: 260px;
+  animation-duration: 26s;
+  animation-delay: -5s;
+}
+
+.orb.three {
+  left: 18%;
+  bottom: -120px;
+  width: 280px;
+  height: 280px;
+  animation-duration: 24s;
+  animation-delay: -10s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  25% {
+    transform: translateY(-30px) translateX(20px) scale(1.05);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-15px) scale(0.98);
+  }
+  75% {
+    transform: translateY(-40px) translateX(10px) scale(1.02);
+  }
+}
+
+/* Ensure content is above background */
+.wrap, .content, main, header {
+  position: relative;
+  z-index: 1;
+}

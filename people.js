@@ -3,36 +3,196 @@ document.addEventListener("DOMContentLoaded", async () => {
   const grid = document.getElementById("grid");
   if (!grid) return;
 
-  try {
-    // Fetch real profiles from server
-    const baseUrl = window.API_BASE || '';
-    const response = await fetch(`${baseUrl}/get_users.php`);
-    const data = await response.json();
-    const profiles = data.profiles || [];
+  async function loadProfiles() {
+    // Remove loader
+    const loader = document.getElementById("gridLoader");
+    if (loader) loader.remove();
+    
+    try {
+      // Get current user's plan from localStorage
+      const activeEmail = localStorage.getItem("dateme_active_user");
+      let userPlan = "free"; // default
+      
+      if (activeEmail) {
+        try {
+          // Get user plan (free, basic, premium)
+          const hasUpgrade = localStorage.getItem("dateme_upgrade_verified") === "true";
+          if (hasUpgrade) {
+            userPlan = localStorage.getItem("dateme_selected_plan") || "basic";
+          }
+        } catch (e) {
+          console.log("⚠️ Could not load user plan");
+        }
+      }
+      
+      // Set profile limits based on plan
+      let profileLimit = 10; // free: 10 profiles
+      if (userPlan === "basic") {
+        profileLimit = 50;
+      } else if (userPlan === "premium") {
+        profileLimit = 100;
+      }
+      
+      console.log("💎 User plan:", userPlan, "- Profile limit:", profileLimit);
+      
+      // Always fetch fresh data from server (no cache)
+      const baseUrl = window.API_BASE || '';
+      console.log("🔍 Loading profiles from:", `${baseUrl}/get_users.php`);
+      
+      const response = await fetch(`${baseUrl}/get_users.php?t=${Date.now()}`);
+      
+      if (!response.ok) {
+        throw new Error(`API responded with ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("📦 API Response:", data);
+      
+      const profiles = data.users || data.profiles || [];
+      
+      // Log first profile to check photo data
+      if (profiles.length > 0) {
+        console.log("📸 Sample profile:", {
+          name: profiles[0].name,
+          email: profiles[0].email,
+          hasPhoto: !!profiles[0].photo,
+          photoPrefix: profiles[0].photo ? profiles[0].photo.substring(0, 30) : "NO PHOTO"
+        });
+      }
+      
+      console.log("📊 Total profiles received:", profiles.length);
 
-    if (profiles.length === 0) {
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">No profiles yet. Be the first to join!</p>';
-      return;
+      if (profiles.length === 0) {
+        console.log("⚠️ No profiles found");
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">No profiles yet. Be the first to join!</p>';
+        return;
+      }
+
+      // Filter out deleted accounts (those without valid email)
+      let validProfiles = profiles.filter(p => p.email && p.email.trim());
+      
+      // Apply profile limit based on plan
+      const totalAvailable = validProfiles.length;
+      validProfiles = validProfiles.slice(0, profileLimit);
+      
+      console.log(`✅ Showing ${validProfiles.length} of ${totalAvailable} profiles (${userPlan} plan limit: ${profileLimit})`);
+
+      if (validProfiles.length === 0) {
+        console.log("⚠️ No valid profiles (all missing email)");
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">No active profiles available.</p>';
+        return;
+      }
+
+      grid.innerHTML = validProfiles.map(p => {
+        // Photo display logic - show photo if exists, otherwise gradient
+        const hasPhoto = p.photo && p.photo.trim() && p.photo.startsWith('data:image');
+        
+        // Log photo status for debugging
+        if (!hasPhoto && p.photo) {
+          console.log(`⚠️ Invalid photo for ${p.name || p.email}:`, p.photo ? p.photo.substring(0, 50) : "empty");
+        }
+        
+        const photoStyle = hasPhoto 
+          ? `background-image:url('${p.photo}'); background-size:cover; background-position:center;`
+          : `background:linear-gradient(135deg, #ff4fd8, #7c4dff);`;
+        
+        console.log(`📸 ${p.name || p.email}: Photo=${hasPhoto ? 'YES' : 'NO'}`);
+        
+        return `
+          <div class="pcard" data-email="${escapeHtml(p.email)}" style="cursor: pointer;">
+            <div style="width:100%; aspect-ratio:1; ${photoStyle} border-radius:8px;"></div>
+            <div class="pcard__body">
+              <div class="pcard__name">
+                <span>${escapeHtml(p.name || p.username || 'User')}</span>
+                <span class="tag">${p.age || '?'}</span>
+              </div>
+              <div class="pcard__sub">${escapeHtml(p.city || p.country || 'Unknown')}</div>
+              <div class="pcard__actions">
+                <button class="smallbtn chat" type="button" data-action="chat">Chat</button>
+                <button class="smallbtn view" type="button" data-action="view">View</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      
+      // Add click handlers to all profile cards
+      const cards = grid.querySelectorAll('.pcard');
+      cards.forEach(card => {
+        const email = card.getAttribute('data-email');
+        
+        // Click on card (excluding buttons) to view profile
+        card.addEventListener('click', (e) => {
+          // If clicked on a button, let button handler take over
+          if (e.target.tagName === 'BUTTON') return;
+          
+          if (email) {
+            window.location.href = `profile-view?email=${encodeURIComponent(email)}`;
+          }
+        });
+        
+        // View button click
+        const viewBtn = card.querySelector('[data-action="view"]');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (email) {
+              window.location.href = `profile-view.html?email=${encodeURIComponent(email)}`;
+            }
+          });
+        }
+        
+        // Chat button click
+        const chatBtn = card.querySelector('[data-action="chat"]');
+        if (chatBtn) {
+          chatBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (email) {
+              window.location.href = `inbox.html?chat=${encodeURIComponent(email)}`;
+            }
+          });
+        }
+      });
+      
+      // Show upgrade message if user reached their plan limit
+      if (totalAvailable > profileLimit) {
+        const remaining = totalAvailable - profileLimit;
+        const upgradeHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 30px 20px; background: rgba(255,79,216,.1); border: 2px solid rgba(255,79,216,.3); border-radius: 16px; margin-top: 20px;">
+            <div style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">🔒 ${remaining} More Profiles Available</div>
+            <div style="color: var(--muted); margin-bottom: 16px;">
+              ${userPlan === 'free' ? 'Upgrade to Basic ($14) to see 50 profiles or Premium ($30) to see 100 profiles' : 
+                userPlan === 'basic' ? 'Upgrade to Premium ($30) to see 100 profiles' : ''}
+            </div>
+            <a href="profile-upgrade.html" class="btn primary" style="display: inline-block; padding: 12px 24px; text-decoration: none;">
+              Upgrade Now
+            </a>
+          </div>
+        `;
+        grid.innerHTML += upgradeHTML;
+      }
+      
+      console.log("✅ Rendered", validProfiles.length, "profile cards to grid");
+      
+    } catch (err) {
+      console.error("❌ Error loading profiles:", err);
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Error loading profiles</p>';
     }
-
-    grid.innerHTML = profiles.map(p => `
-      <div class="pcard">
-        <div style="width:100%; aspect-ratio:1; background:linear-gradient(135deg, #ff4fd8, #7c4dff); border-radius:8px;"></div>
-        <div class="pcard__body">
-          <div class="pcard__name">
-            <span>${p.name || 'User'}</span>
-            <span class="tag">${p.age || '?'}</span>
-          </div>
-          <div class="pcard__sub">${p.country || 'Unknown'}</div>
-          <div class="pcard__actions">
-            <button class="smallbtn chat" type="button">Chat</button>
-            <button class="smallbtn view" type="button">View</button>
-          </div>
-        </div>
-      </div>
-    `).join("");
-  } catch (err) {
-    console.error("Error loading profiles:", err);
-    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Error loading profiles</p>';
   }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Initial load
+  loadProfiles();
+
+  // Auto-refresh every 10 seconds to show updated photos
+  setInterval(loadProfiles, 10000);
 });

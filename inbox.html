@@ -2,18 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Inbox</title>
 
+  <link rel="stylesheet" href="browser-compatibility.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="shared-theme.css" />
 
+  <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Verify user exists BEFORE loading page -->
+  <script>
+    (async function() {
+      const activeEmail = localStorage.getItem("dateme_active_user");
+      if (activeEmail) {
+        try {
+          const API_BASE = window.API_BASE || "https://fin-date-me.onrender.com";
+          const res = await fetch(`${API_BASE}/get_users.php?t=${Date.now()}`);
+          const data = await res.json();
+          const userExists = data.ok && data.users && data.users.some(u => 
+            String(u.email || "").toLowerCase() === activeEmail.toLowerCase()
+          );
+          if (!userExists) {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert("Your account has been deleted.");
+            window.location.href = "login.html";
+            return;
+          }
+        } catch (e) { }
+      }
+    })();
+  </script>
+  
   <script src="auth.js" defer></script>
   <script src="inbox.js" defer></script>
 </head>
 
 <body data-page="inbox">
+  <div class="bg-float">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+  </div>
   <!-- 🌟 Emoji Orbits -->
   <div class="emoji-orbit">
     <!-- Top Left Orbit -->
@@ -124,6 +159,9 @@
       <div id="chatBody" class="inboxChat__body"></div>
 
       <div class="inboxChat__composer">
+        <div id="msgCounter" style="display:none; padding:8px 12px; background:rgba(255,79,216,.1); border-radius:8px; margin-bottom:8px; font-size:12px; text-align:center;">
+          <span id="msgCounterText"></span>
+        </div>
         <button class="inboxChat__emojiBtn" id="emojiBtn" type="button">😊</button>
         <button class="inboxChat__stickerBtn" id="stickerBtn" type="button">💗</button>
         <input id="chatInput" class="inboxChat__input" placeholder="Aa" />
@@ -198,9 +236,19 @@
   <div class="callNotice" id="msgLimitNotice" aria-hidden="true">
     <div class="callNotice__backdrop" id="msgLimitClose"></div>
     <div class="callNotice__panel" role="dialog" aria-modal="true">
-      <h3>Upgrade Required</h3>
-      <p>Free message limit reached. Upgrade to keep chatting.</p>
-      <a class="btn primary" href="profile-upgrade.html">Upgrade Now</a>
+      <h3>💬 Message Limit Reached</h3>
+      <p style="margin-bottom:16px;">You've used all your free messages!</p>
+      <div style="background:rgba(255,79,216,.1); padding:12px; border-radius:8px; margin-bottom:16px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span>✨ Basic Plan</span>
+          <span style="font-weight:700;">500 messages - $14/mo</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>🚀 Premium Plan</span>
+          <span style="font-weight:700;">1,000 messages - $30/mo</span>
+        </div>
+      </div>
+      <a class="btn primary" href="profile-upgrade.html" style="width:100%; text-align:center;">Upgrade Now</a>
     </div>
   </div>
   <script src="keep-alive.js"></script>
