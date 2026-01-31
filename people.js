@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       // Always fetch fresh data from server (no cache)
       const baseUrl = window.API_BASE || '';
-      console.log("🔍 Loading profiles from:", `${baseUrl}/get_users.php`);
       
       const response = await fetch(`${baseUrl}/get_users.php?t=${Date.now()}`);
       
@@ -46,19 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       
       const data = await response.json();
-      console.log("📦 API Response:", data);
-      
       const profiles = data.users || data.profiles || [];
-      
-      // Log first profile to check photo data
-      if (profiles.length > 0) {
-        console.log("📸 Sample profile:", {
-          name: profiles[0].name,
-          email: profiles[0].email,
-          hasPhoto: !!profiles[0].photo,
-          photoPrefix: profiles[0].photo ? profiles[0].photo.substring(0, 30) : "NO PHOTO"
-        });
-      }
       
       console.log("📊 Total profiles received:", profiles.length);
 
@@ -87,16 +74,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Photo display logic - show photo if exists, otherwise gradient
         const hasPhoto = p.photo && p.photo.trim() && p.photo.startsWith('data:image');
         
-        // Log photo status for debugging
-        if (!hasPhoto && p.photo) {
-          console.log(`⚠️ Invalid photo for ${p.name || p.email}:`, p.photo ? p.photo.substring(0, 50) : "empty");
-        }
-        
         const photoStyle = hasPhoto 
           ? `background-image:url('${p.photo}'); background-size:cover; background-position:center;`
           : `background:linear-gradient(135deg, #ff4fd8, #7c4dff);`;
-        
-        console.log(`📸 ${p.name || p.email}: Photo=${hasPhoto ? 'YES' : 'NO'}`);
         
         return `
           <div class="pcard" data-email="${escapeHtml(p.email)}" style="cursor: pointer;">
@@ -171,8 +151,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
         grid.innerHTML += upgradeHTML;
       }
-      
-      console.log("✅ Rendered", validProfiles.length, "profile cards to grid");
       
     } catch (err) {
       console.error("❌ Error loading profiles:", err);
