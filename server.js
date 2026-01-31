@@ -268,8 +268,12 @@ app.get("/get_users.php", async (_req, res) => {
     let rows = [];
     try {
       const [joined] = await pool.query(
-        `SELECT u.id, u.email, u.username, u.name,
-                p.city, p.country, p.gender, p.age, p.photo,
+        `SELECT u.id, u.email, u.username, u.name, u.created_at,
+                COALESCE(p.city, '') as city, 
+                COALESCE(p.country, '') as country, 
+                COALESCE(p.gender, '') as gender, 
+                COALESCE(p.age, 0) as age, 
+                COALESCE(p.photo, '') as photo,
                 p.is_online, p.last_seen, p.updated_at
          FROM users u
          LEFT JOIN user_profiles p ON p.email = u.email
@@ -277,11 +281,20 @@ app.get("/get_users.php", async (_req, res) => {
          LIMIT 200`
       );
       rows = joined;
+      console.log(`✅ Loaded ${rows.length} users with profiles`);
     } catch (joinErr) {
+      console.error("JOIN query failed:", joinErr.message);
+      // Fallback: return users without profile data
       const [fallback] = await pool.query(
-        "SELECT id, name, username, email, created_at FROM users ORDER BY created_at DESC LIMIT 200"
+        `SELECT id, name, username, email, created_at,
+                '' as city, '' as country, '' as gender, 
+                0 as age, '' as photo
+         FROM users 
+         ORDER BY created_at DESC 
+         LIMIT 200`
       );
       rows = fallback;
+      console.log(`⚠️ Using fallback query: ${rows.length} users (no profiles)`);
     }
     res.json({ ok: true, users: rows, timestamp: Date.now() });
   } catch (err) {
