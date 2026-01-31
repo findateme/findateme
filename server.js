@@ -11,7 +11,7 @@ const TRC20_ADDRESS = process.env.TRC20_ADDRESS || "";
 const BEP20_ADDRESS = process.env.BEP20_ADDRESS || "";
 const USDT_TRC20_CONTRACT = process.env.USDT_TRC20_CONTRACT || "";
 const USDT_BEP20_CONTRACT = process.env.USDT_BEP20_CONTRACT || "";
-const UPGRADE_AMOUNT = Number(process.env.UPGRADE_AMOUNT || 8);
+const UPGRADE_AMOUNT = Number(process.env.UPGRADE_AMOUNT || 14);
 const ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || "";
 
 const pool = mysql.createPool({
@@ -39,10 +39,27 @@ async function ensureProfileTable(){
         gender VARCHAR(16),
         age INT,
         photo MEDIUMTEXT,
+        is_online TINYINT DEFAULT 0,
+        last_seen TIMESTAMP NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )`
     );
+    
+    // Add is_online and last_seen columns if they don't exist (migration)
+    try {
+      await pool.query(
+        `ALTER TABLE user_profiles 
+         ADD COLUMN is_online TINYINT DEFAULT 0,
+         ADD COLUMN last_seen TIMESTAMP NULL`
+      );
+      console.log("✓ Added online status columns to user_profiles table");
+    } catch (e) {
+      if (!String(e.message).includes("Duplicate column")) {
+        console.log("✓ Online status columns already exist");
+      }
+    }
+    
     profileTableReady = true;
   } catch (err) {
     console.error("user_profiles table error:", err);
@@ -51,6 +68,27 @@ async function ensureProfileTable(){
 }
 
 ensureProfileTable();
+
+// Photo History Table
+async function ensurePhotoHistoryTable(){
+  try {
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS photo_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        photo MEDIUMTEXT,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX(email),
+        INDEX(uploaded_at)
+      )`
+    );
+    console.log("✓ photo_history table ready");
+  } catch (err) {
+    console.error("photo_history table error:", err);
+  }
+}
+
+ensurePhotoHistoryTable();
 
 async function ensureUsersTable(){
   try {
@@ -98,9 +136,18 @@ async function ensureMessagesTable(){
         profile_key VARCHAR(255),
         profile_name VARCHAR(255),
         profile_img MEDIUMTEXT,
+        read_status TINYINT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`
     );
+    // Add read_status column if it doesn't exist (for existing tables)
+    try {
+      await pool.query(
+        `ALTER TABLE messages ADD COLUMN read_status TINYINT DEFAULT 0`
+      );
+    } catch(err) {
+      // Column may already exist, ignore error
+    }
     messagesTableReady = true;
   } catch (err) {
     console.error("messages table error:", err);
@@ -110,18 +157,89 @@ async function ensureMessagesTable(){
 
 ensureMessagesTable();
 
-app.use(express.json({ limit: "1mb" }));
+async function ensureStoriesTable(){
+  try {
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS stories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255),
+        username VARCHAR(255),
+        photo MEDIUMTEXT,
+        story_image MEDIUMTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL 24 HOUR),
+        INDEX idx_expires (expires_at),
+        INDEX idx_email (email)
+      )`
+    );
+    console.log("✓ stories table ready");
+  } catch (err) {
+    console.error("stories table error:", err);
+  }
+}
+
+ensureStoriesTable();
+
+async function ensureStoryReactionsTable(){
+  try {
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS story_reactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        story_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        reaction VARCHAR(10) DEFAULT '👍',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_story_user (story_id, user_email),
+        INDEX idx_story (story_id)
+      )`
+    );
+    console.log("✓ story_reactions table ready");
+  } catch (err) {
+    console.error("story_reactions table error:", err);
+  }
+}
+
+ensureStoryReactionsTable();
+
+async function ensureStoryCommentsTable(){
+  try {
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS story_comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        story_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        username VARCHAR(255),
+        user_photo MEDIUMTEXT,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_story (story_id),
+        INDEX idx_created (created_at)
+      )`
+    );
+    console.log("✓ story_comments table ready");
+  } catch (err) {
+    console.error("story_comments table error:", err);
+  }
+}
+
+ensureStoryCommentsTable();
+
+app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-if (ALLOW_ORIGIN) {
-  app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", ALLOW_ORIGIN);
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    if (req.method === "OPTIONS") return res.sendStatus(204);
-    next();
-  });
-}
+// ✅ CORS middleware - Always enabled for all origins
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // Allow all origins
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  // Handle OPTIONS preflight request
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 const BLOCKED_PATHS = new Set([
   "/db.php",
@@ -142,11 +260,17 @@ app.use((req, res, next) => {
 
 app.get("/get_users.php", async (_req, res) => {
   try {
+   
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     let rows = [];
     try {
       const [joined] = await pool.query(
         `SELECT u.id, u.email, u.username, u.name,
-                p.city, p.country, p.gender, p.age, p.photo
+                p.city, p.country, p.gender, p.age, p.photo,
+                p.is_online, p.last_seen, p.updated_at
          FROM users u
          LEFT JOIN user_profiles p ON p.email = u.email
          ORDER BY u.created_at DESC
@@ -159,7 +283,7 @@ app.get("/get_users.php", async (_req, res) => {
       );
       rows = fallback;
     }
-    res.json({ ok: true, users: rows });
+    res.json({ ok: true, users: rows, timestamp: Date.now() });
   } catch (err) {
     console.error("get_users error:", err);
     res.status(500).json({ ok: false, error: "Server error", code: err.code || "UNKNOWN" });
@@ -218,13 +342,224 @@ app.post("/send_message.php", async (req, res) => {
   }
   try {
     await pool.query(
-      "INSERT INTO messages (sender_email, receiver_email, body, profile_key, profile_name, profile_img) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO messages (sender_email, receiver_email, body, profile_key, profile_name, profile_img, read_status) VALUES (?, ?, ?, ?, ?, ?, 0)",
       [sender, receiver, body, profile_key, profile_name, profile_img]
     );
     res.json({ ok: true });
   } catch (err) {
     console.error("send_message error:", err);
     res.status(500).json({ ok: false, error: "Server error", code: err.code || "UNKNOWN" });
+  }
+});
+
+app.get("/get_unread_count.php", async (req, res) => {
+  const email = String(req.query.email || "").trim().toLowerCase();
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Missing email." });
+  }
+  try {
+    const [rows] = await pool.query(
+      "SELECT COUNT(*) as count FROM messages WHERE receiver_email = ? AND read_status = 0",
+      [email]
+    );
+    res.json({ ok: true, count: rows[0]?.count || 0 });
+  } catch (err) {
+    console.error("get_unread_count error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.post("/mark_messages_read.php", async (req, res) => {
+  const input = req.body || {};
+  const email = String(input.email || "").trim().toLowerCase();
+  const sender = String(input.sender || "").trim().toLowerCase();
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Missing email." });
+  }
+  try {
+    if (sender) {
+      await pool.query(
+        "UPDATE messages SET read_status = 1 WHERE receiver_email = ? AND sender_email = ? AND read_status = 0",
+        [email, sender]
+      );
+    } else {
+      await pool.query(
+        "UPDATE messages SET read_status = 1 WHERE receiver_email = ? AND read_status = 0",
+        [email]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("mark_messages_read error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.post("/upload_story.php", async (req, res) => {
+  const input = req.body || {};
+  const email = String(input.email || "").trim();
+  const username = String(input.username || "").trim();
+  const photo = String(input.photo || "").trim();
+  const story_image = String(input.story_image || "").trim();
+
+  if (!email || !story_image) {
+    return res.status(400).json({ ok: false, error: "Missing email or story image." });
+  }
+
+  try {
+    await pool.query("DELETE FROM stories WHERE email = ?", [email]);
+    
+    await pool.query(
+      "INSERT INTO stories (email, username, photo, story_image) VALUES (?, ?, ?, ?)",
+      [email, username, photo, story_image]
+    );
+    
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("upload_story error:", err);
+    res.status(500).json({ ok: false, error: "Server error", code: err.code || "UNKNOWN" });
+  }
+});
+
+app.get("/get_stories.php", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, email, username, photo, story_image, created_at 
+       FROM stories 
+       WHERE expires_at > NOW()
+       ORDER BY created_at DESC`
+    );
+    res.json({ ok: true, stories: rows });
+  } catch (err) {
+    console.error("get_stories error:", err);
+    res.status(500).json({ ok: false, error: "Server error", code: err.code || "UNKNOWN" });
+  }
+});
+
+app.post("/delete_story.php", async (req, res) => {
+  const input = req.body || {};
+  const email = String(input.email || "").trim();
+  const story_id = Number(input.story_id || 0);
+
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Missing email." });
+  }
+
+  try {
+    if (story_id) {
+      await pool.query("DELETE FROM stories WHERE id = ? AND email = ?", [story_id, email]);
+      await pool.query("DELETE FROM story_reactions WHERE story_id = ?", [story_id]);
+      await pool.query("DELETE FROM story_comments WHERE story_id = ?", [story_id]);
+    } else {
+      const [stories] = await pool.query("SELECT id FROM stories WHERE email = ?", [email]);
+      for (const story of stories) {
+        await pool.query("DELETE FROM story_reactions WHERE story_id = ?", [story.id]);
+        await pool.query("DELETE FROM story_comments WHERE story_id = ?", [story.id]);
+      }
+      await pool.query("DELETE FROM stories WHERE email = ?", [email]);
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("delete_story error:", err);
+    res.status(500).json({ ok: false, error: "Server error", code: err.code || "UNKNOWN" });
+  }
+});
+
+app.post("/toggle_story_reaction.php", async (req, res) => {
+  const input = req.body || {};
+  const story_id = Number(input.story_id || 0);
+  const user_email = String(input.user_email || "").trim();
+  const reaction = String(input.reaction || "👍").trim();
+
+  if (!story_id || !user_email) {
+    return res.status(400).json({ ok: false, error: "Missing story_id or user_email." });
+  }
+
+  try {
+    const [existing] = await pool.query(
+      "SELECT id FROM story_reactions WHERE story_id = ? AND user_email = ?",
+      [story_id, user_email]
+    );
+
+    if (existing.length > 0) {
+      await pool.query(
+        "DELETE FROM story_reactions WHERE story_id = ? AND user_email = ?",
+        [story_id, user_email]
+      );
+      res.json({ ok: true, action: "removed" });
+    } else {
+      await pool.query(
+        "INSERT INTO story_reactions (story_id, user_email, reaction) VALUES (?, ?, ?)",
+        [story_id, user_email, reaction]
+      );
+      res.json({ ok: true, action: "added" });
+    }
+  } catch (err) {
+    console.error("toggle_story_reaction error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.get("/get_story_reactions.php", async (req, res) => {
+  const story_id = Number(req.query.story_id || 0);
+
+  if (!story_id) {
+    return res.status(400).json({ ok: false, error: "Missing story_id." });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT user_email, reaction, created_at FROM story_reactions WHERE story_id = ? ORDER BY created_at DESC",
+      [story_id]
+    );
+    res.json({ ok: true, reactions: rows, count: rows.length });
+  } catch (err) {
+    console.error("get_story_reactions error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.post("/add_story_comment.php", async (req, res) => {
+  const input = req.body || {};
+  const story_id = Number(input.story_id || 0);
+  const user_email = String(input.user_email || "").trim();
+  const username = String(input.username || "").trim();
+  const user_photo = String(input.user_photo || "").trim();
+  const comment = String(input.comment || "").trim();
+
+  if (!story_id || !user_email || !comment) {
+    return res.status(400).json({ ok: false, error: "Missing required fields." });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO story_comments (story_id, user_email, username, user_photo, comment) VALUES (?, ?, ?, ?, ?)",
+      [story_id, user_email, username, user_photo, comment]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("add_story_comment error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.get("/get_story_comments.php", async (req, res) => {
+  const story_id = Number(req.query.story_id || 0);
+
+  if (!story_id) {
+    return res.status(400).json({ ok: false, error: "Missing story_id." });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, user_email, username, user_photo, comment, created_at FROM story_comments WHERE story_id = ? ORDER BY created_at ASC",
+      [story_id]
+    );
+    res.json({ ok: true, comments: rows, count: rows.length });
+  } catch (err) {
+    console.error("get_story_comments error:", err);
+    res.status(500).json({ ok: false, error: "Server error" });
   }
 });
 
@@ -274,7 +609,6 @@ app.post("/register_user.php", async (req, res) => {
         console.error("register_user profile error:", profileErr);
       }
     }
-      // Return user data for immediate login across all devices
       const userObj = {
         id: email.toLowerCase(),
         email: email.toLowerCase(),
@@ -375,12 +709,10 @@ app.post("/verify_txid.php", async (req, res) => {
 
 app.use(express.static(path.join(__dirname)));
 
-// Route root
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Route HTML pages
 app.get("/signup.html", (_req, res) => {
   res.sendFile(path.join(__dirname, "signup.html"));
 });
@@ -425,9 +757,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-// ===== USER AUTHENTICATION APIs =====
 
-// REGISTER - নতুন user
 app.post("/api/register", async (req, res) => {
   const { email, username, password, name, city, country, gender, age, photo } = req.body;
   
@@ -436,7 +766,6 @@ app.post("/api/register", async (req, res) => {
   }
 
   try {
-    // Check if email/username exists
     const [existing] = await pool.query(
       "SELECT email, username FROM users WHERE email = ? OR username = ?",
       [email.toLowerCase(), username.toLowerCase()]
@@ -446,18 +775,15 @@ app.post("/api/register", async (req, res) => {
       return res.status(409).json({ ok: false, error: "Email or username already taken" });
     }
 
-    // Simple password hash (use bcrypt in production!)
     const crypto = require('crypto');
     const hash = crypto.createHash('sha256').update(password + email).digest('hex');
 
-    // Insert user
     await pool.query(
       `INSERT INTO users (email, username, name, password_hash, created_at)
        VALUES (?, ?, ?, ?, NOW())`,
       [email.toLowerCase(), username.toLowerCase(), name || "", hash]
     );
 
-    // Insert profile
     await pool.query(
       `INSERT INTO user_profiles (email, city, country, gender, age, photo)
        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
@@ -465,7 +791,6 @@ app.post("/api/register", async (req, res) => {
       [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photo || ""]
     );
 
-        // Return user data for immediate login across all devices
         const userObj = {
           id: email.toLowerCase(),
           email: email.toLowerCase(),
@@ -485,7 +810,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// LOGIN - ইউজার লগইন করা
+
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   
@@ -507,7 +832,19 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ ok: false, error: "Invalid email or password" });
+      const [deletedCheck] = await pool.query(
+        "SELECT email FROM users WHERE email = ?",
+        [email.toLowerCase()]
+      );
+      
+      if (deletedCheck.length === 0) {
+        return res.status(401).json({ 
+          ok: false, 
+          error: "Invalid email or password. If you deleted your account, please sign up again."
+        });
+      }
+      
+      return res.status(401).json({ ok: false, error: "Invalid password" });
     }
 
     res.json({ ok: true, user: rows[0] });
@@ -517,7 +854,6 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// SEARCH - username দিয়ে search করা
 app.get("/api/search", async (req, res) => {
   const username = req.query.username || "";
   
@@ -542,7 +878,6 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
-// UPDATE PROFILE - প্রোফাইল আপডেট করা
 app.put("/api/profile", async (req, res) => {
   const { email, city, country, gender, age, photo } = req.body;
   
@@ -551,6 +886,24 @@ app.put("/api/profile", async (req, res) => {
   }
 
   try {
+    if (photo && photo.trim()) {
+      try {
+        const [current] = await pool.query(
+          "SELECT photo FROM user_profiles WHERE email = ?",
+          [email.toLowerCase()]
+        );
+        
+        if (current.length > 0 && current[0].photo && current[0].photo.trim()) {
+          await pool.query(
+            "INSERT INTO photo_history (email, photo) VALUES (?, ?)",
+            [email.toLowerCase(), current[0].photo]
+          );
+        }
+      } catch (historyErr) {
+        console.log("Photo history save error (continuing):", historyErr.message);
+      }
+    }
+    
     await pool.query(
       `UPDATE user_profiles 
        SET city=?, country=?, gender=?, age=?, photo=?, updated_at=NOW()
@@ -558,14 +911,216 @@ app.put("/api/profile", async (req, res) => {
       [city || "", country || "", gender || "", age || 0, photo || "", email.toLowerCase()]
     );
 
-    res.json({ ok: true, message: "Profile updated" });
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    res.json({ 
+      ok: true, 
+      message: "Profile updated successfully",
+      timestamp: Date.now()
+    });
   } catch (err) {
     console.error("profile update error:", err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// Temporary cleanup endpoint - keep only latest account
+app.get("/api/photo_history", async (req, res) => {
+  const email = String(req.query.email || "").trim().toLowerCase();
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email required" });
+  }
+
+  try {
+    const [photos] = await pool.query(
+      `SELECT id, photo, uploaded_at 
+       FROM photo_history 
+       WHERE email = ? 
+       ORDER BY uploaded_at DESC 
+       LIMIT 50`,
+      [email]
+    );
+
+    res.json({ ok: true, photos: photos });
+  } catch (err) {
+    console.error("photo history error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/set_photo_from_history", async (req, res) => {
+  const { email, photo_id } = req.body;
+  
+  if (!email || !photo_id) {
+    return res.status(400).json({ ok: false, error: "Email and photo_id required" });
+  }
+
+  try {
+    const [historyPhoto] = await pool.query(
+      "SELECT photo FROM photo_history WHERE id = ? AND email = ?",
+      [photo_id, email.toLowerCase()]
+    );
+
+    if (historyPhoto.length === 0) {
+      return res.status(404).json({ ok: false, error: "Photo not found in history" });
+    }
+
+    const [current] = await pool.query(
+      "SELECT photo FROM user_profiles WHERE email = ?",
+      [email.toLowerCase()]
+    );
+
+    if (current.length > 0 && current[0].photo && current[0].photo.trim()) {
+      await pool.query(
+        "INSERT INTO photo_history (email, photo) VALUES (?, ?)",
+        [email.toLowerCase(), current[0].photo]
+      );
+    }
+
+    await pool.query(
+      "UPDATE user_profiles SET photo = ?, updated_at = NOW() WHERE email = ?",
+      [historyPhoto[0].photo, email.toLowerCase()]
+    );
+
+    res.json({ 
+      ok: true, 
+      message: "Photo updated successfully",
+      timestamp: Date.now()
+    });
+  } catch (err) {
+    console.error("set photo from history error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete("/api/delete_history_photo", async (req, res) => {
+  const { email, photo_id } = req.body;
+  
+  if (!email || !photo_id) {
+    return res.status(400).json({ ok: false, error: "Email and photo_id required" });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM photo_history WHERE id = ? AND email = ?",
+      [photo_id, email.toLowerCase()]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, error: "Photo not found" });
+    }
+
+    res.json({ 
+      ok: true, 
+      message: "Photo deleted successfully"
+    });
+  } catch (err) {
+    console.error("delete history photo error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/update_online_status", async (req, res) => {
+  const { email, is_online } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email required" });
+  }
+
+  try {
+    const status = is_online ? 1 : 0;
+    await pool.query(
+      `UPDATE user_profiles 
+       SET is_online=?, last_seen=NOW(), updated_at=NOW()
+       WHERE email = ?`,
+      [status, email.toLowerCase()]
+    );
+
+    res.json({ ok: true, message: "Online status updated" });
+  } catch (err) {
+    console.error("online status update error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/verify_user", async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email required" });
+  }
+
+  try {
+    const emailLower = email.toLowerCase();
+    const [rows] = await pool.query(
+      "SELECT email, name, username FROM users WHERE email = ? LIMIT 1",
+      [emailLower]
+    );
+    
+    if (rows.length === 0) {
+      return res.json({ ok: false, exists: false, error: "Account has been deleted" });
+    }
+    
+    res.json({ ok: true, exists: true, user: rows[0] });
+  } catch (err) {
+    console.error("verify user error:", err);
+    res.status(500).json({ ok: false, error: "Failed to verify user" });
+  }
+});
+
+app.delete("/api/delete_account", async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email required" });
+  }
+
+  try {
+    const emailLower = email.toLowerCase();
+    
+    console.log("🗑️ Starting permanent deletion for:", emailLower);
+    
+    try {
+      const photoResult = await pool.query("DELETE FROM photo_history WHERE email = ?", [emailLower]);
+      console.log(`  ✓ Deleted ${photoResult.affectedRows || 0} photo history records`);
+    } catch (e) {
+      console.log("  ⚠️ Could not delete photo_history:", e.message);
+    }
+    
+    try {
+      const msgResult = await pool.query(
+        "DELETE FROM messages WHERE sender_email = ? OR receiver_email = ?",
+        [emailLower, emailLower]
+      );
+      console.log(`  ✓ Deleted ${msgResult.affectedRows || 0} messages`);
+    } catch (e) {
+      console.log("  ⚠️ Could not delete messages:", e.message);
+    }
+    
+    try {
+      const storyResult = await pool.query("DELETE FROM stories WHERE email = ?", [emailLower]);
+      console.log(`  ✓ Deleted ${storyResult.affectedRows || 0} stories`);
+    } catch (e) {
+      console.log("  ⚠️ Could not delete stories:", e.message);
+    }
+    
+    const profileResult = await pool.query("DELETE FROM user_profiles WHERE email = ?", [emailLower]);
+    console.log(`  ✓ Deleted ${profileResult.affectedRows || 0} profile records`);
+    
+    const userResult = await pool.query("DELETE FROM users WHERE email = ?", [emailLower]);
+    console.log(`  ✓ Deleted ${userResult.affectedRows || 0} user accounts`);
+    
+    console.log("✅ Account permanently deleted from database:", emailLower);
+
+    res.json({ ok: true, message: "Account permanently deleted from all database tables" });
+  } catch (err) {
+    console.error("delete account error:", err);
+    res.status(500).json({ ok: false, error: "Failed to delete account" });
+  }
+});
+
 app.get("/cleanup_old_accounts", async (_req, res) => {
   try {
     const [latest] = await pool.query(
@@ -592,7 +1147,6 @@ app.get("/cleanup_old_accounts", async (_req, res) => {
   }
 });
 
-// Keep only watson@gmail.com account
 app.get("/keep_watson_only", async (_req, res) => {
   try {
     const [result] = await pool.query(
@@ -612,7 +1166,6 @@ app.get("/keep_watson_only", async (_req, res) => {
   }
 });
 
-// ADMIN - Get all registered users
 app.get("/api/admin/users", async (req, res) => {
   try {
     const [rows] = await pool.query(
