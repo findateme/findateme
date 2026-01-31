@@ -47,7 +47,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await response.json();
       const profiles = data.users || data.profiles || [];
       
-      console.log("📊 Total profiles received:", profiles.length);
+      // Debug: Check if photos exist in API response
+      const photosCount = profiles.filter(p => p.photo && p.photo.trim()).length;
+      console.log("📊 Total profiles:", profiles.length, "| With photos:", photosCount);
+      
+      // Debug: Show first 3 profiles photo status
+      profiles.slice(0, 3).forEach((p, i) => {
+        console.log(`Profile ${i + 1}: ${p.name || p.email}`, {
+          hasPhoto: !!p.photo,
+          photoLength: p.photo ? p.photo.length : 0,
+          isDataURI: p.photo ? p.photo.startsWith('data:image') : false
+        });
+      });
 
       if (profiles.length === 0) {
         console.log("⚠️ No profiles found");
