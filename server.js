@@ -224,8 +224,8 @@ async function ensureStoryCommentsTable(){
 
 ensureStoryCommentsTable();
 
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "15mb" })); // Increased to handle 10MB photos + metadata
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 // ✅ CORS middleware - Always enabled for all origins
 app.use((req, res, next) => {

@@ -449,7 +449,7 @@
             </div>
             <div style="display:grid; gap:8px; align-content:start">
               <button class="btn primary" type="button" id="savePhotoBtn" style="display:none;">Save Photo</button>
-              <div class="small">JPG or PNG. Max 2MB. Square looks best.</div>
+              <div class="small">JPG or PNG. Max 10MB. Square looks best.</div>
             </div>
           </div>
 
@@ -462,7 +462,7 @@
               + Add Photo
               <input id="galleryPhotoInput" type="file" accept="image/*" hidden />
             </label>
-            <div id="galleryStatus" style="font-size: 12px; color: var(--muted); margin-top: 8px;">Max 2MB per photo</div>
+            <div id="galleryStatus" style="font-size: 12px; color: var(--muted); margin-top: 8px;">Max 10MB per photo</div>
           </div>
 
           <div class="fieldGrid">
@@ -1063,10 +1063,10 @@
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       
-      // Validate file size (max 2MB)
-      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
       if (file.size > maxSize) {
-        statusEl.textContent = "⚠️ Image too large! Maximum size is 2MB.";
+        statusEl.textContent = "⚠️ Image too large! Maximum size is 10MB.";
         setTimeout(() => statusEl.textContent = "", 3000);
         e.target.value = ""; // Reset input
         return;
@@ -1251,10 +1251,10 @@
         const file = e.target.files?.[0];
         if (!file) return;
         
-        // Validate file size (max 2MB)
-        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
         if (file.size > maxSize) {
-          galleryStatus.textContent = "⚠️ Image too large! Maximum size is 2MB.";
+          galleryStatus.textContent = "⚠️ Image too large! Maximum size is 10MB.";
           setTimeout(() => updateGalleryStatus(), 3000);
           e.target.value = ""; // Reset input
           return;
