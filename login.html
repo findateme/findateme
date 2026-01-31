@@ -446,18 +446,20 @@
               userData.gender = "women";
             }
             
-            // ✅ IMPORTANT: Preserve LOCAL photo if it exists (user may have just changed it)
+            // ✅ CRITICAL: ALWAYS keep local photo if it exists (user may have just changed it)
             const existingProfile = JSON.parse(localStorage.getItem(`dateme_profile_${email}`) || "{}");
             
-            // If local photo exists and is different from server, KEEP local photo (it's newer)
-            if (existingProfile.photo && existingProfile.photo !== userData.photo) {
-              console.log("📸 Keeping LOCAL photo (newer than server)");
+            // Priority: LOCAL photo > SERVER photo (local is always most recent)
+            if (existingProfile.photo) {
+              console.log("📸 Using LOCAL photo (most recent)");
               userData.photo = existingProfile.photo;
+            } else if (userData.photo) {
+              console.log("📸 Using server photo");
             } else {
-              console.log("📸 Using server photo:", userData.photo ? "Photo exists" : "No photo");
+              console.log("📸 No photo found");
             }
             
-            // Save to ALL storage locations with preserved photo
+            // Save to ALL storage locations with latest photo
             const profileKey = `dateme_profile_${email}`;
             localStorage.setItem(profileKey, JSON.stringify(userData));
             localStorage.setItem("dateme_profile", JSON.stringify(userData));

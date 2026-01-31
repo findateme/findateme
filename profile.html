@@ -778,7 +778,11 @@
     }
     
     async function syncProfileToServer(data){
-      if (!data.email) return;
+      if (!data.email) {
+        return Promise.reject(new Error("No email"));
+      }
+      
+      console.log("🔄 Syncing to server...", { email: data.email, hasPhoto: !!data.photo });
       
       try {
         const res = await fetch(`${API_BASE}/api/profile`, {
@@ -797,15 +801,19 @@
         
         const result = await res.json();
         if (result.ok) {
-          console.log("✅ Synced to server");
+          console.log("✅ Server sync complete");
           
           // Clear profile caches so others see updated photo
           localStorage.removeItem("dateme_profiles");
           localStorage.removeItem("dateme_inbox_profiles_cache");
+          
+          return Promise.resolve(result);
+        } else {
+          return Promise.reject(new Error(result.error || "Server error"));
         }
       } catch (err) {
-        // Silently handle CORS/network errors - data is already saved locally
-        // Don't spam console - server might be restarting
+        console.warn("❌ Sync failed:", err.message);
+        return Promise.reject(err);
         // Don't throw error - local save is successful
       }
     }
@@ -1116,8 +1124,13 @@
           // Update profile in all cached lists to reflect new photo immediately
           updateProfileInLists(updatedData);
           
-          // Sync to server for real-time updates
-          syncProfileToServer(updatedData);
+          // ✅ CRITICAL: Sync to server IMMEDIATELY with retry
+          syncProfileToServer(updatedData).then(() => {
+            console.log("✅ Photo synced to server successfully");
+          }).catch(err => {
+            console.warn("⚠️ Photo sync failed, retrying in 2s...", err);
+            setTimeout(() => syncProfileToServer(updatedData), 2000);
+          });
           
           // Force avatar update
           setAvatar(currentPhoto);
