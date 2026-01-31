@@ -722,6 +722,13 @@
       localStorage.setItem("dateme_profile", JSON.stringify(finalDraft));
       localStorage.setItem("dateme_current_user", JSON.stringify(finalDraft));
 
+      // ✅ CRITICAL: Clear all profile caches so new user shows up on home page
+      localStorage.removeItem("dateme_profiles");
+      localStorage.removeItem("dateme_profiles_men");
+      localStorage.removeItem("dateme_profiles_women");
+      localStorage.removeItem("dateme_inbox_profiles_cache");
+      console.log("✅ Profile caches cleared - new user will show on home page");
+
       // ✅ Add new user profile to home page immediately
       addCustomProfile();
 

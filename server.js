@@ -774,6 +774,14 @@ app.get("/health", (_req, res) => {
 app.post("/api/register", async (req, res) => {
   const { email, username, password, name, city, country, gender, age, photo } = req.body;
   
+  console.log("📝 Registration request:", { 
+    email, 
+    username, 
+    name, 
+    hasPhoto: !!photo, 
+    photoLength: photo ? photo.length : 0 
+  });
+  
   if (!email || !username || !password) {
     return res.status(400).json({ ok: false, error: "Missing required fields" });
   }
@@ -797,12 +805,16 @@ app.post("/api/register", async (req, res) => {
       [email.toLowerCase(), username.toLowerCase(), name || "", hash]
     );
 
+    console.log("✅ User created in users table");
+
     await pool.query(
       `INSERT INTO user_profiles (email, city, country, gender, age, photo)
        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
        city=VALUES(city), country=VALUES(country), gender=VALUES(gender), age=VALUES(age), photo=VALUES(photo)`,
       [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photo || ""]
     );
+    
+    console.log("✅ Profile saved with photo:", !!photo);
 
         const userObj = {
           id: email.toLowerCase(),
