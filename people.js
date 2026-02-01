@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Get current user's plan from localStorage
       const activeEmail = localStorage.getItem("dateme_active_user");
       let userPlan = "free"; // default
+      let currentUserGender = ""; // Track current user's gender
       
       if (activeEmail) {
         try {
@@ -22,8 +23,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (hasUpgrade) {
             userPlan = localStorage.getItem("dateme_selected_plan") || "basic";
           }
+          
+          // Get current user's gender from localStorage
+          const userProfile = JSON.parse(localStorage.getItem("dateme_profile") || "{}");
+          currentUserGender = (userProfile.gender || "").toLowerCase();
+          console.log("👤 Current user gender:", currentUserGender || "not set");
         } catch (e) {
-          console.log("⚠️ Could not load user plan");
+          console.log("⚠️ Could not load user plan/gender");
         }
       }
       
@@ -70,6 +76,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Filter out deleted accounts (those without valid email)
       let validProfiles = profiles.filter(p => p.email && p.email.trim());
+      
+      // Filter out current user's own profile
+      if (activeEmail) {
+        validProfiles = validProfiles.filter(p => 
+          p.email.toLowerCase() !== activeEmail.toLowerCase()
+        );
+      }
+      
+      // Apply gender-based filtering
+      if (currentUserGender === "male" || currentUserGender === "female") {
+        const targetGender = currentUserGender === "male" ? "female" : "male";
+        const beforeFilter = validProfiles.length;
+        
+        validProfiles = validProfiles.filter(p => {
+          const profileGender = (p.gender || "").toLowerCase();
+          return profileGender === targetGender;
+        });
+        
+        console.log(`🔍 Gender filter: ${currentUserGender} user → showing ${targetGender} profiles (${beforeFilter} → ${validProfiles.length})`);
+      } else {
+        console.log("⚠️ Gender not set - showing all profiles");
+      }
       
       // Apply profile limit based on plan
       const totalAvailable = validProfiles.length;
