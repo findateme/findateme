@@ -45,10 +45,60 @@
       }
     }
     
+    /* Premium card animation */
+    .premium-card {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 8px 32px rgba(255,79,216,.2);
+      }
+      50% {
+        box-shadow: 0 12px 48px rgba(255,79,216,.4);
+      }
+    }
+    
+    /* Card hover effects */
+    .plan-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .plan-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 48px rgba(0,0,0,.3);
+    }
+    
+    /* Button hover effects */
+    .plan-btn {
+      transition: all 0.3s ease;
+    }
+    
+    .plan-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(255,79,216,.5) !important;
+    }
+    
     /* Premium payment option hover effects */
     .payment-option-btn:hover {
       transform: translateY(-4px) scale(1.02);
       box-shadow: 0 12px 48px rgba(0,0,0,.3);
+    }
+    
+    /* Pricing grid responsive */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    @media (max-width: 768px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
     }
   </style>
 </head>
@@ -147,14 +197,14 @@
         <h1 class="h1" style="margin-bottom:32px; text-align:center;">Choose Your Plan</h1>
         
         <!-- Pricing Cards -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
+        <div class="pricing-grid">
           
           <!-- Basic Plan Card -->
-          <div style="background:var(--card); border:2px solid rgba(255,255,255,.12); border-radius:16px; padding:24px; position:relative; transition:all 0.3s ease;">
-            <div style="text-align:center; margin-bottom:20px;">
-              <div style="font-size:24px; font-weight:800; margin-bottom:8px;">Basic Plan</div>
-              <div style="font-size:36px; font-weight:900; color:#ff4fd8; margin-bottom:4px;">$14</div>
-              <div style="font-size:14px; color:var(--muted);">per month</div>
+          <div class="plan-card" style="background:var(--card); border:2px solid rgba(255,255,255,.15); border-radius:20px; padding:28px; position:relative;">
+            <div style="text-align:center; margin-bottom:24px;">
+              <div style="font-size:28px; font-weight:800; margin-bottom:12px; color:#fff;">Basic Plan</div>
+              <div style="font-size:48px; font-weight:900; color:#ff4fd8; margin-bottom:8px; line-height:1;">$14</div>
+              <div style="font-size:15px; color:var(--muted); font-weight:500;">per month</div>
             </div>
             
             <div style="margin-bottom:24px;">
@@ -200,21 +250,21 @@
               </div>
             </div>
             
-            <button class="btn" type="button" id="basicPlanBtn" onclick="selectPlan('basic', 14)" style="width:100%; padding:18px 24px; font-size:17px; font-weight:700; margin-top:20px; transition:all 0.3s ease; border-radius:32px; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.15); box-shadow:0 4px 12px rgba(0,0,0,.2); cursor:pointer;">
+            <button class="btn plan-btn" type="button" id="basicPlanBtn" onclick="selectPlan('basic', 14)" style="width:100%; padding:20px 28px; font-size:18px; font-weight:700; margin-top:24px; border-radius:32px; background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.2); box-shadow:0 6px 16px rgba(0,0,0,.25); cursor:pointer; color:#fff;">
               Choose Basic Plan
             </button>
           </div>
           
           <!-- Premium Plan Card -->
-          <div style="background:linear-gradient(135deg, rgba(255,79,216,.15), rgba(124,77,255,.15)); border:2px solid #ff4fd8; border-radius:16px; padding:24px; position:relative; transition:all 0.3s ease; box-shadow:0 8px 32px rgba(255,79,216,.2);">
-            <div style="position:absolute; top:-12px; right:20px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); padding:4px 12px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase;">
+          <div class="plan-card premium-card" style="background:linear-gradient(135deg, rgba(255,79,216,.18), rgba(124,77,255,.18)); border:3px solid #ff4fd8; border-radius:20px; padding:28px; position:relative; box-shadow:0 12px 40px rgba(255,79,216,.25);">
+            <div style="position:absolute; top:-14px; right:24px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); padding:6px 16px; border-radius:16px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px rgba(255,79,216,.4);">
               Most Popular
             </div>
             
-            <div style="text-align:center; margin-bottom:20px;">
-              <div style="font-size:24px; font-weight:800; margin-bottom:8px;">Premium Plan</div>
-              <div style="font-size:36px; font-weight:900; color:#ff4fd8; margin-bottom:4px;">$30</div>
-              <div style="font-size:14px; color:var(--muted);">per month</div>
+            <div style="text-align:center; margin-bottom:24px;">
+              <div style="font-size:28px; font-weight:800; margin-bottom:12px; color:#fff;">Premium Plan</div>
+              <div style="font-size:48px; font-weight:900; color:#ff4fd8; margin-bottom:8px; line-height:1; text-shadow:0 0 20px rgba(255,79,216,.5);">$30</div>
+              <div style="font-size:15px; color:var(--muted); font-weight:500;">per month</div>
             </div>
             
             <div style="margin-bottom:24px;">
@@ -260,7 +310,7 @@
               </div>
             </div>
             
-            <button class="btn primary" type="button" id="premiumPlanBtn" onclick="selectPlan('premium', 30)" style="width:100%; padding:18px 24px; font-size:17px; font-weight:700; margin-top:20px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); border:none; transition:all 0.3s ease; border-radius:32px; box-shadow:0 6px 20px rgba(255,79,216,.4); cursor:pointer;">
+            <button class="btn primary plan-btn" type="button" id="premiumPlanBtn" onclick="selectPlan('premium', 30)" style="width:100%; padding:20px 28px; font-size:18px; font-weight:700; margin-top:24px; background:linear-gradient(135deg, #ff4fd8, #7c4dff); border:none; border-radius:32px; box-shadow:0 8px 24px rgba(255,79,216,.5); cursor:pointer; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.2);">
               Choose Premium Plan
             </button>
           </div>
