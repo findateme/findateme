@@ -528,18 +528,8 @@
             </svg>
             USDT (Binance)
           </div>
-          <div class="muted" style="font-size:13px;"><strong id="binance-amount"></strong> via TRC20 or BEP20 network.</div>
+          <div class="muted" style="font-size:13px;"><strong id="binance-amount"></strong> via BEP20 (Binance Smart Chain) network.</div>
           <div style="height:10px;"></div>
-
-          <div class="cardbox small paymentRow">
-            <div class="paymentRow__content">
-              <div style="font-weight:700;">USDT (TRC20)</div>
-              <div class="mono paymentRow__addr">TCBFWrepuPqQWvdchhJ8RtQB9nTrn86cPb</div>
-            </div>
-            <button class="btn paymentRow__btn" type="button" onclick="copyText('addr-trc20')">Copy</button>
-          </div>
-
-          <div style="height:8px;"></div>
 
           <div class="cardbox small paymentRow">
             <div class="paymentRow__content">
@@ -553,8 +543,7 @@
           <div class="muted" style="font-size:12px;">Paste your TXID after payment:</div>
           <div style="height:6px;"></div>
           <select id="networkSelect" class="input">
-            <option value="TRC20">Network: TRC20 (USDT)</option>
-            <option value="BEP20">Network: BEP20 (USDT)</option>
+            <option value="BEP20">Network: BEP20 (Binance Smart Chain)</option>
           </select>
           <input id="txidInput" class="input" placeholder="Paste TXID here" style="margin-top:8px;" />
           <div style="height:10px;"></div>
@@ -807,7 +796,6 @@
 
     function copyText(id){
       const map = {
-        "addr-trc20": "TCBFWrepuPqQWvdchhJ8RtQB9nTrn86cPb",
         "addr-bep20": "0x82ec9da2a486c0875ce67710ab7b7ad3b0490ce3"
       };
       const text = map[id] || "";

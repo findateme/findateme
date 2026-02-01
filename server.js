@@ -8,11 +8,10 @@ const fetch = global.fetch || require("node-fetch");
 
 const PORT = Number(process.env.PORT || 3000);
 const API_KEY = process.env.TATUM_API_KEY || "";
-const TRC20_ADDRESS = process.env.TRC20_ADDRESS || "";
 const BEP20_ADDRESS = process.env.BEP20_ADDRESS || "";
-const USDT_TRC20_CONTRACT = process.env.USDT_TRC20_CONTRACT || "";
 const USDT_BEP20_CONTRACT = process.env.USDT_BEP20_CONTRACT || "";
-const UPGRADE_AMOUNT = Number(process.env.UPGRADE_AMOUNT || 14);
+const UPGRADE_AMOUNT_BASIC = Number(process.env.UPGRADE_AMOUNT_BASIC || 14);
+const UPGRADE_AMOUNT_PREMIUM = Number(process.env.UPGRADE_AMOUNT_PREMIUM || 30);
 const ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || "";
 
 const pool = mysql.createPool({
@@ -656,38 +655,23 @@ function toFloat(val) {
   return cleaned ? Number(cleaned) : 0;
 }
 
-function amountOk(amount, decimals) {
+function amountOk(amount, decimals, requiredAmount) {
   let amt = toFloat(amount);
   if (decimals !== undefined && decimals !== null && String(decimals) !== "") {
     amt = amt / Math.pow(10, Number(decimals));
   } else if (amt > 1000000) {
     amt = amt / 1e18;
   }
-  return amt >= (UPGRADE_AMOUNT - 0.01);
+  // Accept both 14 USDT (basic) and 30 USDT (premium)
+  const isBasic = amt >= (UPGRADE_AMOUNT_BASIC - 0.01) && amt < (UPGRADE_AMOUNT_PREMIUM - 5);
+  const isPremium = amt >= (UPGRADE_AMOUNT_PREMIUM - 0.01);
+  return isBasic || isPremium;
 }
 
 async function tatumGet(url) {
   const resp = await fetch(url, { headers: { "x-api-key": API_KEY } });
   if (!resp.ok) return null;
   return resp.json();
-}
-
-async function verifyTrc20(txid) {
-  const data = await tatumGet(`https://api.tatum.io/v3/tron/transaction/${encodeURIComponent(txid)}`);
-  if (!data) return false;
-  const transfers = data.trc20Transfer || data.tokenTransfers || [];
-  const receiver = String(TRC20_ADDRESS || "").toLowerCase();
-  const contract = String(USDT_TRC20_CONTRACT || "").toLowerCase();
-
-  for (const t of transfers) {
-    const to = String(t.to || t.toAddress || "").toLowerCase();
-    const addr = String(t.contractAddress || t.contract || "").toLowerCase();
-    const amt = t.amount || t.value || 0;
-    if (to === receiver && addr === contract && amountOk(amt, t.decimals)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 async function verifyBep20(txid) {
@@ -716,11 +700,11 @@ app.post("/verify_txid.php", async (req, res) => {
   }
   const txid = String((req.body && req.body.txid) || "").trim();
   const chain = String((req.body && req.body.chain) || "").trim().toUpperCase();
-  if (!txid || (chain !== "TRC20" && chain !== "BEP20")) {
-    return res.status(400).json({ ok: false, error: "Invalid request" });
+  if (!txid || chain !== "BEP20") {
+    return res.status(400).json({ ok: false, error: "Invalid request. Only BEP20 (Binance Smart Chain) is supported." });
   }
   try {
-    const ok = chain === "TRC20" ? await verifyTrc20(txid) : await verifyBep20(txid);
+    const ok = await verifyBep20(txid);
     res.json({ ok: !!ok, message: ok ? "Verified" : "Not verified" });
   } catch (err) {
     res.status(500).json({ ok: false, error: "Server error" });
