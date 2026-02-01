@@ -1673,11 +1673,27 @@
           
           // Step 6: Clear ALL local data (except deleted accounts list)
           const deletedAccountsList = localStorage.getItem("dateme_deleted_accounts");
+          
+          // Clear ALL storage
           localStorage.clear();
           sessionStorage.clear();
+          
           // Restore deleted accounts list
           if (deletedAccountsList) {
             localStorage.setItem("dateme_deleted_accounts", deletedAccountsList);
+          }
+          
+          // Also clear IndexedDB if present
+          if (window.indexedDB) {
+            try {
+              window.indexedDB.databases().then(dbs => {
+                dbs.forEach(db => {
+                  window.indexedDB.deleteDatabase(db.name);
+                });
+              });
+            } catch (e) {
+              console.log("IndexedDB clear skipped");
+            }
           }
           
           // Step 7: Clear cookies
@@ -1687,14 +1703,14 @@
           
           // Step 8: Show final message
           if (deleteAccountMsg) {
-            deleteAccountMsg.textContent = "✅ Account permanently deleted. Redirecting...";
+            deleteAccountMsg.textContent = "✅ Account permanently deleted. Redirecting to login...";
             deleteAccountMsg.className = "authMsg ok";
           }
           
-          // Step 9: Redirect to landing page
+          // Step 9: Redirect to login page (NOT index.html to prevent auto-login)
           setTimeout(() => {
-            window.location.href = "/index.html";
-          }, serverDeleted ? 1500 : 4000); // Wait longer if server failed so user can read warning
+            window.location.href = "/login.html";
+          }, 1500);
           
         } catch (err) {
           console.error("Delete account error:", err);
