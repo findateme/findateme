@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2/promise");
 const path = require("path");
+const photoStorage = require("./photo-storage");
 
 const fetch = global.fetch || require("node-fetch");
 
@@ -224,8 +225,14 @@ async function ensureStoryCommentsTable(){
 
 ensureStoryCommentsTable();
 
+// Initialize photo storage
+photoStorage.ensureUploadDir();
+
 app.use(express.json({ limit: "15mb" })); // Increased to handle 10MB photos + metadata
 app.use(express.urlencoded({ extended: true, limit: "15mb" }));
+
+// Serve uploaded photos
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ CORS middleware - Always enabled for all origins
 app.use((req, res, next) => {
@@ -807,14 +814,26 @@ app.post("/api/register", async (req, res) => {
 
     console.log("✅ User created in users table");
 
+    // Save photo to file system if provided
+    let photoUrl = "";
+    if (photo) {
+      try {
+        photoUrl = await photoStorage.savePhoto(email.toLowerCase(), photo);
+        console.log("✅ Photo saved to file:", photoUrl);
+      } catch (photoErr) {
+        console.error("Photo save error:", photoErr);
+        // Continue without photo
+      }
+    }
+
     await pool.query(
       `INSERT INTO user_profiles (email, city, country, gender, age, photo)
        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE
        city=VALUES(city), country=VALUES(country), gender=VALUES(gender), age=VALUES(age), photo=VALUES(photo)`,
-      [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photo || ""]
+      [email.toLowerCase(), city || "", country || "", gender || "", age || 0, photoUrl || ""]
     );
     
-    console.log("✅ Profile saved with photo:", !!photo);
+    console.log("✅ Profile saved with photo URL:", photoUrl);
 
         const userObj = {
           id: email.toLowerCase(),
@@ -825,7 +844,7 @@ app.post("/api/register", async (req, res) => {
           country: country || "",
           gender: gender || "",
           age: Number(age) || 0,
-          photo: photo || ""
+          photo: photoUrl || ""
         };
 
         res.json({ ok: true, message: "Registration successful", email: email.toLowerCase(), user: userObj });
@@ -911,21 +930,44 @@ app.put("/api/profile", async (req, res) => {
   }
 
   try {
+    let photoUrl = "";
+    
+    // Handle photo update - save to file system
     if (photo && photo.trim()) {
       try {
+        // Get old photo for history
         const [current] = await pool.query(
           "SELECT photo FROM user_profiles WHERE email = ?",
           [email.toLowerCase()]
         );
         
         if (current.length > 0 && current[0].photo && current[0].photo.trim()) {
+          // Save old photo URL to history
           await pool.query(
             "INSERT INTO photo_history (email, photo) VALUES (?, ?)",
             [email.toLowerCase(), current[0].photo]
           );
+          
+          // Delete old photo file if it exists and is a file path (not base64)
+          if (!current[0].photo.startsWith('data:')) {
+            await photoStorage.deletePhoto(current[0].photo).catch(err => {
+              console.log("Old photo delete error (continuing):", err.message);
+            });
+          }
         }
-      } catch (historyErr) {
-        console.log("Photo history save error (continuing):", historyErr.message);
+        
+        // Save new photo to file system
+        photoUrl = await photoStorage.savePhoto(email.toLowerCase(), photo);
+        console.log("✅ Profile photo saved to file:", photoUrl);
+        
+      } catch (photoErr) {
+        console.error("Photo save error:", photoErr);
+        // Continue with old photo or empty
+        if (photo.startsWith('data:')) {
+          photoUrl = ""; // Don't save base64 to DB anymore
+        } else {
+          photoUrl = photo; // Keep existing URL
+        }
       }
     }
     
@@ -933,7 +975,7 @@ app.put("/api/profile", async (req, res) => {
       `UPDATE user_profiles 
        SET city=?, country=?, gender=?, age=?, photo=?, updated_at=NOW()
        WHERE email = ?`,
-      [city || "", country || "", gender || "", age || 0, photo || "", email.toLowerCase()]
+      [city || "", country || "", gender || "", age || 0, photoUrl || "", email.toLowerCase()]
     );
 
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -943,6 +985,7 @@ app.put("/api/profile", async (req, res) => {
     res.json({ 
       ok: true, 
       message: "Profile updated successfully",
+      photoUrl: photoUrl,
       timestamp: Date.now()
     });
   } catch (err) {
