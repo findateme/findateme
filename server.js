@@ -280,7 +280,7 @@ app.get("/get_users.php", async (_req, res) => {
                 COALESCE(p.gender, '') as gender, 
                 COALESCE(p.age, 0) as age, 
                 COALESCE(p.photo, '') as photo,
-                p.is_online, p.last_seen, p.updated_at
+                p.is_online, p.last_seen
          FROM users u
          LEFT JOIN user_profiles p ON p.email = u.email
          ORDER BY u.created_at DESC
@@ -957,7 +957,7 @@ app.put("/api/profile", async (req, res) => {
     
     await pool.query(
       `UPDATE user_profiles 
-       SET city=?, country=?, gender=?, age=?, photo=?, updated_at=NOW()
+       SET city=?, country=?, gender=?, age=?, photo=?
        WHERE email = ?`,
       [city || "", country || "", gender || "", age || 0, photoUrl || "", email.toLowerCase()]
     );
@@ -1032,7 +1032,7 @@ app.post("/api/set_photo_from_history", async (req, res) => {
     }
 
     await pool.query(
-      "UPDATE user_profiles SET photo = ?, updated_at = NOW() WHERE email = ?",
+      "UPDATE user_profiles SET photo = ? WHERE email = ?",
       [historyPhoto[0].photo, email.toLowerCase()]
     );
 
@@ -1085,7 +1085,7 @@ app.post("/api/update_online_status", async (req, res) => {
     const status = is_online ? 1 : 0;
     await pool.query(
       `UPDATE user_profiles 
-       SET is_online=?, last_seen=NOW(), updated_at=NOW()
+       SET is_online=?, last_seen=NOW()
        WHERE email = ?`,
       [status, email.toLowerCase()]
     );
