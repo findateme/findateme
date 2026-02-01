@@ -18,7 +18,7 @@ async function fixPhotoPaths() {
   try {
     // 1. Find all users with invalid /assets/ photo paths
     const [usersWithAssets] = await pool.query(
-      `SELECT email, name, photo 
+      `SELECT email, photo 
        FROM user_profiles 
        WHERE photo LIKE '/assets/%' OR photo LIKE 'assets/%'`
     );
@@ -28,7 +28,7 @@ async function fixPhotoPaths() {
     if (usersWithAssets.length > 0) {
       console.log("Users with invalid paths:");
       usersWithAssets.forEach((u, i) => {
-        console.log(`  ${i + 1}. ${u.name || u.email} - ${u.photo}`);
+        console.log(`  ${i + 1}. ${u.email} - ${u.photo}`);
       });
       console.log("");
     }
@@ -44,7 +44,7 @@ async function fixPhotoPaths() {
 
     // 3. Check remaining valid photos
     const [validPhotos] = await pool.query(
-      `SELECT email, name, photo 
+      `SELECT email, photo 
        FROM user_profiles 
        WHERE photo IS NOT NULL 
        AND photo != '' 
@@ -56,7 +56,7 @@ async function fixPhotoPaths() {
     console.log(`📸 Sample of ${validPhotos.length} users with valid photos:`);
     validPhotos.forEach((u, i) => {
       const photoType = u.photo.startsWith('data:image') ? 'BASE64' : u.photo;
-      console.log(`  ${i + 1}. ${u.name || u.email} - ${photoType.substring(0, 60)}...`);
+      console.log(`  ${i + 1}. ${u.email} - ${photoType.substring(0, 60)}...`);
     });
 
     // 4. Summary
