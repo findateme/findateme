@@ -82,8 +82,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       grid.innerHTML = validProfiles.map(p => {
-        // Photo display logic - show photo if exists, otherwise gradient
-        const hasPhoto = p.photo && p.photo.trim() && p.photo.startsWith('data:image');
+        // Photo display logic - show photo if exists (base64 or file URL), otherwise gradient
+        const hasPhoto = p.photo && p.photo.trim();
         
         const photoStyle = hasPhoto 
           ? `background-image:url('${p.photo}'); background-size:cover; background-position:center;`
