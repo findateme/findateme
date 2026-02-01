@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loader = document.getElementById("gridLoader");
     if (loader) loader.remove();
     
+    console.log("🔄 Loading profiles...");
+    
     try {
       // Get current user's plan from localStorage
       const activeEmail = localStorage.getItem("dateme_active_user");
@@ -51,12 +53,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const photosCount = profiles.filter(p => p.photo && p.photo.trim()).length;
       console.log("📊 Total profiles:", profiles.length, "| With photos:", photosCount);
       
-      // Debug: Show first 3 profiles photo status
-      profiles.slice(0, 3).forEach((p, i) => {
+      // Debug: Show first 5 profiles photo status
+      profiles.slice(0, 5).forEach((p, i) => {
         console.log(`Profile ${i + 1}: ${p.name || p.email}`, {
           hasPhoto: !!p.photo,
-          photoLength: p.photo ? p.photo.length : 0,
-          isDataURI: p.photo ? p.photo.startsWith('data:image') : false
+          photoPath: p.photo ? (p.photo.startsWith('data:') ? 'BASE64' : p.photo) : 'NONE',
+          photoLength: p.photo ? p.photo.length : 0
         });
       });
 
@@ -84,6 +86,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       grid.innerHTML = validProfiles.map(p => {
         // Photo display logic - show photo if exists (base64 or file URL), otherwise gradient
         const hasPhoto = p.photo && p.photo.trim();
+        
+        // Debug: Log profiles without photos
+        if (!hasPhoto) {
+          console.log(`⚠️ No photo for user: ${p.email} (${p.name || 'unnamed'})`);
+        }
         
         const photoStyle = hasPhoto 
           ? `background-image:url('${p.photo}'); background-size:cover; background-position:center;`
@@ -182,6 +189,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initial load
   loadProfiles();
 
-  // Auto-refresh every 10 seconds to show updated photos
-  setInterval(loadProfiles, 10000);
+  // Auto-refresh every 60 seconds to show updated photos (reduced from 10s to avoid flickering)
+  setInterval(loadProfiles, 60000);
 });
