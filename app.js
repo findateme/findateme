@@ -1784,3 +1784,22 @@ window.addEventListener("beforeunload", async () => {
 });
 
 document.addEventListener("DOMContentLoaded", init);
+
+// 🌟 Smooth sticky header behavior
+let lastScrollTop = 0;
+const header = document.querySelector('.topbar');
+
+if (header) {
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Add shadow when scrolled
+    if (scrollTop > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+    
+    lastScrollTop = scrollTop;
+  }, { passive: true }); // Use passive for better scroll performance
+}
