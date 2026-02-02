@@ -36,9 +36,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Set profile limits based on plan
       let profileLimit = 10; // free: 10 profiles
       if (userPlan === "basic") {
-        profileLimit = 50;
+        profileLimit = 100; // basic: 100 profiles
       } else if (userPlan === "premium") {
-        profileLimit = 100;
+        profileLimit = 500; // premium: 500 profiles
       }
       
       console.log("💎 User plan:", userPlan, "- Profile limit:", profileLimit);

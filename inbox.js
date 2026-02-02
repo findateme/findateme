@@ -104,8 +104,8 @@ function saveStore(store){
 let store = loadStore();
 let activeId = null;
 const FREE_MSG_LIMIT = 2; // Free users can only send 2 messages
-const BASIC_MSG_LIMIT = 500; // Basic plan ($14)
-const PREMIUM_MSG_LIMIT = 1000; // Premium plan ($30)
+const BASIC_MSG_LIMIT = 1000; // Basic plan ($14)
+const PREMIUM_MSG_LIMIT = 999999; // Premium plan ($30) - Unlimited
 
 function getUserPlan(){
   const plan = localStorage.getItem("dateme_selected_plan") || "free";
