@@ -1785,21 +1785,98 @@ window.addEventListener("beforeunload", async () => {
 
 document.addEventListener("DOMContentLoaded", init);
 
-// 🌟 Smooth sticky header behavior
+// 🌟 Hide header on scroll down, show on scroll up
 let lastScrollTop = 0;
 const header = document.querySelector('.topbar');
+let scrollThreshold = 10; // Minimum scroll to trigger hide/show
 
 if (header) {
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     
-    // Add shadow when scrolled
-    if (scrollTop > 50) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
+    // Only trigger if scrolled more than threshold
+    if (Math.abs(scrollTop - lastScrollTop) > scrollThreshold) {
+      if (scrollTop > lastScrollTop && scrollTop > 100) {
+        // Scrolling down - hide header
+        header.classList.add('hide-header');
+        header.classList.remove('show-header');
+      } else {
+        // Scrolling up - show header
+        header.classList.remove('hide-header');
+        header.classList.add('show-header');
+      }
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     }
     
-    lastScrollTop = scrollTop;
-  }, { passive: true }); // Use passive for better scroll performance
+    // Remove show-header class if at top
+    if (scrollTop < 50) {
+      header.classList.remove('show-header');
+    }
+  }, { passive: true });
 }
+
+// 🌟 Search Modal functionality
+const searchModal = document.getElementById('searchModal');
+const searchIconBtn = document.getElementById('searchIconBtn');
+const closeSearchModal = document.getElementById('closeSearchModal');
+const modalSearchInput = document.getElementById('modalSearchInput');
+const modalSearchBtn = document.getElementById('modalSearchBtn');
+
+if (searchIconBtn && searchModal) {
+  // Open modal
+  searchIconBtn.addEventListener('click', () => {
+    searchModal.classList.add('active');
+    modalSearchInput.focus();
+  });
+
+  // Close modal
+  closeSearchModal.addEventListener('click', () => {
+    searchModal.classList.remove('active');
+  });
+
+  // Close on backdrop click
+  searchModal.addEventListener('click', (e) => {
+    if (e.target === searchModal) {
+      searchModal.classList.remove('active');
+    }
+  });
+
+  // Search button
+  modalSearchBtn.addEventListener('click', () => {
+    const searchTerm = modalSearchInput.value.trim();
+    if (searchTerm) {
+      // Trigger the existing search functionality
+      const desktopSearchInput = document.getElementById('q');
+      if (desktopSearchInput) {
+        desktopSearchInput.value = searchTerm;
+        const searchBtn = document.getElementById('applyBtn');
+        if (searchBtn) {
+          searchBtn.click();
+        }
+      }
+      searchModal.classList.remove('active');
+    }
+  });
+
+  // Search on Enter key
+  modalSearchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      modalSearchBtn.click();
+    }
+  });
+
+  // Prevent body scroll when modal is open
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class') {
+        if (searchModal.classList.contains('active')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      }
+    });
+  });
+  observer.observe(searchModal, { attributes: true });
+}
+

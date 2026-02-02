@@ -172,6 +172,10 @@
     </div>
 
       <div class="topbar__right">
+      <!-- Search icon for mobile -->
+      <button class="search-icon-btn" id="searchIconBtn" type="button" aria-label="Search">🔍</button>
+      
+      <!-- Original search bar for desktop -->
       <div class="topbarSearch">
         <div class="searchBar searchBar--mini">
           <input id="q" class="searchInput" type="text" placeholder="Search username..." />
@@ -185,6 +189,18 @@
 </a>    </div>
     </div>
   </header>
+
+  <!-- Search Modal for Mobile -->
+  <div class="search-modal" id="searchModal">
+    <div class="search-modal-content">
+      <div class="search-modal-header">
+        <div class="search-modal-title">🔍 Search Users</div>
+        <button class="search-modal-close" id="closeSearchModal">×</button>
+      </div>
+      <input type="text" class="search-modal-input" id="modalSearchInput" placeholder="Type username..." />
+      <button class="search-modal-btn" id="modalSearchBtn">Search</button>
+    </div>
+  </div>
 
   <main class="layout">
     
