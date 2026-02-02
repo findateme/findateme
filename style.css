@@ -264,11 +264,11 @@ body[data-theme="light"] .topbar{background: rgba(255,255,255,.70)}
 
 /* Add padding to body to compensate for fixed header */
 body[data-page="people"] {
-  padding-top: 120px;
+  padding-top: 100px;
 }
 @media (max-width: 620px){
   body[data-page="people"] {
-    padding-top: 70px;
+    padding-top: 65px;
   }
 }
 .topbar__inner{
@@ -431,19 +431,20 @@ body[data-page="people"] .searchInput{
   appearance:none;
 }
 
-/* Search icon for mobile */
+/* Search icon for mobile - smaller and cleaner */
 .search-icon-btn {
   display: none;
   background: linear-gradient(135deg, rgba(255,79,216,.9), rgba(124,77,255,.9));
   border: none;
-  border-radius: 12px;
-  width: 44px;
-  height: 44px;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 18px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 .search-icon-btn:hover {
   transform: scale(1.05);
@@ -558,27 +559,34 @@ body[data-page="people"] .searchInput{
 }
 
 @media (max-width: 620px){
+  /* Hide desktop search completely on mobile */
+  body[data-page="people"] .topbarSearch {
+    display: none !important;
+  }
+  
+  /* Show only search icon button */
+  .search-icon-btn {
+    display: flex !important;
+    order: 0;
+  }
+  
   body[data-page="people"] .topControls{flex-direction:column; align-items:flex-start}
   body[data-page="people"] .searchBar{flex-direction:column; align-items:stretch; width:100%}
   body[data-page="people"] .searchInput{flex:1; width:100%}
   body[data-page="people"] .searchBtn{width:100%}
-  body[data-page="people"] .topbar__inner{flex-direction:column; align-items:flex-start}
-  body[data-page="people"] .topbar__right{width:100%; justify-content:space-between; flex-wrap:wrap; row-gap:8px}
-  body[data-page="people"] .topbarSearch{
-    display:none !important;
+  body[data-page="people"] .topbar__inner{flex-direction:row; align-items:center; flex-wrap:nowrap}
+  body[data-page="people"] .topbar__right{
+    width: auto;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    row-gap: 0;
+    gap: 10px;
   }
   body[data-page="people"] .searchBar--mini{
-    width:100%;
+    display: none !important;
   }
-  body[data-page="people"] .searchBar--mini .searchInput{
-    flex:1 1 auto;
-    width:100%;
-  }
-  body[data-page="people"] .menuBtn{order:1}
-  body[data-page="people"] .avatar{order:2; margin-left:auto}
-  .search-icon-btn {
-    display: flex;
-  }
+  body[data-page="people"] .menuBtn{order: 2}
+  body[data-page="people"] .avatar{order: 3; margin-left: 0}
 }
 @media (max-width: 740px){
   .topbar{padding:10px 12px;}
