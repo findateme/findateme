@@ -89,12 +89,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         const targetGender = currentUserGender === "male" ? "female" : "male";
         const beforeFilter = validProfiles.length;
         
+        // Debug: Log first 3 profiles before filtering
+        console.log("📋 Sample profiles BEFORE gender filter:");
+        validProfiles.slice(0, 3).forEach((p, i) => {
+          console.log(`  ${i + 1}. ${p.name || p.email} - Gender: "${p.gender || 'NOT SET'}" (${typeof p.gender})`);
+        });
+        
         validProfiles = validProfiles.filter(p => {
-          const profileGender = (p.gender || "").toLowerCase();
-          return profileGender === targetGender;
+          const profileGender = (p.gender || "").toLowerCase().trim();
+          const match = profileGender === targetGender;
+          
+          // Debug: Log why profile is filtered out
+          if (!match && profileGender) {
+            console.log(`❌ Filtered out: ${p.name || p.email} (gender: "${p.gender}" !== "${targetGender}")`);
+          }
+          
+          return match;
         });
         
         console.log(`🔍 Gender filter: ${currentUserGender} user → showing ${targetGender} profiles (${beforeFilter} → ${validProfiles.length})`);
+        
+        // Debug: Log first 3 profiles after filtering
+        console.log("✅ Sample profiles AFTER gender filter:");
+        validProfiles.slice(0, 3).forEach((p, i) => {
+          console.log(`  ${i + 1}. ${p.name || p.email} - Gender: "${p.gender}"`);
+        });
       } else {
         console.log("⚠️ Gender not set - showing all profiles");
       }
