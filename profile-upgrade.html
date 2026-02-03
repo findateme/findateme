@@ -86,6 +86,87 @@
       box-shadow: 0 12px 48px rgba(0,0,0,.3);
     }
     
+    /* Payment Tab Styles */
+    .payment-tab {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .payment-tab:hover {
+      background: var(--card2) !important;
+      transform: translateY(-2px) !important;
+    }
+    
+    .payment-tab::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,79,216,.05), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .payment-tab:hover::before {
+      opacity: 1;
+    }
+    
+    /* Payment Input Styles */
+    .payment-input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--stroke);
+      border-radius: var(--r);
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    
+    .payment-input:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px rgba(255,79,216,.1);
+    }
+    
+    .payment-input::placeholder {
+      color: var(--muted2);
+    }
+    
+    /* Payment Button Gradient */
+    .payment-btn-gradient {
+      padding: 16px 48px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      color: white;
+      border: none;
+      border-radius: 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(255,79,216,.35);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    
+    .payment-btn-gradient:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(255,79,216,.45);
+    }
+    
+    .payment-btn-gradient:active {
+      transform: translateY(0);
+    }
+    
+    /* Payment link colors */
+    .payment-link {
+      color: var(--pink);
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+    
+    .payment-link:hover {
+      color: var(--violet);
+    }
+    
     /* Pricing grid responsive */
     .pricing-grid {
       display: grid;
@@ -319,68 +400,68 @@
         
         <!-- Payment Method Selection (Shows after plan selection) -->
         <div id="paymentMethodsSection" style="display:none; margin-top:32px;">
-          <h2 style="text-align:center; font-size:22px; font-weight:800; margin-bottom:8px;">Choose Payment Method</h2>
-          <p style="text-align:center; color:var(--muted); margin-bottom:24px;" id="selectedPlanText"></p>
+          <h2 style="text-align:center; font-size:24px; font-weight:800; margin-bottom:8px; color:var(--text);">3. Select a payment method</h2>
+          <p style="text-align:center; color:var(--muted); margin-bottom:32px; font-size:14px;" id="selectedPlanText"></p>
           
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+          <!-- Payment Method Tabs -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0; border:2px solid var(--stroke); border-radius:var(--r); overflow:hidden; background:var(--card);">
             
-            <!-- Local Payment Option (Hidden for now) -->
-            <div class="payment-option-btn graph-node" onclick="showLocalPaymentOptions()" style="display:none; padding:20px; background:rgba(16,185,129,.08); border:2px solid rgba(16,185,129,.3); border-radius:12px; cursor:pointer; transition:all 0.3s; text-align:center;">
-              <svg style="width:48px; height:48px; margin:0 auto 12px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="200" fill="#10B981" rx="16"/>
-                <circle cx="60" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
-                <circle cx="140" cy="80" r="25" fill="none" stroke="white" stroke-width="6"/>
-                <rect x="40" y="130" width="120" height="40" fill="none" stroke="white" stroke-width="6" rx="4"/>
+            <!-- Card Tab -->
+            <div class="payment-tab" data-tab="card" onclick="showPaymentTab('card')" style="padding:24px; text-align:center; cursor:pointer; transition:all 0.3s; border-right:2px solid var(--stroke); background:var(--card);">
+              <svg style="width:32px; height:32px; margin:0 auto 8px; opacity:0.85;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" stroke-width="2"/>
               </svg>
-              <div style="font-weight:700; font-size:16px; margin-bottom:4px;">Local Payment</div>
-              <div style="font-size:13px; color:var(--muted);">bKash, Nagad</div>
+              <div style="font-weight:600; font-size:15px; color:var(--text);">Card</div>
             </div>
             
-            <!-- International Payment Option -->
-            <div class="payment-option-btn graph-node" onclick="showInternationalPaymentOptions()" style="padding:32px 24px; background:linear-gradient(135deg, rgba(0,102,255,.12), rgba(59,130,246,.08)); border:2px solid rgba(0,102,255,.4); border-radius:16px; cursor:pointer; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; box-shadow:0 8px 32px rgba(0,102,255,.15); position:relative; overflow:hidden;">
-              <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, transparent, rgba(255,255,255,.03)); pointer-events:none;"></div>
-              <svg style="width:64px; height:64px; margin:0 auto 16px; filter:drop-shadow(0 4px 12px rgba(0,102,255,.3));" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="paypalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#0070E0;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#003087;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
-                <rect width="200" height="200" fill="url(#paypalGrad)" rx="24"/>
-                <g transform="translate(100,100)">
-                  <circle r="65" fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
-                  <path d="M -25 -30 L -25 30 M -25 -30 Q -5 -30 -5 -10 Q -5 10 -25 10" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/>
-                  <path d="M 5 -30 L 5 30 M 5 -30 Q 25 -30 25 -10 Q 25 10 5 10" fill="none" stroke="#FFD700" stroke-width="10" stroke-linecap="round"/>
-                </g>
+            <!-- PayPal Tab -->
+            <div class="payment-tab" data-tab="paypal" onclick="showPaymentTab('paypal')" style="padding:24px; text-align:center; cursor:pointer; transition:all 0.3s; border-right:2px solid var(--stroke); background:var(--card);">
+              <svg style="width:80px; height:32px; margin:0 auto 8px;" viewBox="0 0 124 33" xmlns="http://www.w3.org/2000/svg">
+                <path d="M46.211 6.749h-6.839a.95.95 0 0 0-.939.802l-2.766 17.537a.57.57 0 0 0 .564.658h3.265a.95.95 0 0 0 .939-.803l.746-4.73a.95.95 0 0 1 .938-.803h2.165c4.505 0 7.105-2.18 7.784-6.5.306-1.89.013-3.375-.872-4.415-.972-1.142-2.696-1.746-4.985-1.746zM47 13.154c-.374 2.454-2.249 2.454-4.062 2.454h-1.032l.724-4.583a.57.57 0 0 1 .563-.481h.473c1.235 0 2.4 0 3.002.704.359.42.469 1.044.332 1.906zM66.654 13.075h-3.275a.57.57 0 0 0-.563.481l-.145.916-.229-.332c-.709-1.029-2.29-1.373-3.868-1.373-3.619 0-6.71 2.741-7.312 6.586-.313 1.918.132 3.752 1.22 5.031.998 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .562.66h2.95a.95.95 0 0 0 .939-.803l1.77-11.209a.568.568 0 0 0-.561-.658zm-4.565 6.374c-.316 1.871-1.801 3.127-3.695 3.127-.951 0-1.711-.305-2.199-.883-.484-.574-.668-1.391-.514-2.301.295-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.499.589.697 1.411.554 2.317zM84.096 13.075h-3.291a.954.954 0 0 0-.787.417l-4.539 6.686-1.924-6.425a.953.953 0 0 0-.912-.678h-3.234a.57.57 0 0 0-.541.754l3.625 10.638-3.408 4.811a.57.57 0 0 0 .465.9h3.287a.949.949 0 0 0 .781-.408l10.946-15.8a.57.57 0 0 0-.468-.895z" fill="#253B80"/>
+                <path d="M94.992 6.749h-6.84a.95.95 0 0 0-.938.802l-2.766 17.537a.569.569 0 0 0 .562.658h3.51a.665.665 0 0 0 .656-.562l.785-4.971a.95.95 0 0 1 .938-.803h2.164c4.506 0 7.105-2.18 7.785-6.5.307-1.89.012-3.375-.873-4.415-.971-1.142-2.694-1.746-4.983-1.746zm.789 6.405c-.373 2.454-2.248 2.454-4.062 2.454h-1.031l.725-4.583a.568.568 0 0 1 .562-.481h.473c1.234 0 2.4 0 3.002.704.359.42.468 1.044.331 1.906zM115.434 13.075h-3.273a.567.567 0 0 0-.562.481l-.145.916-.23-.332c-.709-1.029-2.289-1.373-3.867-1.373-3.619 0-6.709 2.741-7.311 6.586-.312 1.918.131 3.752 1.219 5.031 1 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .564.66h2.949a.95.95 0 0 0 .938-.803l1.771-11.209a.571.571 0 0 0-.565-.658zm-4.565 6.374c-.314 1.871-1.801 3.127-3.695 3.127-.949 0-1.711-.305-2.199-.883-.484-.574-.666-1.391-.514-2.301.297-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.501.589.699 1.411.554 2.317zM119.295 7.23l-2.807 17.858a.569.569 0 0 0 .562.658h2.822c.469 0 .867-.34.939-.803l2.768-17.536a.57.57 0 0 0-.562-.659h-3.16a.571.571 0 0 0-.562.482z" fill="#179BD7"/>
+                <path d="M7.266 29.154l.523-3.322-1.165-.027H1.061L4.927 1.292a.316.316 0 0 1 .314-.268h9.38c3.114 0 5.263.648 6.385 1.927.526.6.861 1.227 1.023 1.917.17.724.173 1.589.007 2.644l-.012.077v.676l.526.298a3.69 3.69 0 0 1 1.065.812c.45.513.741 1.165.864 1.938.127.795.085 1.741-.123 2.812-.24 1.232-.628 2.305-1.152 3.183a6.547 6.547 0 0 1-1.825 2c-.696.494-1.523.869-2.458 1.109-.906.236-1.939.355-3.072.355h-.73c-.522 0-1.029.188-1.427.525a2.21 2.21 0 0 0-.744 1.328l-.055.299-.924 5.855-.042.215c-.011.068-.03.102-.058.125a.155.155 0 0 1-.096.035H7.266z" fill="#253B80"/>
+                <path d="M23.048 7.667c-.028.179-.06.362-.096.55-1.237 6.351-5.469 8.545-10.874 8.545H9.326c-.661 0-1.218.48-1.321 1.132L6.596 26.83l-.399 2.533a.704.704 0 0 0 .695.814h4.881c.578 0 1.069-.42 1.16-.99l.048-.248.919-5.832.059-.32c.09-.572.582-.992 1.16-.992h.73c4.729 0 8.431-1.92 9.513-7.476.452-2.321.218-4.259-.978-5.622a4.667 4.667 0 0 0-1.336-1.03z" fill="#179BD7"/>
+                <path d="M21.754 7.151a9.757 9.757 0 0 0-1.203-.267 15.284 15.284 0 0 0-2.426-.177h-7.352a1.172 1.172 0 0 0-1.159.992L8.05 17.605l-.045.289a1.336 1.336 0 0 1 1.321-1.132h2.752c5.405 0 9.637-2.195 10.874-8.545.037-.188.068-.371.096-.55a6.594 6.594 0 0 0-1.017-.429 9.045 9.045 0 0 0-.277-.087z" fill="#222D65"/>
+                <path d="M9.614 7.699a1.169 1.169 0 0 1 1.159-.991h7.352c.871 0 1.684.057 2.426.177a9.757 9.757 0 0 1 1.481.353c.365.121.704.264 1.017.429.368-2.347-.003-3.945-1.272-5.392C20.378.682 17.853 0 14.622 0h-9.38c-.66 0-1.223.48-1.325 1.133L.01 25.898a.806.806 0 0 0 .795.932h5.791l1.454-9.225 1.564-9.906z" fill="#253B80"/>
               </svg>
-              <div style="font-weight:800; font-size:18px; margin-bottom:6px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.3);">International Payment</div>
-              <div style="font-size:14px; color:rgba(255,255,255,.8); font-weight:600;">PayPal</div>
-              <div style="margin-top:12px; padding:6px 16px; background:rgba(0,102,255,.2); border-radius:20px; display:inline-block; font-size:12px; font-weight:700; color:#60A5FA;">Worldwide</div>
+              <div style="font-weight:600; font-size:15px; color:var(--text); opacity:0; height:0;">PayPal</div>
             </div>
             
-            <!-- Crypto Payment Option -->
-            <div class="payment-option-btn graph-node" onclick="showCryptoPaymentOptions()" style="padding:32px 24px; background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(251,191,36,.08)); border:2px solid rgba(245,158,11,.5); border-radius:16px; cursor:pointer; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; box-shadow:0 8px 32px rgba(245,158,11,.2); position:relative; overflow:hidden;">
-              <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, transparent, rgba(255,255,255,.03)); pointer-events:none;"></div>
-              <svg style="width:64px; height:64px; margin:0 auto 16px; filter:drop-shadow(0 4px 12px rgba(245,158,11,.4));" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="cryptoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#FBBF24;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
-                <rect width="200" height="200" fill="url(#cryptoGrad)" rx="24"/>
-                <g transform="translate(100,100)">
-                  <circle r="70" fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
-                  <circle r="50" fill="none" stroke="white" stroke-width="6" opacity="0.6"/>
-                  <path d="M 0 -45 L 45 0 L 0 45 L -45 0 Z" fill="white" opacity="0.9"/>
-                  <text x="0" y="15" font-size="48" font-weight="900" fill="#F59E0B" text-anchor="middle" font-family="Arial">₮</text>
-                </g>
-              </svg>
-              <div style="font-weight:800; font-size:18px; margin-bottom:6px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.3);">Crypto Payment</div>
-              <div style="font-size:14px; color:rgba(255,255,255,.8); font-weight:600;">USDT</div>
-              <div style="margin-top:12px; padding:6px 16px; background:rgba(245,158,11,.25); border-radius:20px; display:inline-block; font-size:12px; font-weight:700; color:#FCD34D;">Blockchain</div>
+            <!-- Crypto Tab -->
+            <div class="payment-tab" data-tab="crypto" onclick="showPaymentTab('crypto')" style="padding:24px; text-align:center; cursor:pointer; transition:all 0.3s; background:var(--card);">
+              <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:8px;">
+                <svg style="width:32px; height:32px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="16" cy="16" r="16" fill="#F7931A"/>
+                  <path d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.113-.92-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.746-.17-1.104-.26l.002-.009-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.313-1.256-.313l-.858 1.978 2.25.561c.418.105.828.215 1.231.318l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.706 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.533 2.147-4.148.986-5.32.695l.95-3.805c1.172.293 4.929.872 4.37 3.11zm.535-5.569c-.487 1.953-3.495.96-4.47.717l.86-3.45c.975.243 4.118.696 3.61 2.733z" fill="white"/>
+                </svg>
+                <svg style="width:32px; height:32px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="16" cy="16" r="16" fill="#627EEA"/>
+                  <path d="M16.498 4v8.87l7.497 3.35L16.498 4z" fill="white" fill-opacity=".602"/>
+                  <path d="M16.498 4L9 16.22l7.498-3.35V4z" fill="white"/>
+                  <path d="M16.498 21.968v6.027L24 17.616l-7.502 4.352z" fill="white" fill-opacity=".602"/>
+                  <path d="M16.498 27.995v-6.028L9 17.616l7.498 10.38z" fill="white"/>
+                  <path d="M16.498 20.573l7.497-4.353-7.497-3.348v7.701z" fill="white" fill-opacity=".2"/>
+                  <path d="M9 16.22l7.498 4.353v-7.701L9 16.22z" fill="white" fill-opacity=".602"/>
+                </svg>
+                <svg style="width:32px; height:32px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="16" cy="16" r="16" fill="#26A17B"/>
+                  <path d="M20.8 18.1c-.2.8-.9 1.1-1.9 1.1H17l.6-2.7c0-.1.1-.2.2-.2h.2c.8 0 1.5 0 1.9.4.3.3.4.7.2 1.4h-.3zm-1-5.7h-4.4c-.1 0-.3.1-.3.2l-.8 5.1c0 .1 0 .2.1.2h1.9c.1 0 .2-.1.2-.2l.2-1.2c0-.1.1-.2.2-.2h1.4c2.9 0 4.6-1.4 5-4.2.2-1.2 0-2.1-.6-2.8-.7-.8-1.8-1.2-3.2-1.2h-.7zm1.2 6.6c-.4 1.4-1.4 1.4-2.6 1.4h-.7l.5-2.8c0-.1.1-.1.1-.1h.3c.8 0 1.5 0 1.9.4.3.3.4.7.2 1.4h.3z" fill="white"/>
+                </svg>
+              </div>
+              <div style="font-weight:600; font-size:15px; color:var(--text);">Crypto</div>
             </div>
             
+          </div>
+          
+          <!-- Payment Content Sections -->
+          <div id="paymentContentArea" style="margin-top:24px; padding:32px; background:var(--card); border:2px solid var(--stroke); border-radius:var(--r); min-height:400px; box-shadow:var(--shadow);">
+            <div style="text-align:center; color:var(--muted); padding:60px 20px;">
+              <svg style="width:64px; height:64px; margin:0 auto 16px; opacity:0.3;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L12 22M12 2L8 6M12 2L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <p style="font-size:16px;">Select a payment method above to continue</p>
+            </div>
           </div>
         </div>
 
@@ -676,6 +757,143 @@
       } else {
         console.error('Payment section not found!');
         alert('Payment options loading... Please try again.');
+      }
+    }
+    
+    // Show Payment Tab Content
+    function showPaymentTab(tab) {
+      // Remove active state from all tabs
+      document.querySelectorAll('.payment-tab').forEach(t => {
+        t.style.background = 'var(--card)';
+        t.style.borderBottom = 'none';
+        t.style.transform = 'none';
+      });
+      
+      // Highlight active tab
+      const activeTab = document.querySelector(`.payment-tab[data-tab="${tab}"]`);
+      if (activeTab) {
+        activeTab.style.background = 'var(--card2)';
+        activeTab.style.borderBottom = '3px solid var(--pink)';
+        activeTab.style.transform = 'translateY(-2px)';
+      }
+      
+      const contentArea = document.getElementById('paymentContentArea');
+      
+      if (tab === 'card') {
+        contentArea.innerHTML = `
+          <h3 style="font-size:22px; font-weight:700; margin-bottom:24px; color:var(--text);">Credit or debit card</h3>
+          
+          <div style="display:flex; gap:12px; margin-bottom:24px; justify-content:flex-end;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa" style="height:24px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg" alt="Mastercard" style="height:24px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" alt="Amex" style="height:24px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/Discover_Card_logo.svg" alt="Discover" style="height:24px;">
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Cardholder name</label>
+              <input type="text" style="width:100%; padding:12px; border:2px solid rgba(128,128,128,.3); border-radius:8px; background:rgba(255,255,255,.05); color:var(--text); font-size:14px;">
+            </div>
+            <div>
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">
+                Card number 
+                <svg style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-left:4px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <text x="12" y="16" font-size="14" font-weight="bold" fill="currentColor" text-anchor="middle">i</text>
+                </svg>
+              </label>
+              <input type="text" placeholder="0000 0000 0000 0000" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
+            </div>
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+            <div>
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Expiration date</label>
+              <input type="text" placeholder="MM/YY" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
+            </div>
+            <div>
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">
+                CVV/CVC 
+                <svg style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-left:4px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <text x="12" y="16" font-size="14" font-weight="bold" fill="currentColor" text-anchor="middle">i</text>
+                </svg>
+              </label>
+              <input type="text" placeholder="000" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
+            </div>
+            <div>
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Postal code (optional)</label>
+              <input type="text" style="width:100%; padding:12px; border:2px solid rgba(128,128,128,.3); border-radius:8px; background:rgba(255,255,255,.05); color:var(--text); font-size:14px;">
+            </div>
+          </div>
+          
+          <div style="font-size:12px; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+            Services are subscription based and will automatically renew annually after the first year at the <a href="#" style="color:#4F46E5; text-decoration:underline;">then-applicable renewal price</a>, unless canceled. The price is subject to change, but we will notify you of any adjustments before charging. You can cancel auto-renewal anytime by following the <a href="#" style="color:#4F46E5; text-decoration:underline;">instructions</a> in your Nord Account. Payments are in USD and may include provider fees.<br><br>
+            By purchasing, you agree to the <a href="#" style="color:#4F46E5; text-decoration:underline;">terms of service</a>, <a href="#" style="color:#4F46E5; text-decoration:underline;">auto-renewal terms</a>, to receive electronic documents, and acknowledge our <a href="#" style="color:#4F46E5; text-decoration:underline;">privacy policy</a>.
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:16px;">
+            <button class="btn" style="padding:16px 48px; background:linear-gradient(135deg, var(--pink), var(--violet)); color:white; border:none; border-radius:32px; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.3s; box-shadow:0 8px 24px rgba(255,79,216,.35);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(255,79,216,.45)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 24px rgba(255,79,216,.35)'">Complete purchase</button>
+            <div style="display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px;">
+              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L12 12L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span>You're 100% backed by our 30-day money-back guarantee.</span>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'paypal') {
+        contentArea.innerHTML = `
+          <h3 style="font-size:22px; font-weight:700; margin-bottom:24px; color:var(--text);">PayPal</h3>
+          
+          <div style="font-size:12px; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+            Services are subscription based and will automatically renew annually after the first year at the <a href="#" style="color:#4F46E5; text-decoration:underline;">then-applicable renewal price</a>, unless canceled. The price is subject to change, but we will notify you of any adjustments before charging. You can cancel auto-renewal anytime by following the <a href="#" style="color:#4F46E5; text-decoration:underline;">instructions</a> in your Nord Account. Payments are in USD and may include provider fees.<br><br>
+            By purchasing, you agree to the <a href="#" style="color:#4F46E5; text-decoration:underline;">terms of service</a>, <a href="#" style="color:#4F46E5; text-decoration:underline;">auto-renewal terms</a>, to receive electronic documents, and acknowledge our <a href="#" style="color:#4F46E5; text-decoration:underline;">privacy policy</a>.
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:16px;">
+            <button class="btn" onclick="selectPaymentMethod('paypal')" style="padding:16px 48px; background:#FFC439; color:#003087; border:none; border-radius:32px; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#FFB700'" onmouseout="this.style.background='#FFC439'">
+              Buy with 
+              <svg style="height:20px;" viewBox="0 0 124 33" xmlns="http://www.w3.org/2000/svg">
+                <path d="M46.211 6.749h-6.839a.95.95 0 0 0-.939.802l-2.766 17.537a.57.57 0 0 0 .564.658h3.265a.95.95 0 0 0 .939-.803l.746-4.73a.95.95 0 0 1 .938-.803h2.165c4.505 0 7.105-2.18 7.784-6.5.306-1.89.013-3.375-.872-4.415-.972-1.142-2.696-1.746-4.985-1.746zM47 13.154c-.374 2.454-2.249 2.454-4.062 2.454h-1.032l.724-4.583a.57.57 0 0 1 .563-.481h.473c1.235 0 2.4 0 3.002.704.359.42.469 1.044.332 1.906zM66.654 13.075h-3.275a.57.57 0 0 0-.563.481l-.145.916-.229-.332c-.709-1.029-2.29-1.373-3.868-1.373-3.619 0-6.71 2.741-7.312 6.586-.313 1.918.132 3.752 1.22 5.031.998 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .562.66h2.95a.95.95 0 0 0 .939-.803l1.77-11.209a.568.568 0 0 0-.561-.658zm-4.565 6.374c-.316 1.871-1.801 3.127-3.695 3.127-.951 0-1.711-.305-2.199-.883-.484-.574-.668-1.391-.514-2.301.295-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.499.589.697 1.411.554 2.317zM84.096 13.075h-3.291a.954.954 0 0 0-.787.417l-4.539 6.686-1.924-6.425a.953.953 0 0 0-.912-.678h-3.234a.57.57 0 0 0-.541.754l3.625 10.638-3.408 4.811a.57.57 0 0 0 .465.9h3.287a.949.949 0 0 0 .781-.408l10.946-15.8a.57.57 0 0 0-.468-.895z" fill="#253B80"/>
+                <path d="M94.992 6.749h-6.84a.95.95 0 0 0-.938.802l-2.766 17.537a.569.569 0 0 0 .562.658h3.51a.665.665 0 0 0 .656-.562l.785-4.971a.95.95 0 0 1 .938-.803h2.164c4.506 0 7.105-2.18 7.785-6.5.307-1.89.012-3.375-.873-4.415-.971-1.142-2.694-1.746-4.983-1.746zm.789 6.405c-.373 2.454-2.248 2.454-4.062 2.454h-1.031l.725-4.583a.568.568 0 0 1 .562-.481h.473c1.234 0 2.4 0 3.002.704.359.42.468 1.044.331 1.906zM115.434 13.075h-3.273a.567.567 0 0 0-.562.481l-.145.916-.23-.332c-.709-1.029-2.289-1.373-3.867-1.373-3.619 0-6.709 2.741-7.311 6.586-.312 1.918.131 3.752 1.219 5.031 1 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .564.66h2.949a.95.95 0 0 0 .938-.803l1.771-11.209a.571.571 0 0 0-.565-.658zm-4.565 6.374c-.314 1.871-1.801 3.127-3.695 3.127-.949 0-1.711-.305-2.199-.883-.484-.574-.666-1.391-.514-2.301.297-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.501.589.699 1.411.554 2.317zM119.295 7.23l-2.807 17.858a.569.569 0 0 0 .562.658h2.822c.469 0 .867-.34.939-.803l2.768-17.536a.57.57 0 0 0-.562-.659h-3.16a.571.571 0 0 0-.562.482z" fill="#179BD7"/>
+                <path d="M7.266 29.154l.523-3.322-1.165-.027H1.061L4.927 1.292a.316.316 0 0 1 .314-.268h9.38c3.114 0 5.263.648 6.385 1.927.526.6.861 1.227 1.023 1.917.17.724.173 1.589.007 2.644l-.012.077v.676l.526.298a3.69 3.69 0 0 1 1.065.812c.45.513.741 1.165.864 1.938.127.795.085 1.741-.123 2.812-.24 1.232-.628 2.305-1.152 3.183a6.547 6.547 0 0 1-1.825 2c-.696.494-1.523.869-2.458 1.109-.906.236-1.939.355-3.072.355h-.73c-.522 0-1.029.188-1.427.525a2.21 2.21 0 0 0-.744 1.328l-.055.299-.924 5.855-.042.215c-.011.068-.03.102-.058.125a.155.155 0 0 1-.096.035H7.266z" fill="#253B80"/>
+                <path d="M23.048 7.667c-.028.179-.06.362-.096.55-1.237 6.351-5.469 8.545-10.874 8.545H9.326c-.661 0-1.218.48-1.321 1.132L6.596 26.83l-.399 2.533a.704.704 0 0 0 .695.814h4.881c.578 0 1.069-.42 1.16-.99l.048-.248.919-5.832.059-.32c.09-.572.582-.992 1.16-.992h.73c4.729 0 8.431-1.92 9.513-7.476.452-2.321.218-4.259-.978-5.622a4.667 4.667 0 0 0-1.336-1.03z" fill="#179BD7"/>
+                <path d="M21.754 7.151a9.757 9.757 0 0 0-1.203-.267 15.284 15.284 0 0 0-2.426-.177h-7.352a1.172 1.172 0 0 0-1.159.992L8.05 17.605l-.045.289a1.336 1.336 0 0 1 1.321-1.132h2.752c5.405 0 9.637-2.195 10.874-8.545.037-.188.068-.371.096-.55a6.594 6.594 0 0 0-1.017-.429 9.045 9.045 0 0 0-.277-.087z" fill="#222D65"/>
+                <path d="M9.614 7.699a1.169 1.169 0 0 1 1.159-.991h7.352c.871 0 1.684.057 2.426.177a9.757 9.757 0 0 1 1.481.353c.365.121.704.264 1.017.429.368-2.347-.003-3.945-1.272-5.392C20.378.682 17.853 0 14.622 0h-9.38c-.66 0-1.223.48-1.325 1.133L.01 25.898a.806.806 0 0 0 .795.932h5.791l1.454-9.225 1.564-9.906z" fill="#253B80"/>
+              </svg>
+            </button>
+            <div style="display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px;">
+              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L12 12L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span>You're 100% backed by our 30-day money-back guarantee.</span>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'crypto') {
+        contentArea.innerHTML = `
+          <h3 style="font-size:22px; font-weight:700; margin-bottom:24px; color:var(--text);">Binance</h3>
+          
+          <div style="font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+            This payment provider doesn't support automatic recurring payments, so your service will not renew. Payments are in USD and may include provider fees. You will be redirected to CoinGate to complete your purchase securely. Please read the CoinGate <a href="#" style="color:#4F46E5; text-decoration:underline;">disclaimer</a> for purchasers beforehand. It may take up to 24 hours to process your payment. You will get an email notification as soon as the service is active.<br><br>
+            By purchasing, you agree to the <a href="#" style="color:#4F46E5; text-decoration:underline;">terms of service</a>, <a href="#" style="color:#4F46E5; text-decoration:underline;">auto-renewal terms</a>, to receive electronic documents, and acknowledge our <a href="#" style="color:#4F46E5; text-decoration:underline;">privacy policy</a>.
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:16px;">
+            <button class="btn" onclick="selectPaymentMethod('binance')" style="padding:16px 48px; background:#4F46E5; color:white; border:none; border-radius:32px; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.3s;" onmouseover="this.style.background='#4338CA'" onmouseout="this.style.background='#4F46E5'">Buy with Binance</button>
+            <div style="display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px;">
+              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L12 12L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span>You're 100% backed by our 30-day money-back guarantee.</span>
+            </div>
+          </div>
+        `;
       }
     }
     

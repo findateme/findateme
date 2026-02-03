@@ -7,12 +7,18 @@
   <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — People</title>
 
+  <!-- Preload critical resources for faster loading -->
+  <link rel="preload" href="style.css" as="style" />
+  <link rel="preload" href="shared-theme.css" as="style" />
+  <link rel="preload" href="config.js" as="script" />
+  
   <link rel="stylesheet" href="browser-compatibility.css" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="shared-theme.css" />
 
   <script src="browser-polyfills.js"></script>
   <script src="config.js"></script>
+  <script src="performance.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <!-- CRITICAL: Verify user exists BEFORE loading anything else -->
@@ -502,6 +508,36 @@
       close.addEventListener("click", () => {
         menu.classList.remove("show");
         menu.setAttribute("aria-hidden","true");
+      });
+    }
+    
+    // Auto-hide header on scroll (mobile only)
+    if (window.innerWidth <= 768) {
+      const header = document.querySelector('.topbar');
+      let lastScroll = 0;
+      let isHeaderVisible = true;
+      
+      window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        
+        // Scrolling down and scrolled more than 50px
+        if (currentScroll > lastScroll && currentScroll > 50 && isHeaderVisible) {
+          header.style.transform = 'translateY(-100%)';
+          header.style.transition = 'transform 0.3s ease';
+          isHeaderVisible = false;
+        } 
+        // Scrolling up
+        else if (currentScroll < lastScroll && !isHeaderVisible) {
+          header.style.transform = 'translateY(0)';
+          isHeaderVisible = true;
+        }
+        // At top of page
+        else if (currentScroll <= 10) {
+          header.style.transform = 'translateY(0)';
+          isHeaderVisible = true;
+        }
+        
+        lastScroll = currentScroll;
       });
     }
   });

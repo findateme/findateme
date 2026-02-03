@@ -238,8 +238,9 @@ body[data-theme="light"] select{
   border-bottom: 1px solid rgba(255,255,255,.08);
   display:flex;
   justify-content:center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   transform: translateY(0);
+  will-change: transform;
 }
 .topbar.hide-header {
   transform: translateY(-100%);
@@ -2755,6 +2756,13 @@ body[data-page="inbox"] .inboxSidebar__top{
   gap:10px;
   padding:14px 16px 10px;
   border-bottom:1px solid rgba(255,255,255,.08);
+  flex-direction: column;
+  align-items: flex-start;
+}
+body[data-page="inbox"] .backToHome:hover {
+  background: var(--card2);
+  transform: translateX(-2px);
+  border-color: var(--pink);
 }
 body[data-page="inbox"] .brandMini{
   display:flex;
