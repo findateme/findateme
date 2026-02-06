@@ -34,8 +34,8 @@ try {
     
     // TODO: Add your PayPal API credentials
     // Get these from: https://developer.paypal.com/dashboard/applications/live
-    $paypalClientId = 'YOUR_PAYPAL_CLIENT_ID';
-    $paypalSecret = 'YOUR_PAYPAL_SECRET';
+    $paypalClientId = 'AcYBbIzNAb3w8obmSfV-d488i9yoa8psd20Jw7GLSsfb_Rcxo3U0mxMLu_hDEoLL94E2SRd4RIv8zYyZ'; // Replace with full Client ID
+    $paypalSecret = 'EMjdPgXm-huhW2eZzbxbyPi8Pri2RX7WpP8nfxKn5zMnFifJitYob5uPjFscK_lrkNYK37FfrlCZGF2o'; // Replace with your Secret
     $isSandbox = true; // Set false for production
     
     // PayPal API endpoint
