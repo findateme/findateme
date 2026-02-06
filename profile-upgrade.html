@@ -7,6 +7,9 @@
   <link rel="alternate icon" href="favicon.svg" type="image/svg+xml" />
   <title>DateMe — Profile Upgrade</title>
 
+  <!-- Stripe.js for payment processing -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="shared-theme.css" />
   <script src="config.js"></script>
@@ -790,60 +793,42 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/Discover_Card_logo.svg" alt="Discover" style="height:24px;">
           </div>
           
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-            <div>
+          <form id="stripe-payment-form">
+            <div style="margin-bottom:16px;">
               <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Cardholder name</label>
-              <input type="text" style="width:100%; padding:12px; border:2px solid rgba(128,128,128,.3); border-radius:8px; background:rgba(255,255,255,.05); color:var(--text); font-size:14px;">
+              <input id="cardholder-name" type="text" required style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'" />
             </div>
-            <div>
-              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">
-                Card number 
-                <svg style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-left:4px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <text x="12" y="16" font-size="14" font-weight="bold" fill="currentColor" text-anchor="middle">i</text>
+            
+            <div style="margin-bottom:16px;">
+              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Card information</label>
+              <!-- Stripe Card Element will be inserted here -->
+              <div id="stripe-card-element" style="padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card);"></div>
+              <div id="card-errors" style="color:#ff6b8b; font-size:13px; margin-top:8px;"></div>
+            </div>
+            
+            <div style="font-size:12px; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+              Services are subscription based and will automatically renew annually after the first year at the <a href="#" class="payment-link">then-applicable renewal price</a>, unless canceled. The price is subject to change, but we will notify you of any adjustments before charging. You can cancel auto-renewal anytime by following the <a href="#" class="payment-link">instructions</a> in your Account. Payments are in USD and may include provider fees.<br><br>
+              By purchasing, you agree to the <a href="#" class="payment-link">terms of service</a>, <a href="#" class="payment-link">auto-renewal terms</a>, to receive electronic documents, and acknowledge our <a href="#" class="payment-link">privacy policy</a>.
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+              <button type="submit" id="stripe-submit-btn" class="payment-btn-gradient">
+                <span id="button-text">Pay $<span id="payment-amount">${selectedPlan === 'basic' ? '14' : '30'}</span></span>
+                <span id="spinner" style="display:none;">⏳</span>
+              </button>
+              <div style="display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px;">
+                <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L12 12L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
                 </svg>
-              </label>
-              <input type="text" placeholder="0000 0000 0000 0000" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
+                <span>You're 100% backed by our 30-day money-back guarantee.</span>
+              </div>
             </div>
-          </div>
-          
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
-            <div>
-              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Expiration date</label>
-              <input type="text" placeholder="MM/YY" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
-            </div>
-            <div>
-              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">
-                CVV/CVC 
-                <svg style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-left:4px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <text x="12" y="16" font-size="14" font-weight="bold" fill="currentColor" text-anchor="middle">i</text>
-                </svg>
-              </label>
-              <input type="text" placeholder="000" style="width:100%; padding:12px; border:1.5px solid var(--stroke); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--stroke)'">
-            </div>
-            <div>
-              <label style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text);">Postal code (optional)</label>
-              <input type="text" style="width:100%; padding:12px; border:2px solid rgba(128,128,128,.3); border-radius:8px; background:rgba(255,255,255,.05); color:var(--text); font-size:14px;">
-            </div>
-          </div>
-          
-          <div style="font-size:12px; color:var(--muted); margin-bottom:24px; line-height:1.6;">
-            Services are subscription based and will automatically renew annually after the first year at the <a href="#" style="color:#4F46E5; text-decoration:underline;">then-applicable renewal price</a>, unless canceled. The price is subject to change, but we will notify you of any adjustments before charging. You can cancel auto-renewal anytime by following the <a href="#" style="color:#4F46E5; text-decoration:underline;">instructions</a> in your Nord Account. Payments are in USD and may include provider fees.<br><br>
-            By purchasing, you agree to the <a href="#" style="color:#4F46E5; text-decoration:underline;">terms of service</a>, <a href="#" style="color:#4F46E5; text-decoration:underline;">auto-renewal terms</a>, to receive electronic documents, and acknowledge our <a href="#" style="color:#4F46E5; text-decoration:underline;">privacy policy</a>.
-          </div>
-          
-          <div style="display:flex; align-items:center; gap:16px;">
-            <button class="btn" style="padding:16px 48px; background:linear-gradient(135deg, var(--pink), var(--violet)); color:white; border:none; border-radius:32px; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.3s; box-shadow:0 8px 24px rgba(255,79,216,.35);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(255,79,216,.45)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 24px rgba(255,79,216,.35)'">Complete purchase</button>
-            <div style="display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px;">
-              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L12 12L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <span>You're 100% backed by our 30-day money-back guarantee.</span>
-            </div>
-          </div>
+          </form>
         `;
+        
+        // Initialize Stripe after content is loaded
+        initializeStripe();
       } else if (tab === 'paypal') {
         contentArea.innerHTML = `
           <h3 style="font-size:22px; font-weight:700; margin-bottom:24px; color:var(--text);">PayPal</h3>
@@ -1121,6 +1106,159 @@
         if (notice) notice.textContent = "Verification failed. Please try again.";
       }
     });
+
+    // ===== STRIPE INTEGRATION =====
+    let stripe = null;
+    let cardElement = null;
+    let clientSecret = null;
+
+    // Initialize Stripe
+    async function initializeStripe() {
+      try {
+        // TODO: Replace with your actual Stripe publishable key
+        const STRIPE_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE';
+        
+        if (!STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === 'pk_test_YOUR_KEY_HERE') {
+          console.error('⚠️ Stripe publishable key not configured');
+          document.getElementById('card-errors').textContent = 'Payment system not configured. Please contact support.';
+          return;
+        }
+
+        // Initialize Stripe.js
+        stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+        
+        // Create card element with custom styling
+        const elements = stripe.elements();
+        cardElement = elements.create('card', {
+          style: {
+            base: {
+              fontSize: '14px',
+              color: getComputedStyle(document.documentElement).getPropertyValue('--text').trim(),
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              '::placeholder': {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),
+              },
+            },
+            invalid: {
+              color: '#ff6b8b',
+              iconColor: '#ff6b8b'
+            }
+          },
+          hidePostalCode: false
+        });
+        
+        // Mount card element
+        cardElement.mount('#stripe-card-element');
+        
+        // Handle card validation errors
+        cardElement.on('change', function(event) {
+          const displayError = document.getElementById('card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+        
+        // Add form submit handler
+        const form = document.getElementById('stripe-payment-form');
+        if (form) {
+          form.addEventListener('submit', handleStripePayment);
+        }
+        
+      } catch (error) {
+        console.error('Stripe initialization error:', error);
+        document.getElementById('card-errors').textContent = 'Payment system initialization failed. Please refresh the page.';
+      }
+    }
+
+    // Handle Stripe payment submission
+    async function handleStripePayment(event) {
+      event.preventDefault();
+      
+      const submitButton = document.getElementById('stripe-submit-btn');
+      const buttonText = document.getElementById('button-text');
+      const spinner = document.getElementById('spinner');
+      const errorElement = document.getElementById('card-errors');
+      
+      // Disable button and show loading
+      submitButton.disabled = true;
+      buttonText.style.display = 'none';
+      spinner.style.display = 'inline';
+      errorElement.textContent = '';
+      
+      try {
+        const cardholderName = document.getElementById('cardholder-name').value;
+        
+        if (!cardholderName) {
+          throw new Error('Please enter cardholder name');
+        }
+        
+        // Get amount based on selected plan
+        const amount = selectedPlan === 'basic' ? 1400 : 3000; // Amount in cents
+        
+        // Create payment intent on your server
+        const response = await fetch(`${API_BASE}/create-payment-intent.php`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('dateme_token') || ''}`
+          },
+          body: JSON.stringify({ 
+            amount: amount,
+            plan: selectedPlan,
+            email: localStorage.getItem('dateme_email') || ''
+          })
+        });
+        
+        const { clientSecret, error: serverError } = await response.json();
+        
+        if (serverError) {
+          throw new Error(serverError);
+        }
+        
+        // Confirm card payment
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: cardholderName,
+            }
+          }
+        });
+        
+        if (stripeError) {
+          throw new Error(stripeError.message);
+        }
+        
+        // Payment successful
+        if (paymentIntent.status === 'succeeded') {
+          // Store payment info
+          localStorage.setItem('dateme_payment_id', paymentIntent.id);
+          localStorage.setItem('dateme_upgrade_verified', 'true');
+          localStorage.setItem('dateme_upgrade_just_activated', 'true');
+          
+          // Show success message
+          errorElement.style.color = '#4ade80';
+          errorElement.textContent = '✅ Payment successful! Redirecting...';
+          
+          // Redirect to home
+          setTimeout(() => {
+            window.location.href = 'home.html';
+          }, 1500);
+        }
+        
+      } catch (error) {
+        console.error('Payment error:', error);
+        errorElement.style.color = '#ff6b8b';
+        errorElement.textContent = error.message || 'Payment failed. Please try again.';
+        
+        // Re-enable button
+        submitButton.disabled = false;
+        buttonText.style.display = 'inline';
+        spinner.style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
