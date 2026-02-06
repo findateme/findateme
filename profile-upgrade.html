@@ -864,9 +864,37 @@
             <ol style="font-size:13px; color:var(--muted); margin:0; padding-left:20px; line-height:1.8;">
               <li>Click "Pay with PayPal" button above</li>
               <li>Send <strong style="color:var(--text);">$<span id="paypal-amount-text">${selectedPlan === 'basic' ? '14' : '30'}</span> USD</strong> to: <strong style="color:var(--brand1);">rafayatfarhan@gmail.com</strong></li>
-              <li>After payment, email your transaction ID to support</li>
-              <li>Your premium access will be activated within 24 hours</li>
+              <li>After payment, enter your transaction ID below</li>
+              <li>Your premium access will be activated automatically!</li>
             </ol>
+          </div>
+          
+          <div style="margin-top:20px; padding:20px; background:linear-gradient(135deg, rgba(255,79,216,0.1), rgba(124,77,255,0.1)); border-radius:var(--r); border:1.5px solid var(--brand1);">
+            <p style="font-size:15px; color:var(--text); margin:0 0 16px 0; font-weight:700;">✅ Auto-Verify Your Payment</p>
+            <p style="font-size:13px; color:var(--muted); margin:0 0 16px 0;">After completing PayPal payment, paste your Transaction ID here to activate premium instantly:</p>
+            
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <input 
+                id="paypal-txid-input" 
+                type="text" 
+                placeholder="Enter Transaction ID (e.g., 1AB23456CD789012E)" 
+                style="width:100%; padding:12px; border:1.5px solid var(--line); border-radius:var(--r); background:var(--card); color:var(--text); font-size:14px; transition:border-color 0.2s ease;" 
+                onfocus="this.style.borderColor='var(--brand1)'" 
+                onblur="this.style.borderColor='var(--line)'"
+              />
+              <button 
+                onclick="verifyPayPalPayment()" 
+                class="payment-btn-gradient"
+                style="width:100%; padding:14px; background:linear-gradient(135deg, var(--brand1), var(--brand2)); color:white; border:none; border-radius:var(--r); font-size:15px; font-weight:700; cursor:pointer; transition:all 0.3s ease;"
+              >
+                🔍 Verify & Activate Premium
+              </button>
+              <div id="paypal-verify-status" style="font-size:13px; text-align:center; margin-top:8px;"></div>
+            </div>
+            
+            <p style="font-size:12px; color:var(--muted); margin:16px 0 0 0; text-align:center;">
+              💡 Find your Transaction ID in PayPal confirmation email or PayPal Activity page
+            </p>
           </div>
         `;
       } else if (tab === 'crypto') {
@@ -1279,19 +1307,81 @@
       // PayPal payment URL with pre-filled details
       const paypalEmail = 'rafayatfarhan@gmail.com';
       const itemName = `FindAteMe ${planName} Subscription`;
+      const currency = 'USD';
       
-      // Create PayPal.Me link or standard payment URL
-      // Option 1: PayPal.Me (if you have it setup)
-      // const paypalUrl = `https://paypal.me/YourPayPalMeUsername/${amount}`;
-      
-      // Option 2: Standard PayPal payment link
-      const paypalUrl = `https://www.paypal.com/paypalme/rafayatfarhan/${amount}`;
+      // Standard PayPal Send Money URL (works without PayPal.Me)
+      const paypalUrl = `https://www.paypal.com/webapps/xorouter/paymentstandard?cmd=_xclick&business=${encodeURIComponent(paypalEmail)}&item_name=${encodeURIComponent(itemName)}&amount=${amount}&currency_code=${currency}&no_shipping=1&return=https://findateme.com/home.html&cancel_return=https://findateme.com/profile-upgrade.html`;
       
       // Open PayPal in new window
-      window.open(paypalUrl, '_blank');
+      const paymentWindow = window.open(paypalUrl, '_blank', 'width=800,height=600');
       
       // Show instructions
-      alert(`🔔 PayPal Payment Instructions:\n\n1. Complete payment of $${amount} USD\n2. After payment, email your transaction ID to support\n3. Your account will be upgraded within 24 hours\n\nThank you for choosing FindAteMe ${planName}!`);
+      setTimeout(() => {
+        alert(`🔔 PayPal Payment Instructions:\n\n✅ PayPal window opened\n💰 Amount: $${amount} USD\n📧 Send to: ${paypalEmail}\n\n📌 After payment:\n• Copy your Transaction ID from PayPal\n• Paste it in the form below\n• Click "Verify & Activate Premium"\n• Your account will be upgraded instantly!\n\nThank you for choosing FindAteMe ${planName}!`);
+      }, 500);
+    }
+
+    // ===== PAYPAL TRANSACTION VERIFICATION =====
+    async function verifyPayPalPayment() {
+      const txidInput = document.getElementById('paypal-txid-input');
+      const statusDiv = document.getElementById('paypal-verify-status');
+      const transactionId = txidInput.value.trim();
+      
+      if (!transactionId) {
+        statusDiv.style.color = '#ff6b8b';
+        statusDiv.textContent = '❌ Please enter your Transaction ID';
+        return;
+      }
+      
+      // Show loading
+      statusDiv.style.color = 'var(--text)';
+      statusDiv.textContent = '⏳ Verifying payment...';
+      txidInput.disabled = true;
+      
+      try {
+        const amount = selectedPlan === 'basic' ? 14.00 : 30.00;
+        const email = localStorage.getItem('dateme_email') || '';
+        
+        const response = await fetch(`${API_BASE}/verify-paypal-payment.php`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('dateme_token') || ''}`
+          },
+          body: JSON.stringify({
+            transactionId: transactionId,
+            email: email,
+            amount: amount
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Success!
+          statusDiv.style.color = '#4ade80';
+          statusDiv.textContent = '✅ ' + data.message;
+          
+          // Store payment info
+          localStorage.setItem('dateme_payment_txid', transactionId);
+          localStorage.setItem('dateme_upgrade_verified', 'true');
+          localStorage.setItem('dateme_upgrade_just_activated', 'true');
+          
+          // Redirect to home after 2 seconds
+          setTimeout(() => {
+            window.location.href = 'home.html';
+          }, 2000);
+          
+        } else {
+          throw new Error(data.error || 'Verification failed');
+        }
+        
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        statusDiv.style.color = '#ff6b8b';
+        statusDiv.textContent = '❌ ' + (error.message || 'Verification failed. Please check your Transaction ID or contact support.');
+        txidInput.disabled = false;
+      }
     }
   </script>
 </body>
