@@ -711,6 +711,18 @@ app.post("/verify_txid.php", async (req, res) => {
   }
 });
 
+app.use((req, res, next) => {
+  const pathLower = String(req.path || "").toLowerCase();
+  const isHtml = pathLower.endsWith(".html") || pathLower === "/" || pathLower === "/home" || pathLower === "/login" || pathLower === "/signup" || pathLower === "/profile" || pathLower === "/inbox";
+  if (isHtml) {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    res.set("Surrogate-Control", "no-store");
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname)));
 
 app.get("/", (_req, res) => {
