@@ -12,4 +12,4 @@ window.UPGRADE_AMOUNT_PREMIUM = 30;
 // Admin email for UI-only admin controls
 window.DATEME_ADMIN_EMAIL = "toki11799@gmail.com";
 
-window.API_BASE = "http://72.61.254.84";
+window.API_BASE = "https://findateme.com";
