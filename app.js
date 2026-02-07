@@ -1849,10 +1849,7 @@ if (searchIconBtn && searchModal) {
       const desktopSearchInput = document.getElementById('q');
       if (desktopSearchInput) {
         desktopSearchInput.value = searchTerm;
-        const searchBtn = document.getElementById('applyBtn');
-        if (searchBtn) {
-          searchBtn.click();
-        }
+        desktopSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       searchModal.classList.remove('active');
     }

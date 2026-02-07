@@ -178,18 +178,14 @@
     </div>
 
       <div class="topbar__right">
-      <!-- Unified Search Bar (responsive for both mobile and desktop) -->
-      <div class="topbarSearch">
-        <div class="searchBar searchBar--mini">
-          <input id="q" class="searchInput" type="text" placeholder="Search username..." />
-          <button class="searchBtn searchBtn--premium" id="applyBtn" type="button">Search</button>
-        </div>
+        <button class="iconbtn searchIconBtn" id="searchIconBtn" type="button" aria-label="Search">
+          🔍
+        </button>
+        <a class="avatar" title="Profile" href="profile.html" aria-label="My Profile">
+          <span class="avatar__icon" aria-hidden="true">👤</span>
+          <img class="avatar__img" alt="" loading="lazy" />
+        </a>
       </div>
-      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Open menu" onclick="document.getElementById('sideMenu').classList.add('show');document.getElementById('sideMenu').setAttribute('aria-hidden','false');">☰</button>
-<a class="avatar" title="Profile" href="profile.html" aria-label="My Profile">
-  <span class="avatar__icon" aria-hidden="true">👤</span>
-  <img class="avatar__img" alt="" loading="lazy" />
-</a>    </div>
     </div>
   </header>
 
@@ -200,7 +196,9 @@
     <section class="content">
       <div class="storiesHeader">
         <div class="storiesTitle">Stories</div>
-        <button class="storiesAddBtn" id="storiesAddBtn" type="button">Add Story</button>
+        <div class="storiesActions">
+          <button class="iconbtn menuBtn storiesMenuBtn" id="menuBtn" type="button" aria-label="Open menu" onclick="document.getElementById('sideMenu').classList.add('show');document.getElementById('sideMenu').setAttribute('aria-hidden','false');">☰</button>
+        </div>
       </div>
       <div class="stories" id="stories"></div>
       <input id="storyInput" type="file" accept="image/*,video/*" hidden />
@@ -289,6 +287,24 @@
       
       <div class="sideMenu__footer">
         <button class="sideMenu__item logout" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="searchModal" id="searchModal" aria-hidden="true">
+    <div class="searchModal__backdrop" id="closeSearchModal"></div>
+    <div class="searchModal__panel" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+      <div class="searchModal__header">
+        <h3 id="searchModalTitle">Search</h3>
+        <button class="iconbtn" type="button" aria-label="Close search" onclick="document.getElementById('searchModal').classList.remove('active')">✕</button>
+      </div>
+      <div class="searchModal__body">
+        <input id="modalSearchInput" class="searchInput" type="text" placeholder="Search username..." />
+        <button class="searchBtn searchBtn--premium" id="modalSearchBtn" type="button">Search</button>
+      </div>
+      <div class="searchBar searchBar--mini searchBar--hidden" aria-hidden="true">
+        <input id="q" class="searchInput" type="text" placeholder="Search username..." />
+        <button class="searchBtn searchBtn--premium" id="applyBtn" type="button">Search</button>
       </div>
     </div>
   </div>

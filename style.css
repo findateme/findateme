@@ -22,6 +22,7 @@
   --radius: 18px;
 
   --max: 1180px;
+  color-scheme: dark;
 }
 
 *{box-sizing:border-box}
@@ -84,19 +85,35 @@ img,video{max-width:100%; display:block; height:auto}
 button,input,select{font:inherit}
 ::selection{background:rgba(255,79,216,.30)}
 
+input, textarea, select{
+  color: var(--text);
+  background-color: rgba(7,10,18,.55);
+}
+input::placeholder,
+textarea::placeholder{
+  color: rgba(234,240,255,.55);
+}
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill{
+  -webkit-text-fill-color: var(--text);
+  box-shadow: 0 0 0px 1000px rgba(7,10,18,.75) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 
 body[data-theme="light"]{
-  --bg0:#f7f8ff;
-  --bg1:#ffffff;
-  --text:#0c1020;
-  --muted: rgba(12,16,32,.70);
-  --card: rgba(12,16,32,.05);
-  --card2: rgba(12,16,32,.08);
-  --line: rgba(12,16,32,.12);
+  --bg0:#070A12;
+  --bg1:#090D19;
+  --text:#EAF0FF;
+  --muted: rgba(234,240,255,.72);
+  --card: rgba(255,255,255,.06);
+  --card2: rgba(255,255,255,.08);
+  --line: rgba(255,255,255,.10);
   background:
-    radial-gradient(1200px 700px at 12% 10%, rgba(124,77,255,.14), transparent 60%),
-    radial-gradient(900px 600px at 88% 20%, rgba(255,79,216,.12), transparent 55%),
-    radial-gradient(1000px 700px at 60% 90%, rgba(43,240,255,.08), transparent 60%),
+    radial-gradient(1200px 700px at 12% 10%, rgba(124,77,255,.25), transparent 60%),
+    radial-gradient(900px 600px at 88% 20%, rgba(255,79,216,.22), transparent 55%),
+    radial-gradient(1000px 700px at 60% 90%, rgba(43,240,255,.10), transparent 60%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
@@ -265,14 +282,16 @@ body[data-theme="light"] .topbar{background: rgba(255,255,255,.70)}
 
 /* Add padding to body to compensate for fixed header */
 body[data-page="people"] {
-  padding-top: 100px;
+  padding-top: 112px;
+  padding-top: calc(112px + env(safe-area-inset-top));
 }
 body[data-page="notifications"] {
   padding-top: 100px;
 }
 @media (max-width: 620px){
   body[data-page="people"] {
-    padding-top: 65px;
+    padding-top: 84px;
+    padding-top: calc(84px + env(safe-area-inset-top));
   }
   body[data-page="notifications"] {
     padding-top: 65px;
@@ -430,6 +449,9 @@ body[data-page="people"] .searchBar--mini{
   box-shadow: none;
   background: rgba(255,255,255,.03);
 }
+body[data-page="people"] .searchBar--hidden{
+  display:none;
+}
 body[data-page="people"] .searchBar--mini .searchInput{
   flex:0 0 180px;
   padding:10px 12px;
@@ -445,6 +467,13 @@ body[data-page="people"] .topbarSearch{
   margin-right:6px;
   position:relative;
   z-index:4;
+}
+body[data-page="people"] .searchIconBtn{
+  display:inline-flex;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);
+  background: linear-gradient(135deg, rgba(255,79,216,.18), rgba(124,77,255,.18));
+  box-shadow: 0 10px 30px rgba(255,79,216,.18);
 }
 body[data-page="people"] .topControls{
   display:flex;
@@ -487,11 +516,56 @@ body[data-page="people"] .searchInput{
   appearance:none;
 }
 
+body[data-page="people"] .searchModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:95;
+  padding:16px;
+}
+body[data-page="people"] .searchModal.active{
+  display:flex;
+}
+body[data-page="people"] .searchModal__backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.55);
+}
+body[data-page="people"] .searchModal__panel{
+  position:relative;
+  width:min(420px, 92vw);
+  background: rgba(10,12,22,.98);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  padding:14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.55);
+  z-index:1;
+}
+body[data-page="people"] .searchModal__header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+body[data-page="people"] .searchModal__body{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+body[data-page="people"] .searchModal__body .searchInput{
+  flex:1;
+  background: rgba(0,0,0,.35);
+}
+
 /* Search icon for mobile - removed, using compact search bar instead */
 
 @media (max-width: 620px){
   body[data-page="people"] {
-    padding-top: 58px;
+    padding-top: 84px;
+    padding-top: calc(84px + env(safe-area-inset-top));
   }
 
   body[data-page="people"] .topbar{
@@ -508,9 +582,20 @@ body[data-page="people"] .searchInput{
 
   /* Make search bar compact on mobile */
   body[data-page="people"] .topbarSearch {
-    display: flex !important;
+    display: none !important;
     flex: 1;
     max-width: 150px;
+  }
+  body[data-page="people"] .searchIconBtn{
+    display:none;
+  }
+
+  body[data-page="people"] .searchBar{
+    display:none !important;
+  }
+
+  body[data-page="people"] .searchBtn{
+    display:none !important;
   }
   
   body[data-page="people"] .searchBar--mini {
@@ -544,8 +629,24 @@ body[data-page="people"] .searchInput{
     row-gap: 0;
     gap: 8px;
   }
+  body[data-page="people"] .topbar__left{
+    min-width: 0;
+  }
+  body[data-page="people"] .topbar .searchBar{
+    flex: 1;
+    min-width: 0;
+  }
+  body[data-page="people"] .topbar .searchInput{
+    max-width: 160px;
+  }
   body[data-page="people"] .menuBtn{order: 2}
   body[data-page="people"] .avatar{order: 3; margin-left: 0}
+  body[data-page="people"] .avatar{
+    border-radius:999px;
+  }
+  body[data-page="people"] .avatar__img{
+    border-radius:999px;
+  }
 
   body[data-page="people"] .menuBtn,
   body[data-page="people"] .avatar,
@@ -562,6 +663,10 @@ body[data-page="people"] .searchInput{
   .topbar__inner{flex-wrap:wrap;}
   .topbar__right{flex-wrap:wrap; justify-content:flex-end;}
   .logoType{font-size:19px;}
+}
+@media (max-width: 740px){
+  body[data-page="people"] .topbar__inner{flex-wrap:nowrap;}
+  body[data-page="people"] .topbar__right{flex-wrap:nowrap;}
 }
 
 
@@ -794,16 +899,15 @@ body[data-page="people"] .userEmail{
 .avatar{
   width:40px;
   height:40px;
-  border-radius:14px;
+  border-radius:999px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   font-weight:800;
-  border:1px solid var(--line);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,79,216,.25), transparent 60%),
-    radial-gradient(circle at 70% 70%, rgba(124,77,255,.20), transparent 60%),
-    rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.22);
+  padding:2px;
+  background: linear-gradient(135deg, rgba(255,79,216,.55), rgba(124,77,255,.55));
+  box-shadow: 0 14px 36px rgba(124,77,255,.28);
   position:relative;
   overflow:hidden;
 }
@@ -815,8 +919,9 @@ body[data-page="people"] .userEmail{
   width:100%;
   height:100%;
   object-fit:cover;
-  border-radius:12px;
+  border-radius:999px;
   display:none;
+  background: rgba(12,12,20,.6);
 }
 .avatar.has-img .avatar__img{display:block}
 .avatar.has-img .avatar__icon{display:none}
@@ -1024,6 +1129,16 @@ body[data-page="people"] .contentTop{
   gap:12px;
   margin: 6px 0 8px;
 }
+.storiesActions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.storiesMenuBtn{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+}
 .storiesTitle{
   font-weight:800;
   letter-spacing:.2px;
@@ -1040,6 +1155,7 @@ body[data-page="people"] .contentTop{
   cursor:pointer;
   transition:.15s ease;
 }
+.storiesAddBtn{display:none;}
 .storiesAddBtn:hover{
   background: rgba(255,255,255,.10);
   border-color: rgba(255,255,255,.22);
@@ -3866,12 +3982,12 @@ body[data-page="signup"] select.authInput optgroup{
   }
 }
 
-/* Light mode media query support */
+/* Light mode media query support - keep dark everywhere */
 @media (prefers-color-scheme: light) {
   body:not([data-theme="dark"]) {
-    --bg0: #f7f8ff;
-    --bg1: #ffffff;
-    --text: #0c1020;
+    --bg0: #070A12;
+    --bg1: #090D19;
+    --text: #EAF0FF;
   }
 }
 
@@ -3925,6 +4041,10 @@ body[data-page="signup"] select.authInput optgroup{
   button {
     min-height: 48px;
     min-width: 48px;
+  }
+
+  body[data-page="people"] .searchIconBtn{
+    display: none !important;
   }
   
   /* Remove hover effects on touch devices */
