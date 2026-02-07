@@ -259,6 +259,9 @@ body[data-theme="light"] select{
   transform: translateY(0);
   will-change: transform;
 }
+body[data-page="people"] .topbar{
+  border-bottom: 0;
+}
 .topbar.hide-header {
   transform: translateY(-100%);
 }
@@ -576,28 +579,46 @@ body[data-page="people"] .searchModal__body .searchInput{
     gap:8px;
   }
 
+  body[data-page="people"] .topbar__left,
+  body[data-page="people"] .topbar__right{
+    min-width:0;
+  }
+
+  body[data-page="people"] .topbar__right{
+    flex:1 1 auto;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  body[data-page="people"] .topbar__right > *{
+    flex-shrink:0;
+  }
+
+  body[data-page="people"] .topbar__right .searchBar,
+  body[data-page="people"] .topbar__right .topbarSearch{
+    flex:1 1 160px;
+    min-width:0;
+  }
+
+  body[data-page="people"] .topbar__right .searchInput{
+    min-width:0;
+    width:100%;
+  }
+
   body[data-page="people"] .logo{gap:6px; font-size:16px;}
   body[data-page="people"] .logoMark{width:28px; height:28px;}
   body[data-page="people"] .logoType{font-size:16px;}
 
   /* Make search bar compact on mobile */
   body[data-page="people"] .topbarSearch {
-    display: none !important;
-    flex: 1;
-    max-width: 150px;
+    display: flex;
+    flex: 1 1 160px;
+    max-width: 220px;
   }
   body[data-page="people"] .searchIconBtn{
     display:none;
   }
 
-  body[data-page="people"] .searchBar{
-    display:none !important;
-  }
-
-  body[data-page="people"] .searchBtn{
-    display:none !important;
-  }
-  
   body[data-page="people"] .searchBar--mini {
     display: flex !important;
     width: 100%;
@@ -657,6 +678,20 @@ body[data-page="people"] .searchModal__body .searchInput{
   }
 
   body[data-page="people"] .avatar__icon{font-size:16px;}
+}
+
+@media (max-width: 420px){
+  body[data-page="people"] .topbar__inner{
+    flex-wrap:wrap;
+  }
+  body[data-page="people"] .topbar__right{
+    width:100%;
+    justify-content:flex-end;
+  }
+  body[data-page="people"] .topbar__right .searchBar,
+  body[data-page="people"] .topbar__right .topbarSearch{
+    flex:1 1 auto;
+  }
 }
 @media (max-width: 740px){
   .topbar{padding:10px 12px;}
