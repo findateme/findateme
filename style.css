@@ -519,50 +519,6 @@ body[data-page="people"] .searchInput{
   appearance:none;
 }
 
-body[data-page="people"] .searchModal{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:95;
-  padding:16px;
-}
-body[data-page="people"] .searchModal.active{
-  display:flex;
-}
-body[data-page="people"] .searchModal__backdrop{
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,.55);
-}
-body[data-page="people"] .searchModal__panel{
-  position:relative;
-  width:min(420px, 92vw);
-  background: rgba(10,12,22,.98);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:16px;
-  padding:14px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.55);
-  z-index:1;
-}
-body[data-page="people"] .searchModal__header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:10px;
-}
-body[data-page="people"] .searchModal__body{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-body[data-page="people"] .searchModal__body .searchInput{
-  flex:1;
-  background: rgba(0,0,0,.35);
-}
-
 /* Search icon for mobile - removed, using compact search bar instead */
 
 @media (max-width: 620px){
