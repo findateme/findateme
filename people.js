@@ -3,6 +3,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const grid = document.getElementById("grid");
   if (!grid) return;
 
+  function normalizePhotoUrl(photo, apiBase) {
+    if (!photo) return "";
+    const raw = String(photo).trim();
+    if (!raw) return "";
+    if (raw.startsWith("data:") || raw.startsWith("http://") || raw.startsWith("https://") || raw.startsWith("//")) {
+      return raw;
+    }
+
+    const base = String(apiBase || "").replace(/\/+$/, "");
+    const path = raw.startsWith("/") ? raw : `/${raw}`;
+    return base ? `${base}${path}` : path;
+  }
+
   async function loadProfiles() {
     // Remove loader
     const loader = document.getElementById("gridLoader");
@@ -44,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log("💎 User plan:", userPlan, "- Profile limit:", profileLimit);
       
       // Always fetch fresh data from server (no cache)
-      const baseUrl = window.API_BASE || '';
+      const baseUrl = window.API_BASE || "";
       
       const response = await fetch(`${baseUrl}/get_users.php?t=${Date.now()}`);
       
@@ -132,7 +145,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       grid.innerHTML = validProfiles.map(p => {
         // Photo display logic - show photo if exists (base64 or file URL), otherwise gradient
-        const hasPhoto = p.photo && p.photo.trim();
+        const resolvedPhoto = normalizePhotoUrl(p.photo, baseUrl);
+        const hasPhoto = !!resolvedPhoto;
         
         // Debug: Log profiles without photos
         if (!hasPhoto) {
@@ -140,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         
         const photoStyle = hasPhoto 
-          ? `background-image:url('${p.photo}'); background-size:cover; background-position:center;`
+          ? `background-image:url('${resolvedPhoto}'); background-size:cover; background-position:center;`
           : `background:linear-gradient(135deg, #ff4fd8, #7c4dff);`;
         
         return `

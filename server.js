@@ -927,43 +927,45 @@ app.put("/api/profile", async (req, res) => {
 
   try {
     let photoUrl = "";
+    const photoInput = String(photo || "").trim();
+    const isDataPhoto = photoInput.startsWith("data:image");
     
-    // Handle photo update - save to file system
-    if (photo && photo.trim()) {
-      try {
-        // Get old photo for history
-        const [current] = await pool.query(
-          "SELECT photo FROM user_profiles WHERE email = ?",
-          [email.toLowerCase()]
-        );
-        
-        if (current.length > 0 && current[0].photo && current[0].photo.trim()) {
-          // Save old photo URL to history
-          await pool.query(
-            "INSERT INTO photo_history (email, photo) VALUES (?, ?)",
-            [email.toLowerCase(), current[0].photo]
+    // Handle photo update - only save/delete when a new data URL is provided
+    if (photoInput) {
+      if (isDataPhoto) {
+        try {
+          // Get old photo for history
+          const [current] = await pool.query(
+            "SELECT photo FROM user_profiles WHERE email = ?",
+            [email.toLowerCase()]
           );
           
-          // Delete old photo file if it exists and is a file path (not base64)
-          if (!current[0].photo.startsWith('data:')) {
-            await photoStorage.deletePhoto(current[0].photo).catch(err => {
-              console.log("Old photo delete error (continuing):", err.message);
-            });
+          if (current.length > 0 && current[0].photo && current[0].photo.trim()) {
+            // Save old photo URL to history
+            await pool.query(
+              "INSERT INTO photo_history (email, photo) VALUES (?, ?)",
+              [email.toLowerCase(), current[0].photo]
+            );
+            
+            // Delete old photo file if it exists and is a file path (not base64)
+            if (!current[0].photo.startsWith("data:")) {
+              await photoStorage.deletePhoto(current[0].photo).catch(err => {
+                console.log("Old photo delete error (continuing):", err.message);
+              });
+            }
           }
+          
+          // Save new photo to file system
+          photoUrl = await photoStorage.savePhoto(email.toLowerCase(), photoInput);
+          console.log("✅ Profile photo saved to file:", photoUrl);
+        } catch (photoErr) {
+          console.error("Photo save error:", photoErr);
+          // Do not overwrite with empty if upload fails
+          photoUrl = "";
         }
-        
-        // Save new photo to file system
-        photoUrl = await photoStorage.savePhoto(email.toLowerCase(), photo);
-        console.log("✅ Profile photo saved to file:", photoUrl);
-        
-      } catch (photoErr) {
-        console.error("Photo save error:", photoErr);
-        // Continue with old photo or empty
-        if (photo.startsWith('data:')) {
-          photoUrl = ""; // Don't save base64 to DB anymore
-        } else {
-          photoUrl = photo; // Keep existing URL
-        }
+      } else {
+        // Existing URL or path from client; keep it as-is
+        photoUrl = photoInput;
       }
     }
     
