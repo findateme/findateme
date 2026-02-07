@@ -3310,15 +3310,17 @@ body[data-page="inbox"] .bubble.sticker{
   position:absolute;
   inset:0;
   background: rgba(0,0,0,.55);
-  /* Reduce heavy animations on small screens for better responsiveness */
-  * {
-    -webkit-animation-duration: 0.001ms !important;
-    animation-duration: 0.001ms !important;
-    -webkit-animation-delay: 0s !important;
-    animation-delay: 0s !important;
-    transition-duration: 0.001ms !important;
-  }
   backdrop-filter: blur(6px);
+}
+
+/* Reduce heavy animations inside call notice overlay */
+.callNotice__backdrop * {
+  -webkit-animation-duration: 0.001ms !important;
+  animation-duration: 0.001ms !important;
+  -webkit-animation-delay: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.001ms !important;
+}
 
 /* Scroll-reveal helper classes: add `reveal` to elements you want to fade/slide in */
 .reveal {
@@ -3343,7 +3345,6 @@ img, video, iframe {
   :root {
     --card-shadow: 0 6px 18px rgba(0,0,0,0.18);
   }
-}
 }
 .callNotice__panel{
   position:relative;
