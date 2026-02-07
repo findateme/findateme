@@ -150,6 +150,33 @@
       }catch(e){ return null; }
     })();
 
+    const getActiveEmail = () => String(localStorage.getItem("dateme_active_user") || "").trim().toLowerCase();
+    const readActiveProfile = () => {
+      const email = getActiveEmail();
+      if (email){
+        try{ return JSON.parse(localStorage.getItem(`dateme_profile_${email}`) || "{}"); }
+        catch(e){ return {}; }
+      }
+      try{ return JSON.parse(localStorage.getItem("dateme_profile") || "{}"); }
+      catch(e){ return {}; }
+    };
+    const getLikerName = () => {
+      const nameFromCurrent = String(currentUser?.name || "").trim();
+      if (nameFromCurrent) return nameFromCurrent;
+      const profile = readActiveProfile();
+      const nameFromProfile = String(profile?.name || "").trim();
+      return nameFromProfile || "Someone";
+    };
+    const addNotificationForUser = (email, text) => {
+      const target = String(email || "").trim().toLowerCase();
+      if (!target) return;
+      let items = [];
+      try{ items = JSON.parse(localStorage.getItem(`dateme_notifications_${target}`) || "[]"); }
+      catch(e){ items = []; }
+      items.unshift({ text, ts: Date.now(), read: false });
+      localStorage.setItem(`dateme_notifications_${target}`, JSON.stringify(items));
+    };
+
     function getProfiles(){
       try{ return JSON.parse(localStorage.getItem("dateme_profiles") || "[]"); }
       catch(e){ return []; }
@@ -334,6 +361,12 @@
         const likesEl = document.getElementById("pvLikes");
         if (likesEl) likesEl.textContent = `${totalLikes} likes`;
         showLikePop();
+
+        const targetEmail = String(p.email || "").trim().toLowerCase();
+        const likerName = getLikerName();
+        if (targetEmail){
+          addNotificationForUser(targetEmail, `${likerName} liked your profile.`);
+        }
       });
     }
   </script>

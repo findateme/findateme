@@ -198,6 +198,10 @@
      
     
     <section class="content">
+      <div class="storiesHeader">
+        <div class="storiesTitle">Stories</div>
+        <button class="storiesAddBtn" id="storiesAddBtn" type="button">Add Story</button>
+      </div>
       <div class="stories" id="stories"></div>
       <input id="storyInput" type="file" accept="image/*,video/*" hidden />
       <div class="emptyState" id="emptyState" style="display:none;">
@@ -494,6 +498,12 @@
         menu.classList.remove("show");
         menu.setAttribute("aria-hidden","true");
       });
+    }
+
+    const storyAddBtn = document.getElementById("storiesAddBtn");
+    const storyInput = document.getElementById("storyInput");
+    if (storyAddBtn && storyInput){
+      storyAddBtn.addEventListener("click", () => storyInput.click());
     }
     
     // Auto-hide header on scroll (mobile only)

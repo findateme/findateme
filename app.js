@@ -1302,7 +1302,7 @@ function cardHTML(p){
             ${p.online ? "Online" : "Offline"}
           </span>
         </div>
-        <div class="pcard__likes">❤ ${likes}</div>
+        <div class="pcard__likes">❤ ${likes} likes</div>
 
         <div class="pcard__sub">${displayCity}, ${displayCountry}</div>
         ${nearLine}
