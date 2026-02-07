@@ -934,7 +934,7 @@ function mergeCustomProfiles(list, gender){
     email: p.email || "",
     online: true,
     tags: Array.isArray(p.tags) && p.tags.length ? p.tags : ["New"],
-    img: p.img || ""
+    img: p.img || p.photo || ""
   }));
   return mapped.concat(list);
 }
@@ -1292,9 +1292,10 @@ function cardHTML(p){
   const km = 10 + randInt(0, 5);
   const nearLine = showNear ? `<div class="pcard__near">📍 Near: ${state.nearCity} (${km} km)</div>` : "";
   const userEmail = String(p.email || "").toLowerCase();
+  const imgSrc = p.img || p.photo || pickFallbackImage(userEmail || p.name || "user", normalizeGender(p.gender));
   return `
     <article class="pcard" data-card="${p.id}">
-      <img src="${p.img}" alt="${p.name}" loading="eager" fetchpriority="high" data-user-email="${userEmail}" onerror="this.style.display='none'" style="${p.img ? '' : 'display:none'}" />
+      <img src="${imgSrc}" alt="${p.name}" loading="eager" fetchpriority="high" data-user-email="${userEmail}" onerror="this.style.display='none'" />
       <div class="pcard__body">
         <div class="pcard__name">
           <span>${p.name}, ${p.age}</span>
